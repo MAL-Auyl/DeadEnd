@@ -1,15 +1,95 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PLACES } from '../data/places';
+import { useTrip } from '../context/TripContext';
 import MapView from '../components/MapView';
 import LiveAlerts from '../components/LiveAlerts';
 import WeatherWidget from '../components/WeatherWidget';
+
+function QuickStartDrawer({ place, onClose }) {
+  const { user, startTrip } = useTrip();
+  const navigate = useNavigate();
+  const [returnTime, setReturnTime] = useState('18:00');
+  const [vehicle, setVehicle] = useState(place.vehicles[0]);
+
+  function handleStart() {
+    startTrip(place, { returnTime, vehicle, contacts: user.contacts, groupType: 'solo', clothing: '' });
+    navigate('/tracking');
+  }
+
+  return (
+    <div className="qs-overlay" onClick={onClose}>
+      <div className="qs-sheet" onClick={e => e.stopPropagation()}>
+        <div className="qs-handle" />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Syne, sans-serif', color: 'var(--text)', marginBottom: 4 }}>
+              Готов к старту?
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {place.name} · {place.distance} км · {place.duration}</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text3)', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>✕</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+          {/* Return time */}
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>⏰ Время возврата</div>
+            <input
+              type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)}
+              className="form-input" style={{ width: '100%' }}
+            />
+          </div>
+
+          {/* Contacts */}
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>📞 Уведомим</div>
+            <div style={{
+              padding: '11px 14px', borderRadius: 8,
+              background: 'rgba(6,214,160,0.06)', border: '1px solid rgba(6,214,160,0.2)',
+              fontSize: 13, color: 'var(--teal)', fontWeight: 600,
+            }}>
+              {user.contacts.length > 0 ? user.contacts.map(c => c.name).join(', ') : 'Контакты не добавлены'}
+            </div>
+          </div>
+        </div>
+
+        {/* Vehicle */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>🚙 Транспорт</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {place.vehicles.map(v => (
+              <button key={v} onClick={() => setVehicle(v)} className={`qs-vehicle-btn${vehicle === v ? ' active' : ''}`}>{v}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Warnings quick preview */}
+        {place.warnings.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+            {place.warnings.slice(0, 3).map((w, i) => (
+              <span key={i} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 20, background: 'rgba(244,162,97,0.08)', color: '#F4A261', border: '1px solid rgba(244,162,97,0.2)' }}>
+                {w.icon} {w.title}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <button onClick={handleStart} className="btn btn-primary btn-lg btn-full" style={{ fontSize: 17, letterSpacing: '0.02em' }}>
+          🚀 Начать маршрут
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function PlaceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const place = PLACES.find(p => p.id === id);
   const [tab, setTab] = useState('info');
+  const [showQuickStart, setShowQuickStart] = useState(false);
 
   if (!place) return <div className="page"><div style={{ color: 'var(--text2)' }}>Place not found</div></div>;
 
@@ -158,11 +238,16 @@ export default function PlaceDetail() {
       </div>
 
       {/* CTA */}
-      <div style={{ padding: '0 28px 40px', background: 'var(--bg)' }}>
-        <button onClick={() => navigate(`/plan/${place.id}`)} className="btn btn-primary btn-lg btn-full">
-          Select A Trip →
+      <div style={{ padding: '0 28px 40px', background: 'var(--bg)', display: 'flex', gap: 10 }}>
+        <button onClick={() => setShowQuickStart(true)} className="btn btn-primary btn-lg btn-full">
+          🚀 Начать маршрут
+        </button>
+        <button onClick={() => navigate(`/plan/${place.id}`)} className="btn btn-ghost btn-lg" style={{ flexShrink: 0, fontSize: 13, padding: '16px 18px' }} title="Расширенные настройки">
+          ⚙️
         </button>
       </div>
+
+      {showQuickStart && <QuickStartDrawer place={place} onClose={() => setShowQuickStart(false)} />}
     </div>
   );
 }
