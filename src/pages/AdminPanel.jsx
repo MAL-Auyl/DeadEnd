@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { MOCK_ACTIVE_TOURISTS } from '../data/places';
 import { useTrip } from '../context/TripContext';
 
-const statusLabel = { active: '🟢 Active', overdue: '🟡 Overdue', completed: '⚫ Completed', sos: '🔴 SOS' };
-const statusBadge = { active: 'badge-teal', overdue: 'badge-amber', completed: 'badge-gray', sos: 'badge-red' };
+const COLUMNS = [
+  { key: 'sos',       label: '🔴 SOS',         color: 'var(--red)',    bg: 'rgba(255,71,87,0.08)',   border: 'rgba(255,71,87,0.35)' },
+  { key: 'overdue',   label: '🟡 Мерзімі өтті', color: 'var(--amber)',  bg: 'rgba(244,162,97,0.07)',  border: 'rgba(244,162,97,0.3)' },
+  { key: 'active',    label: '🟢 Активті',      color: 'var(--teal)',   bg: 'rgba(6,214,160,0.06)',   border: 'rgba(6,214,160,0.25)' },
+  { key: 'completed', label: '⚫ Аяқталды',     color: 'var(--text3)',  bg: 'rgba(255,255,255,0.02)', border: 'rgba(255,255,255,0.07)' },
+];
 
 export default function AdminPanel() {
   const { activeTrip, user, currentCoords, isOnline } = useTrip();
   const [selected, setSelected] = useState(null);
 
-  // Нақты уақыттағы турист қосу
   const liveTourist = activeTrip ? {
     id: 'live-' + activeTrip.id,
     name: user.firstName + ' ' + user.lastName,
@@ -29,131 +32,160 @@ export default function AdminPanel() {
     sosCount: activeTrip.sosCount || 0,
   } : null;
 
-  const tourists = liveTourist
-    ? [liveTourist, ...MOCK_ACTIVE_TOURISTS]
-    : MOCK_ACTIVE_TOURISTS;
-
+  const tourists = liveTourist ? [liveTourist, ...MOCK_ACTIVE_TOURISTS] : MOCK_ACTIVE_TOURISTS;
   const sosCount = tourists.filter(t => t.status === 'sos').length;
 
   return (
-    <div className="page">
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-        <h1 className="page-title" style={{ margin: 0 }}>MChS Admin Panel</h1>
-        {sosCount > 0 && (
-          <span className="badge badge-red" style={{ fontSize: 12, animation: 'pulse 1s infinite' }}>
-            🔴 {sosCount} SOS
-          </span>
-        )}
-        <span style={{
-          fontSize: 11, padding: '2px 8px', borderRadius: 20,
-          background: isOnline ? 'rgba(6,214,160,0.1)' : 'rgba(255,71,87,0.1)',
-          color: isOnline ? 'var(--teal)' : 'var(--red)',
-          border: `1px solid ${isOnline ? 'rgba(6,214,160,0.3)' : 'rgba(255,71,87,0.3)'}`,
-          fontWeight: 600, marginLeft: 'auto',
-        }}>
-          {isOnline ? '🟢 Online' : '🔴 Offline'}
-        </span>
-      </div>
-      <p className="page-sub">Нақты уақыттағы туристерді бақылау — Мангыстау облысы</p>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-      {/* Summary */}
-      <div className="grid-4" style={{ marginBottom: 32 }}>
-        {[
-          { label: 'Активті', val: tourists.filter(t => t.status === 'active').length, color: 'var(--teal)' },
-          { label: 'Мерзімі өтті', val: tourists.filter(t => t.status === 'overdue').length, color: 'var(--amber)' },
-          { label: 'SOS', val: tourists.filter(t => t.status === 'sos').length, color: 'var(--red)' },
-          { label: 'Аяқталды', val: tourists.filter(t => t.status === 'completed').length, color: 'var(--text3)' },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: 36, fontWeight: 900, color: s.color, fontFamily: 'Syne, sans-serif' }}>{s.val}</div>
-            <div style={{ fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 24 }}>
-        {/* List */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div className="section-label">Туристер тізімі ({tourists.length})</div>
-          {tourists.map(t => (
-            <div key={t.id} onClick={() => setSelected(t)} style={{
-              background: t.status === 'sos' ? 'rgba(255,71,87,0.06)' : t.isLive ? 'rgba(108,99,255,0.04)' : 'var(--surface)',
-              border: `1px solid ${t.status === 'sos' ? 'rgba(255,71,87,0.4)' : selected?.id === t.id ? 'var(--purple)' : t.isLive ? 'rgba(108,99,255,0.25)' : 'var(--border)'}`,
-              borderRadius: 'var(--radius-sm)', padding: '14px 16px',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.15s',
-            }}>
-              <div style={{ position: 'relative' }}>
-                <img src={t.photo} alt="" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border2)', flexShrink: 0 }} />
-                {t.isLive && (
-                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--bg2)', animation: 'pulse 1.5s infinite' }} />
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {t.name}
-                  {t.isLive && <span style={{ fontSize: 10, color: 'var(--purple)', fontWeight: 700 }}>● LIVE</span>}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text2)' }}>📍 {t.destination} · Қайту: {t.expectedReturn}</div>
-              </div>
-              <span className={`badge ${statusBadge[t.status]}`}>{statusLabel[t.status]}</span>
-            </div>
-          ))}
+      {/* ── Header ── */}
+      <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Syne, sans-serif', margin: 0 }}>MChS Admin Panel</h1>
+          {sosCount > 0 && (
+            <span style={{
+              fontSize: 12, padding: '3px 10px', borderRadius: 20, fontWeight: 700,
+              background: 'rgba(255,71,87,0.15)', color: 'var(--red)',
+              border: '1px solid rgba(255,71,87,0.4)', animation: 'pulse 1s infinite',
+            }}>🔴 {sosCount} SOS</span>
+          )}
+          <span style={{
+            marginLeft: 'auto', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600,
+            background: isOnline ? 'rgba(6,214,160,0.1)' : 'rgba(255,71,87,0.1)',
+            color: isOnline ? 'var(--teal)' : 'var(--red)',
+            border: `1px solid ${isOnline ? 'rgba(6,214,160,0.3)' : 'rgba(255,71,87,0.3)'}`,
+          }}>{isOnline ? '🟢 Online' : '🔴 Offline'}</span>
         </div>
+        <p style={{ fontSize: 13, color: 'var(--text3)', marginTop: 4 }}>
+          Нақты уақыттағы туристерді бақылау — Мангыстау облысы
+        </p>
 
-        {/* Detail */}
-        {selected && (
-          <div style={{ width: 320, flexShrink: 0 }}>
-            <div className="section-label">Турист карточкасы</div>
-            <div style={{
-              background: selected.status === 'sos' ? 'rgba(255,71,87,0.06)' : 'var(--surface)',
-              border: `1px solid ${selected.status === 'sos' ? 'rgba(255,71,87,0.4)' : 'var(--border)'}`,
-              borderRadius: 'var(--radius)', overflow: 'hidden',
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+          {COLUMNS.map(col => {
+            const count = tourists.filter(t => t.status === col.key).length;
+            return (
+              <div key={col.key} style={{
+                flex: 1, padding: '10px 16px', borderRadius: 10,
+                background: col.bg, border: `1px solid ${col.border}`,
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <span style={{ fontSize: 22, fontWeight: 900, color: col.color, fontFamily: 'Syne, sans-serif' }}>{count}</span>
+                <span style={{ fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{col.label.replace(/^[^ ]+ /, '')}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Kanban ── */}
+      <div style={{ flex: 1, display: 'flex', gap: 0, overflow: 'hidden' }}>
+        {COLUMNS.map((col, ci) => {
+          const cards = tourists.filter(t => t.status === col.key);
+          return (
+            <div key={col.key} style={{
+              flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              borderRight: ci < COLUMNS.length - 1 ? '1px solid var(--border)' : 'none',
             }}>
-              {selected.status === 'sos' && (
-                <div style={{ background: 'var(--red)', padding: '10px 16px', fontSize: 13, fontWeight: 700, color: 'white', textAlign: 'center', animation: 'pulse 1s infinite' }}>
-                  🆘 SOS — ДЕРЕУ КӨМЕК КЕРЕК ({selected.sosCount || 1} сигнал)
-                </div>
-              )}
-              <div style={{ padding: 20 }}>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 }}>
-                  <img src={selected.photo} alt="" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--border2)' }} />
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{selected.name}</div>
-                    <span className={`badge ${statusBadge[selected.status]}`}>{statusLabel[selected.status]}</span>
-                    {selected.isLive && <div style={{ fontSize: 11, color: 'var(--purple)', marginTop: 4, fontWeight: 600 }}>● Нақты уақыт деректері</div>}
-                  </div>
-                </div>
-                {[
-                  ['🩸 Қан тобы', selected.bloodType],
-                  ['🧥 Киім', selected.clothing],
-                  ['🚙 Көлік', selected.vehicle],
-                  ['📍 Бағыт', selected.destination],
-                  ['⏰ Қайту', selected.expectedReturn],
-                  ['📍 Чекпоинттер', `${selected.checkpointsDone}/${selected.checkpointsTotal}`],
-                  selected.coords ? ['🌐 GPS', `${selected.coords.lat?.toFixed(4)}, ${selected.coords.lng?.toFixed(4)}`] : null,
-                ].filter(Boolean).map(([label, val]) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                    <span style={{ color: 'var(--text3)' }}>{label}</span>
-                    <span style={{ color: 'var(--text)', fontWeight: 500, textAlign: 'right', maxWidth: 160 }}>{val}</span>
+              {/* Column header */}
+              <div style={{
+                padding: '14px 16px 10px', borderBottom: `2px solid ${col.border}`,
+                background: col.bg, flexShrink: 0,
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: col.color }}>{col.label}</span>
+                <span style={{ fontSize: 12, color: 'var(--text3)', marginLeft: 8 }}>({cards.length})</span>
+              </div>
+
+              {/* Cards */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {cards.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', marginTop: 24 }}>Жоқ</div>
+                )}
+                {cards.map(t => (
+                  <div key={t.id} onClick={() => setSelected(selected?.id === t.id ? null : t)}
+                    style={{
+                      background: selected?.id === t.id ? col.bg : 'var(--surface)',
+                      border: `1px solid ${selected?.id === t.id ? col.border : 'var(--border)'}`,
+                      borderRadius: 10, padding: '12px', cursor: 'pointer', transition: 'all 0.15s',
+                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <img src={t.photo} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border2)' }} />
+                        {t.isLive && (
+                          <div style={{ position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--bg)', animation: 'pulse 1.5s infinite' }} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {t.name}
+                          {t.isLive && <span style={{ fontSize: 9, color: 'var(--purple)', fontWeight: 700, marginLeft: 5 }}>● LIVE</span>}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1 }}>📍 {t.destination}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text2)' }}>⏰ {t.expectedReturn}</div>
+                    {t.checkpointsTotal > 0 && (
+                      <div style={{ marginTop: 8, height: 3, borderRadius: 2, background: 'var(--border)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${(t.checkpointsDone / t.checkpointsTotal) * 100}%`, background: col.color, borderRadius: 2, transition: 'width 0.3s' }} />
+                      </div>
+                    )}
                   </div>
                 ))}
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Байланыс контактілері</div>
-                  {(selected.contacts || []).map((c, i) => (
-                    <div key={i} style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 4 }}>📞 {c}</div>
-                  ))}
-                </div>
-                {selected.status === 'sos' && (
-                  <a href="tel:112" className="btn btn-danger btn-full" style={{ marginTop: 16, textDecoration: 'none' }}>
-                    📞 МЧС шақыру — 112
-                  </a>
-                )}
               </div>
             </div>
-          </div>
-        )}
+          );
+        })}
       </div>
+
+      {/* ── Detail drawer (bottom) ── */}
+      {selected && (
+        <div style={{
+          flexShrink: 0, borderTop: `2px solid ${selected.status === 'sos' ? 'var(--red)' : 'var(--border)'}`,
+          background: selected.status === 'sos' ? 'rgba(255,71,87,0.05)' : 'var(--bg2)',
+          padding: '16px 28px', maxHeight: 280, overflowY: 'auto',
+        }}>
+          {selected.status === 'sos' && (
+            <div style={{ background: 'var(--red)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 700, color: 'white', textAlign: 'center', marginBottom: 14, animation: 'pulse 1s infinite' }}>
+              🆘 SOS — ДЕРЕУ КӨМЕК КЕРЕК ({selected.sosCount || 1} сигнал)
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 200 }}>
+              <img src={selected.photo} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border2)', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{selected.name}</div>
+                {selected.isLive && <div style={{ fontSize: 11, color: 'var(--purple)', fontWeight: 600 }}>● Нақты уақыт</div>}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 32, flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+              {[
+                ['🩸', selected.bloodType],
+                ['🧥', selected.clothing],
+                ['🚙', selected.vehicle],
+                ['📍', selected.destination],
+                ['⏰', selected.expectedReturn],
+                ['✅', `${selected.checkpointsDone}/${selected.checkpointsTotal} cp`],
+                selected.coords ? ['🌐', `${selected.coords.lat?.toFixed(3)}, ${selected.coords.lng?.toFixed(3)}`] : null,
+              ].filter(Boolean).map(([icon, val]) => (
+                <div key={icon} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 16 }}>{icon}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text2)', whiteSpace: 'nowrap' }}>{val}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
+              {(selected.contacts || []).map((c, i) => (
+                <div key={i} style={{ fontSize: 12, color: 'var(--text2)' }}>📞 {c}</div>
+              ))}
+              {selected.status === 'sos' && (
+                <a href="tel:112" className="btn btn-danger" style={{ marginTop: 8, textDecoration: 'none', fontSize: 13 }}>
+                  📞 112 шақыру
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
