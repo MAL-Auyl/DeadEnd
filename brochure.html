@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<title>DeadEnd — Брошюра</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #5B50E8;
+    --teal: #05B889;
+    --red: #E8394A;
+    --amber: #E08A4A;
+    --bg: #0C0C1A;
+    --bg2: #14142A;
+    --text: #F1F0FF;
+    --text2: #6B6B8A;
+    --border: rgba(255,255,255,0.10);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #e8e8e8;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── PRINT HINT ── */
+  .print-hint {
+    text-align: center;
+    padding: 16px;
+    font-size: 14px;
+    color: #555;
+    background: #fff3cd;
+    border-bottom: 1px solid #ffc107;
+  }
+  @media print { .print-hint { display: none; } }
+
+  /* ── A4 LANDSCAPE SHEET ── */
+  .sheet {
+    width: 297mm;
+    height: 210mm;
+    background: var(--bg);
+    display: grid;
+    grid-template-columns: 99mm 99mm 99mm;
+    margin: 20px auto;
+    overflow: hidden;
+    color: var(--text);
+    page-break-after: always;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── PANEL BASE ── */
+  .panel {
+    padding: 22px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel + .panel {
+    border-left: 1px solid var(--border);
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .tag {
+    display: inline-block;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 100px;
+    margin-bottom: 12px; align-self: flex-start;
+  }
+  .tag-purple { background: rgba(91,80,232,0.2); color: #9B93FF; border: 1px solid rgba(91,80,232,0.4); }
+  .tag-red    { background: rgba(232,57,74,0.2);  color: #FF8A96; border: 1px solid rgba(232,57,74,0.4); }
+  .tag-teal   { background: rgba(5,184,137,0.2);  color: #5EDFBA; border: 1px solid rgba(5,184,137,0.4); }
+  .tag-amber  { background: rgba(224,138,74,0.2); color: #FFBB7D; border: 1px solid rgba(224,138,74,0.4); }
+
+  h1 { font-family: 'Syne', sans-serif; font-weight: 800; }
+  h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  p  { font-size: 11px; line-height: 1.65; color: rgba(241,240,255,0.65); }
+
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  /* stat row */
+  .stat-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .stat-box {
+    flex: 1; padding: 12px 10px; border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800; line-height: 1;
+  }
+  .stat-lbl { font-size: 9px; color: rgba(241,240,255,0.45); margin-top: 4px; line-height: 1.3; }
+
+  /* feature list */
+  .feat-list { display: flex; flex-direction: column; gap: 8px; }
+  .feat-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 9px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .feat-icon { font-size: 16px; flex-shrink: 0; }
+  .feat-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .feat-desc  { font-size: 10px; color: rgba(241,240,255,0.5); line-height: 1.4; }
+
+  /* flow */
+  .flow-list { display: flex; flex-direction: column; gap: 0; }
+  .flow-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .flow-item:last-child { border-bottom: none; }
+  .flow-num {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    background: rgba(91,80,232,0.15);
+    border: 1px solid rgba(91,80,232,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; color: #9B93FF;
+  }
+  .flow-text { font-size: 11px; color: var(--text); line-height: 1.4; }
+  .flow-sub  { font-size: 10px; color: rgba(241,240,255,0.45); }
+
+  /* check list */
+  .check-list { display: flex; flex-direction: column; gap: 7px; }
+  .check-item { display: flex; gap: 8px; font-size: 11px; color: rgba(241,240,255,0.7); align-items: flex-start; }
+  .check-dot  { width: 16px; height: 16px; border-radius: 4px; background: rgba(5,184,137,0.15); border: 1px solid rgba(5,184,137,0.35); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:9px; color: #5EDFBA; }
+
+  /* ─────────────────────────────
+     FRONT COVER (panel 1)
+  ───────────────────────────── */
+  .panel-cover {
+    background: radial-gradient(ellipse at 20% 40%, rgba(91,80,232,0.35) 0%, transparent 60%),
+                radial-gradient(ellipse at 85% 80%, rgba(5,184,137,0.15) 0%, transparent 50%),
+                var(--bg);
+    justify-content: space-between;
+  }
+  .logo-big {
+    font-family: 'Syne', sans-serif;
+    font-size: 52px; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+  }
+  .logo-dead { color: var(--text); }
+  .logo-end  { color: #9B93FF; }
+
+  .cover-tagline {
+    font-size: 13px; color: rgba(241,240,255,0.6);
+    line-height: 1.6; max-width: 200px;
+  }
+  .cover-badges { display: flex; flex-direction: column; gap: 6px; }
+  .cover-badge {
+    font-size: 10px; padding: 5px 10px; border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: rgba(241,240,255,0.6);
+  }
+  .cover-bottom {
+    border-top: 1px solid var(--border); padding-top: 14px;
+    font-size: 10px; color: rgba(241,240,255,0.35);
+    line-height: 1.6;
+  }
+
+  /* ─────────────────────────────
+     INSIDE PANELS
+  ───────────────────────────── */
+
+  /* accent strip top */
+  .accent-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .accent-purple { background: linear-gradient(90deg, #5B50E8, #9B93FF); }
+  .accent-red    { background: linear-gradient(90deg, #E8394A, #FF8A96); }
+  .accent-teal   { background: linear-gradient(90deg, #05B889, #5EDFBA); }
+  .accent-amber  { background: linear-gradient(90deg, #E08A4A, #FFBB7D); }
+
+  /* ─────────────────────────────
+     BACK COVER (panel 3 of sheet 2)
+  ───────────────────────────── */
+  .panel-back {
+    background: radial-gradient(ellipse at 50% 50%, rgba(91,80,232,0.2) 0%, transparent 70%), var(--bg);
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .qr-placeholder {
+    width: 100px; height: 100px;
+    background: white; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 56px;
+    margin: 0 auto;
+  }
+  .url-big {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 800;
+    color: #9B93FF;
+    background: rgba(91,80,232,0.1);
+    border: 1px solid rgba(91,80,232,0.3);
+    padding: 8px 18px; border-radius: 8px;
+  }
+  .contact-row { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+  .contact-item { font-size: 10px; color: rgba(241,240,255,0.45); }
+  .back-slogan {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    line-height: 1.25; margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="print-hint">
+  📄 Для печати: <strong>Ctrl+P (Cmd+P)</strong> → Размер бумаги: <strong>A4 Альбомная</strong> → Поля: <strong>Нет</strong> → Фоновая графика: <strong>ВКЛ</strong>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SHEET 1 — FRONT (внешняя сторона)
+     Панели: Задняя обложка | Задняя часть | Передняя обложка
+═══════════════════════════════════════════ -->
+<div class="sheet">
+
+  <!-- ── Задняя внутренняя часть (при раскрытии) ── -->
+  <div class="panel" style="justify-content:space-between">
+    <div class="accent-top accent-amber"></div>
+    <div>
+      <div class="tag tag-amber" style="margin-top:6px">Для Акимата</div>
+      <h2>Данные для<br/>государства</h2>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-num" style="color:#FFBB7D">847</div>
+          <div class="stat-lbl">туристов за июнь</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color:#5EDFBA">312</div>
+          <div class="stat-lbl">иностранных</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h3 style="color:rgba(241,240,255,0.8);margin-bottom:8px">🗺️ Топ маршруты месяца</h3>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        {['🥇 Бозжыра — 214 визитов','🥈 Шеркала — 189 визитов','🥉 Жыгылған — 156 визитов','4. Карынжарық — 98 визитов','5. Торыш — 87 визитов'].map(t=>`
+        <div style="font-size:11px;color:rgba(241,240,255,0.65);padding:5px 8px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06)">${t}</div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="divider"></div>
+      <h3 style="color:#FF8A96;margin-bottom:8px">⚠️ Рекомендации</h3>
+      <p>Установить 3 ретранслятора на маршруте Бозжыра. Разместить QR-щиты на въездах. Пункт помощи у Карынжарық.</p>
+    </div>
+  </div>
+
+  <!-- ── Задняя обложка ── -->
+  <div class="panel panel-back">
+    <div class="back-slogan">Маршрут<br/>под контролем</div>
+    <p style="font-size:11px;max-width:180px;text-align:center">Приложение безопасности для туристов Мангыстау</p>
+    <div class="qr-placeholder">📱</div>
+    <div class="url-big">deadend.vercel.app</div>
+    <div class="contact-row">
+      <div class="contact-item">🐙 github.com/MAL-Auyl/DeadEnd</div>
+      <div class="contact-item">📍 Мангыстауская область, Казахстан</div>
+      <div class="contact-item" style="margin-top:6px;color:rgba(241,240,255,0.25)">© DeadEnd 2026 · Хакатон</div>
+    </div>
+  </div>
+
+  <!-- ── Передняя обложка ── -->
+  <div class="panel panel-cover">
+    <div>
+      <div class="logo-big">
+        <span class="logo-dead">Dead</span><span class="logo-end">End</span>
+      </div>
+      <div class="cover-tagline" style="margin-top:10px">
+        Умное приложение безопасности для туристов Мангыстау
+      </div>
+    </div>
+    <div class="cover-badges">
+      <div class="cover-badge">📱 Работает офлайн</div>
+      <div class="cover-badge">🛡️ Интеграция с МЧС</div>
+      <div class="cover-badge">📊 Дашборд Акимата</div>
+      <div class="cover-badge">🌤️ Погода на казахском</div>
+    </div>
+    <div class="cover-bottom">
+      <div>🏆 Хакатон 2026</div>
+      <div>Мангыстауская область</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════
+     SHEET 2 — INSIDE (внутренняя сторона)
+     Панели: Проблема | Решение | Как работает
+═══════════════════════════════════════════ -->
+<div class="sheet">
+
+  <!-- ── Панель 1: Проблема ── -->
+  <div class="panel">
+    <div class="accent-top accent-red"></div>
+    <div style="margin-top:6px">
+      <div class="tag tag-red">Проблема</div>
+      <h2>Мангыстау —<br/>красота с риском</h2>
+      <p style="margin-bottom:14px">Туристы гибнут и теряются в Мангыстау из-за жары, отсутствия связи и того, что никто не знает куда они пошли.</p>
+
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-num" style="color:#FF8A96">8</div>
+          <div class="stat-lbl">SOS в месяц<br/>в пиковый сезон</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color:#FF8A96">42м</div>
+          <div class="stat-lbl">среднее время<br/>реакции МЧС</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="background:rgba(232,57,74,0.08);border:1px solid rgba(232,57,74,0.2);border-radius:8px;padding:12px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#FF8A96;margin-bottom:5px">127 часов</div>
+        <p>Арон Ралстон выжил 127 часов в каньоне — потому что никому не сказал куда идёт. В Мангыстау такие истории повторяются каждый сезон.</p>
+      </div>
+
+      <div class="divider"></div>
+      <h3 style="color:rgba(241,240,255,0.8);margin-bottom:8px">Опасные зоны области</h3>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="font-size:10px;color:rgba(241,240,255,0.55);padding:5px 8px;background:rgba(232,57,74,0.06);border-radius:6px;border-left:2px solid #E8394A">🔴 Карынжарық — дно ойпаты, +50°C, нет связи</div>
+        <div style="font-size:10px;color:rgba(241,240,255,0.55);padding:5px 8px;background:rgba(249,115,22,0.06);border-radius:6px;border-left:2px solid #F97316">🔶 Бозжыра — ветер 25 м/с, крутые спуски</div>
+        <div style="font-size:10px;color:rgba(241,240,255,0.55);padding:5px 8px;background:rgba(244,162,97,0.06);border-radius:6px;border-left:2px solid #F4A261">🟠 Жыгылған — нестабильные известняковые края</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Панель 2: Решение + Функции ── -->
+  <div class="panel" style="background:rgba(91,80,232,0.04)">
+    <div class="accent-top accent-purple"></div>
+    <div style="margin-top:6px">
+      <div class="tag tag-purple">Решение</div>
+      <h2>DeadEnd —<br/>цифровой страховщик</h2>
+      <p style="margin-bottom:14px">Турист регистрирует маршрут, указывает время возврата. Система следит — и если что-то пошло не так, немедленно сигнализирует МЧС.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="feat-list">
+      <div class="feat-item">
+        <div class="feat-icon">🗺️</div>
+        <div>
+          <div class="feat-title">10 маршрутов с реальными фото</div>
+          <div class="feat-desc">Бозжыра, Шеркала, Карынжарық, Жыгылған, Шақпақ-ата и другие — с предупреждениями и советами</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">📡</div>
+        <div>
+          <div class="feat-title">GPS-трекинг в реальном времени</div>
+          <div class="feat-desc">Работает офлайн. Координаты синхронизируются при появлении сети</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🆘</div>
+        <div>
+          <div class="feat-title">SOS одной кнопкой</div>
+          <div class="feat-desc">Нажал — координаты мгновенно в МЧС. Без интернета через PIN-код с любого телефона</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🌤️</div>
+        <div>
+          <div class="feat-title">Погода + казахские советы</div>
+          <div class="feat-desc">«Балам, 15 м/с жел бар — абай бол» — предупреждения от виртуальной мамы</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🛡️</div>
+        <div>
+          <div class="feat-title">Дашборд МЧС</div>
+          <div class="feat-desc">Все туристы, риск-оценка, операционный журнал, WhatsApp родственникам</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Панель 3: Как работает ── -->
+  <div class="panel">
+    <div class="accent-top accent-teal"></div>
+    <div style="margin-top:6px">
+      <div class="tag tag-teal">Как работает</div>
+      <h2>5 шагов<br/>безопасного тура</h2>
+    </div>
+
+    <div class="flow-list" style="margin-bottom:14px">
+      <div class="flow-item">
+        <div class="flow-num">1</div>
+        <div>
+          <div class="flow-text">🏠 Выбери место</div>
+          <div class="flow-sub">10 локаций Мангыстау с фото и предупреждениями</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">2</div>
+        <div>
+          <div class="flow-text">⚙️ Быстрый старт (30 сек)</div>
+          <div class="flow-sub">Время возврата + машина. Контакты уведомлены автоматически</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">3</div>
+        <div>
+          <div class="flow-text">📡 Трекинг маршрута</div>
+          <div class="flow-sub">GPS + чекпоинты + погода — всё в одном экране</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">4</div>
+        <div>
+          <div class="flow-text">🆘 SOS при необходимости</div>
+          <div class="flow-sub">Оператор МЧС видит карточку мгновенно — без обновления страницы</div>
+        </div>
+      </div>
+      <div class="flow-item">
+        <div class="flow-num">5</div>
+        <div>
+          <div class="flow-text">🏁 «Я вернулся»</div>
+          <div class="flow-sub">Экран завершения: время, км, чекпоинты, бейдж — близкие успокоены</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="color:rgba(241,240,255,0.8);margin-bottom:10px">⚡ Стек технологий</h3>
+    <div class="check-list">
+      <div class="check-item"><div class="check-dot">✓</div>React 18 + Vite — мгновенные переходы</div>
+      <div class="check-item"><div class="check-dot">✓</div>open-meteo.com — live погода</div>
+      <div class="check-item"><div class="check-dot">✓</div>Leaflet.js — карта маршрута</div>
+      <div class="check-item"><div class="check-dot">✓</div>localStorage — работа офлайн</div>
+      <div class="check-item"><div class="check-dot">✓</div>Vercel — деплой за 30 секунд</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
