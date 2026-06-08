@@ -4,15 +4,91 @@ import { useTrip } from '../context/TripContext';
 import { PLACES, VIBES } from '../data/places';
 import MapView from '../components/MapView';
 
+const BADGES = { 5: '🥉 Bronze Explorer', 10: '🥈 Silver Explorer', 20: '🥇 Gold Explorer' };
+
+function CompletionScreen({ data, onHome }) {
+  const { placeName, duration, distance, doneCps, totalCps, badge } = data;
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'var(--bg)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      padding: 32, textAlign: 'center',
+    }}>
+      {/* Icon */}
+      <div style={{
+        width: 88, height: 88, borderRadius: '50%', marginBottom: 28,
+        background: 'rgba(6,214,160,0.12)', border: '2px solid rgba(6,214,160,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40,
+        boxShadow: '0 0 40px rgba(6,214,160,0.2)',
+      }}>🏁</div>
+
+      {/* Title */}
+      <div style={{ fontSize: 13, color: 'var(--teal)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
+        Маршрут завершён
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 900, fontFamily: 'Syne, sans-serif', color: 'var(--text)', marginBottom: 6, lineHeight: 1.2 }}>
+        {placeName}
+      </div>
+      <div style={{ fontSize: 14, color: 'var(--text3)', marginBottom: 32 }}>
+        Всё прошло безопасно 🌿
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 28 }}>
+        {[
+          { icon: '⏱️', val: duration,              label: 'Время в пути' },
+          { icon: '📍', val: `${distance} км`,       label: 'Расстояние' },
+          { icon: '✅', val: `${doneCps}/${totalCps}`, label: 'Чекпоинтов' },
+        ].map(s => (
+          <div key={s.label} style={{
+            background: 'var(--bg2)', border: '1px solid var(--border)',
+            borderRadius: 14, padding: '16px 20px', minWidth: 90,
+          }}>
+            <div style={{ fontSize: 22 }}>{s.icon}</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text)', fontFamily: 'Syne, sans-serif', marginTop: 6, lineHeight: 1 }}>{s.val}</div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Badge */}
+      {badge && (
+        <div style={{
+          background: 'rgba(244,162,97,0.1)', border: '1px solid rgba(244,162,97,0.35)',
+          borderRadius: 14, padding: '14px 24px', marginBottom: 28,
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <span style={{ fontSize: 28 }}>{badge.split(' ')[0]}</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#F4A261' }}>{badge}</div>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>Новое достижение разблокировано!</div>
+          </div>
+        </div>
+      )}
+
+      <button onClick={onHome} style={{
+        background: 'var(--purple)', color: 'white', border: 'none',
+        borderRadius: 14, padding: '14px 40px',
+        fontSize: 16, fontWeight: 700, cursor: 'pointer',
+        fontFamily: 'Syne, sans-serif',
+      }}>
+        На главную →
+      </button>
+    </div>
+  );
+}
+
 export default function Tracking() {
   const navigate = useNavigate();
-  const { activeTrip, stopTrip, triggerSOS, updateCheckpoint } = useTrip();
+  const { activeTrip, stopTrip, triggerSOS, updateCheckpoint, user } = useTrip();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [playingVibe, setPlayingVibe] = useState(false);
   const [sosSending, setSosSending] = useState(false);
   const [stopSending, setStopSending] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
 
   useEffect(() => {
     if (!activeTrip) return;
@@ -63,9 +139,27 @@ export default function Tracking() {
   function handleStop() {
     if (stopSending) return;
     setStopSending(true);
+
+    const hrs  = Math.floor(elapsed / 3600000);
+    const mins = Math.floor((elapsed % 3600000) / 60000);
+    const duration = hrs > 0 ? `${hrs}ч ${mins}м` : `${mins}м`;
+    const cps = activeTrip.checkpoints || [];
+    const nextCount = (user.tripsCompleted || 0) + 1;
+
+    setCompletionData({
+      placeName:  activeTrip.placeName,
+      duration,
+      distance:   place?.distance ?? '—',
+      doneCps:    cps.filter(c => c.status === 'done').length,
+      totalCps:   cps.length,
+      badge:      BADGES[nextCount] || null,
+    });
     stopTrip();
     setShowStopConfirm(false);
-    navigate('/');
+  }
+
+  if (completionData) {
+    return <CompletionScreen data={completionData} onHome={() => navigate('/')} />;
   }
 
   return (
