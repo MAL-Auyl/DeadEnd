@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { PLACES } from '../data/places';
 import MapView from '../components/MapView';
 import LiveAlerts from '../components/LiveAlerts';
+import WeatherWidget from '../components/WeatherWidget';
 
 export default function PlaceDetail() {
   const { id } = useParams();
@@ -75,6 +76,9 @@ export default function PlaceDetail() {
       <div style={{ padding: 28, background: 'var(--bg)' }}>
         {tab === 'info' && (
           <div>
+            <div style={{ marginBottom: 24 }}>
+              <WeatherWidget coords={place.coords} placeName={place.name} />
+            </div>
             <p style={{ fontSize: 15, color: 'var(--text2)', lineHeight: 1.7, marginBottom: 24 }}>{place.description}</p>
             <div className="section-label" style={{ marginBottom: 12 }}>Route map</div>
             <div style={{ marginBottom: 24 }}><MapView place={place} height={220} /></div>

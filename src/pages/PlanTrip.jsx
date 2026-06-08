@@ -1,9 +1,9 @@
-// PlanTrip.jsx
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
 import MapView from '../components/MapView';
+import WeatherWidget from '../components/WeatherWidget';
 
 export default function PlanTrip() {
   const { id } = useParams();
@@ -29,6 +29,11 @@ export default function PlanTrip() {
       <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: 'var(--text2)', cursor: 'pointer', marginBottom: 16, fontSize: 13 }}>← Back</button>
       <h1 className="page-title">Plan Your Trip</h1>
       <p className="page-sub">📍 {place.name} · {place.distance} km · {place.duration}</p>
+
+      {/* Weather */}
+      <div style={{ marginBottom: 24 }}>
+        <WeatherWidget coords={place.coords} placeName={place.name} />
+      </div>
 
       {/* Map */}
       <div style={{ marginBottom: 28 }}>
