@@ -76,6 +76,23 @@ export function TripProvider({ children }) {
     };
   }, []);
 
+  // Синхронизация между вкладками: когда турист нажимает SOS в одной вкладке,
+  // вкладка админа сразу видит изменение через localStorage storage event
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'deadend_trip') {
+        const updated = e.newValue ? JSON.parse(e.newValue) : null;
+        setActiveTrip(updated);
+      }
+      if (e.key === 'deadend_user') {
+        const updated = e.newValue ? JSON.parse(e.newValue) : null;
+        if (updated) setUser(updated);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   useEffect(() => {
     if (!activeTrip || activeTrip.status === 'completed') {
       if (watchId.current) {
