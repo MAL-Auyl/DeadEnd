@@ -44,7 +44,6 @@ export function TripProvider({ children }) {
         addNotification(`🌙 Ескерту! ${minsToSunset} минуттан кейін қараңғы түседі. Температура +9°C-ге дейін төмендейді.`, 'info');
       }
 
-      const now = new Date();
       const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
       const returnTime = new Date();
       returnTime.setHours(h, m, 0, 0);
