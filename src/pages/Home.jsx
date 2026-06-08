@@ -2,6 +2,84 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
+import { useWeather, weatherIcon, getMamaTips } from '../hooks/useWeather';
+
+const AKTAU = { lat: 43.65, lng: 51.17 };
+
+function HomeWeatherBanner() {
+  const { weather, loading } = useWeather(AKTAU);
+
+  if (loading) {
+    return (
+      <div style={{ padding: '12px 16px', borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ fontSize: 18, opacity: 0.4 }}>🌤️</div>
+        <div style={{ fontSize: 12, color: 'var(--text3)' }}>Загрузка погоды...</div>
+      </div>
+    );
+  }
+  if (!weather) return null;
+
+  const { current, today } = weather;
+  const tips = getMamaTips(weather);
+  const hasWarning = tips.some(t => t.type === 'warning');
+  const firstWarning = tips.find(t => t.type === 'warning');
+  const isDangerous = today.windMax >= 20 || today.tempMax >= 42 || today.rainChance >= 60;
+
+  return (
+    <div style={{
+      borderRadius: 14, overflow: 'hidden', marginBottom: 28,
+      border: `1px solid ${isDangerous ? 'rgba(244,162,97,0.35)' : 'var(--border)'}`,
+      background: isDangerous ? 'rgba(244,162,97,0.05)' : 'var(--bg2)',
+    }}>
+      {/* Main row */}
+      <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <span style={{ fontSize: 32 }}>{weatherIcon(current.code)}</span>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--text)', fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>
+            {current.temp}°C
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>Мангыстау · сегодня</div>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 18 }}>
+          {[
+            { icon: '💨', val: `${current.wind} м/с`, warn: current.wind >= 15 },
+            { icon: '🌡️', val: `${today.tempMax}° / ${today.tempMin}°`, warn: today.tempMax >= 40 },
+            { icon: '🌧️', val: `${today.rainChance}%`, warn: today.rainChance >= 50 },
+          ].map(({ icon, val, warn }) => (
+            <div key={icon} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 14 }}>{icon}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: warn ? '#F4A261' : 'var(--text)', marginTop: 2 }}>{val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Warning strip */}
+      {hasWarning && firstWarning && (
+        <div style={{
+          padding: '9px 18px', borderTop: '1px solid rgba(244,162,97,0.2)',
+          background: 'rgba(244,162,97,0.07)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{ fontSize: 15 }}>{firstWarning.icon}</span>
+          <span style={{ fontSize: 12, color: '#F4A261', lineHeight: 1.4 }}>{firstWarning.text}</span>
+        </div>
+      )}
+
+      {/* All clear */}
+      {!hasWarning && (
+        <div style={{
+          padding: '8px 18px', borderTop: '1px solid var(--border)',
+          background: 'rgba(6,214,160,0.05)',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{ fontSize: 14 }}>✅</span>
+          <span style={{ fontSize: 12, color: 'var(--teal)' }}>Условия нормальные. Хорошего путешествия!</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CATEGORIES = [
   { id: 'popular', label: '🔥 Popular' },
@@ -25,6 +103,8 @@ export default function Home() {
         <h1 className="page-title">Where do you<br />wanna go?</h1>
         <p className="page-sub">Mangystau, Kazakhstan</p>
       </div>
+
+      <HomeWeatherBanner />
 
       {/* Active trip banner */}
       {activeTrip && (
