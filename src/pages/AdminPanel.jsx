@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { MOCK_ACTIVE_TOURISTS } from '../data/places';
 import { useTrip } from '../context/TripContext';
 
@@ -7,6 +7,185 @@ const INITIAL_HISTORY = [
   { id: 'h2', name: 'Aizat Nurlanova', time: '14:30', date: '06.06.2026', location: 'Шеркала тауы',       outcome: 'Закрыт: ложная тревога',    duration: '12м' },
   { id: 'h3', name: 'Thomas Brauer',   time: '11:55', date: '05.06.2026', location: 'Айрақты каньоны',    outcome: 'Найден группой спасателей', duration: '45м' },
 ];
+
+const OP_STEPS = [
+  { key: 'new',     icon: '🔴', label: 'Новый' },
+  { key: 'enroute', icon: '🚗', label: 'Выехали' },
+  { key: 'search',  icon: '🔍', label: 'Поиск' },
+  { key: 'found',   icon: '✅', label: 'Найден' },
+  { key: 'closed',  icon: '🏁', label: 'Закрыто' },
+];
+
+function useElapsed(signalTime) {
+  const [elapsed, setElapsed] = useState('');
+  useEffect(() => {
+    const compute = () => {
+      if (!signalTime) { setElapsed('—'); return; }
+      const [h, m] = signalTime.split(':').map(Number);
+      const now = new Date();
+      const signal = new Date();
+      signal.setHours(h, m, 0, 0);
+      let diffMs = now - signal;
+      if (diffMs < 0) diffMs += 86400000;
+      const totalMin = Math.floor(diffMs / 60000);
+      const hours = Math.floor(totalMin / 60);
+      const mins = totalMin % 60;
+      setElapsed(hours > 0 ? `${hours}ч ${mins}м` : `${mins}м`);
+    };
+    compute();
+    const id = setInterval(compute, 30000);
+    return () => clearInterval(id);
+  }, [signalTime]);
+  return elapsed;
+}
+
+// ── Operation modal ───────────────────────────────────────────
+function OperationModal({ t, onClose, onCloseIncident }) {
+  const [step, setStep]   = useState('new');
+  const [notes, setNotes] = useState('');
+  const elapsed = useElapsed(t.lastSignal || t.startTime);
+  const stepIndex = OP_STEPS.findIndex(s => s.key === step);
+  const canClose = step === 'found' || step === 'closed';
+
+  const handleFinish = () => {
+    const label = OP_STEPS.find(s => s.key === step)?.label || step;
+    onCloseIncident(t, notes ? `${label}: ${notes}` : label, elapsed);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div style={{
+        width: 520, borderRadius: 16,
+        background: 'var(--bg2)', border: '1px solid rgba(255,71,87,0.25)',
+        boxShadow: '0 28px 64px rgba(0,0,0,0.7)',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '16px 20px', background: 'rgba(255,71,87,0.08)',
+          borderBottom: '1px solid rgba(255,71,87,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16, fontWeight: 800, color: '#FF4757' }}>🚨 Операция</span>
+            <span style={{ fontSize: 12, color: 'var(--text3)', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 6 }}>
+              #{String(t.id).slice(-4).toUpperCase()}
+            </span>
+          </div>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: 'var(--text3)', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14 }}>✕</button>
+        </div>
+
+        <div style={{ padding: 20 }}>
+          {/* Tourist summary */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '12px 14px', marginBottom: 16,
+            background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid var(--border)',
+          }}>
+            <img src={t.photo} alt="" style={{ width: 50, height: 50, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>{t.name}</div>
+              <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 3 }}>📍 {t.destination}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+              <span style={{ fontSize: 12, background: 'rgba(255,71,87,0.15)', color: '#FF4757', padding: '2px 8px', borderRadius: 6, fontWeight: 700 }}>🩸 {t.bloodType}</span>
+              <span style={{ fontSize: 11, color: 'var(--text3)' }}>🚗 {t.vehicle} · {t.plate}</span>
+            </div>
+          </div>
+
+          {/* Timer */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            padding: '12px 16px', borderRadius: 10, marginBottom: 20,
+            background: 'rgba(255,71,87,0.07)', border: '1px solid rgba(255,71,87,0.2)',
+          }}>
+            <span style={{ fontSize: 24 }}>⏱️</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, color: 'var(--text3)' }}>SOS поступил</div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif', lineHeight: 1.1 }}>
+                {elapsed} назад
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase' }}>Сигнал</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{t.lastSignal || t.startTime}</div>
+            </div>
+          </div>
+
+          {/* Status stepper */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+              Статус операции
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {OP_STEPS.map((s, i) => {
+                const isDone   = i < stepIndex;
+                const isActive = i === stepIndex;
+                const isLast   = i === OP_STEPS.length - 1;
+                return (
+                  <Fragment key={s.key}>
+                    <button onClick={() => setStep(s.key)} style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                      padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: 'none',
+                      background: isActive ? 'rgba(108,99,255,0.18)' : isDone ? 'rgba(6,214,160,0.1)' : 'rgba(255,255,255,0.04)',
+                      outline: isActive ? '2px solid var(--purple)' : isDone ? '1px solid rgba(6,214,160,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                      transition: 'all 0.15s', minWidth: 68,
+                    }}>
+                      <span style={{ fontSize: 18 }}>{s.icon}</span>
+                      <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? 'var(--purple)' : isDone ? '#06D6A0' : 'var(--text3)', whiteSpace: 'nowrap' }}>
+                        {s.label}
+                      </span>
+                    </button>
+                    {!isLast && (
+                      <div style={{ flex: 1, height: 2, background: isDone ? '#06D6A0' : 'rgba(255,255,255,0.08)', transition: 'background 0.3s', minWidth: 8 }} />
+                    )}
+                  </Fragment>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Заметки</div>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Детали, местоположение группы, условия..."
+              rows={2}
+              style={{
+                width: '100%', padding: '10px 12px', borderRadius: 10, resize: 'none',
+                background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)',
+                color: 'var(--text)', fontSize: 13, outline: 'none',
+                fontFamily: 'DM Sans, sans-serif', boxSizing: 'border-box',
+              }}
+            />
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={onClose} style={{
+              flex: 1, padding: '11px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+              color: 'var(--text3)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            }}>Свернуть</button>
+            {canClose && (
+              <button onClick={handleFinish} style={{
+                flex: 2, padding: '11px', borderRadius: 10,
+                background: '#06D6A0', border: 'none',
+                color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              }}>✅ Закрыть дело</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const FILTERS = [
   { key: null,      icon: '👥', label: 'Все туристы',     color: '#06D6A0' },
@@ -108,7 +287,7 @@ function TouristList({ tourists, selected, onSelect }) {
 }
 
 // ── Tourist detail panel ─────────────────────────────────────
-function TouristPanel({ t, onClose, onCloseIncident }) {
+function TouristPanel({ t, onClose, onCloseIncident, onCreateOperation }) {
   const [outcome, setOutcome] = useState('');
   const [confirming, setConfirming] = useState(false);
 
@@ -214,7 +393,7 @@ function TouristPanel({ t, onClose, onCloseIncident }) {
           }}>🗺️ Открыть маршрут</button>
 
           {(isSOS || isNoSignal) && (
-            <button onClick={() => setConfirming(true)} style={{
+            <button onClick={() => onCreateOperation(t)} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               background: 'rgba(244,162,97,0.1)', color: '#F4A261',
               border: '1px solid rgba(244,162,97,0.3)', borderRadius: 10, padding: '10px',
@@ -349,6 +528,7 @@ export default function AdminPanel() {
   const { activeTrip, user, currentCoords, isOnline } = useTrip();
   const [filter, setFilter]       = useState(null);
   const [selected, setSelected]   = useState(null);
+  const [operation, setOperation] = useState(null);
   const [closedIds, setClosedIds] = useState(new Set());
   const [history, setHistory]     = useState(INITIAL_HISTORY);
   const [alertTab, setAlertTab]   = useState('sos');
@@ -409,7 +589,7 @@ export default function AdminPanel() {
 
   const handleSelect = (t) => setSelected(prev => prev?.id === t.id ? null : t);
 
-  const handleCloseIncident = (t, outcome) => {
+  const handleCloseIncident = (t, outcome, duration = '—') => {
     const now = new Date();
     const time = now.toTimeString().slice(0, 5);
     const date = now.toLocaleDateString('ru-RU');
@@ -420,10 +600,11 @@ export default function AdminPanel() {
       date,
       location: t.destination,
       outcome,
-      duration: '—',
+      duration,
     }, ...prev]);
     setClosedIds(prev => new Set([...prev, t.id]));
     setSelected(null);
+    setOperation(null);
     setAlertTab('history');
   };
 
@@ -474,9 +655,19 @@ export default function AdminPanel() {
             t={selected}
             onClose={() => setSelected(null)}
             onCloseIncident={handleCloseIncident}
+            onCreateOperation={setOperation}
           />
         )}
       </div>
+
+      {/* ── Operation modal ── */}
+      {operation && (
+        <OperationModal
+          t={operation}
+          onClose={() => setOperation(null)}
+          onCloseIncident={handleCloseIncident}
+        />
+      )}
 
       {/* ── SOS table + History ── */}
       <AlertTable
