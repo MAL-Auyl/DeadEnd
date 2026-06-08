@@ -626,9 +626,213 @@ function AlertTable({ tourists, history, activeTab, onTabChange, onSelect }) {
   );
 }
 
+// ── Акимат Statistics ─────────────────────────────────────────
+const MONTHLY_STATS = {
+  total: 847, foreign: 312, local: 535, avgDay: 27,
+  sos: 8, sosClosed: 6, sosAvgMin: 42,
+  topMonth: 'Июнь 2026',
+};
+
+const ROUTE_STATS = [
+  { name: 'Бозжыра',       id: 'bozzhyra',    visits: 214, sos: 2, pct: 100 },
+  { name: 'Шеркала',       id: 'sherkala',    visits: 189, sos: 1, pct: 88 },
+  { name: 'Жыгылған',      id: 'zhygylgan',   visits: 156, sos: 1, pct: 73 },
+  { name: 'Карынжарық',    id: 'karynzharyk', visits: 98,  sos: 2, pct: 46 },
+  { name: 'Торыш',         id: 'torysh',      visits: 87,  sos: 0, pct: 41 },
+  { name: 'Айрақты',       id: 'ayraqty',     visits: 76,  sos: 0, pct: 36 },
+  { name: 'Шақпақ-ата',    id: 'shakpak-ata', visits: 62,  sos: 1, pct: 29 },
+  { name: 'Сарыташ',       id: 'sarytas',     visits: 34,  sos: 1, pct: 16 },
+];
+
+const DANGER_ZONES = [
+  { name: 'Карынжарық — дно ойпаты',  reason: 'Экстремальная жара +50°C, нет связи', level: 'critical', sos: 2, color: '#FF4757' },
+  { name: 'Сарыташ — дальний каньон',  reason: 'Нет дороги, нет связи 80 км',         level: 'high',     sos: 1, color: '#F97316' },
+  { name: 'Бозжыра — выход на плато',  reason: 'Сильный ветер, крутые спуски',         level: 'high',     sos: 2, color: '#F97316' },
+  { name: 'Жыгылған — нижние уступы', reason: 'Осыпающийся известняк у воды',         level: 'medium',   sos: 1, color: '#F4A261' },
+  { name: 'Шеркала — ночёвка в горах', reason: 'Гипотермия, нет освещения',            level: 'medium',   sos: 1, color: '#F4A261' },
+];
+
+const MONTHS = [
+  { m: 'Янв', v: 42 }, { m: 'Фев', v: 58 }, { m: 'Мар', v: 134 },
+  { m: 'Апр', v: 289 }, { m: 'Май', v: 512 }, { m: 'Июн', v: 847 },
+];
+
+const TOURIST_TYPES = [
+  { label: 'Казахстанцы', value: 535, pct: 63, color: '#6C63FF' },
+  { label: 'СНГ',         value: 178, pct: 21, color: '#06D6A0' },
+  { label: 'Иностранцы',  value: 134, pct: 16, color: '#F4A261' },
+];
+
+function AkimatStats() {
+  const maxVisits = ROUTE_STATS[0].visits;
+  const maxMonth = Math.max(...MONTHS.map(m => m.v));
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
+
+      {/* Title */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+          Мангыстауская область · {MONTHLY_STATS.topMonth}
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Syne, sans-serif', color: 'var(--text)' }}>
+          Отчёт туристической активности
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
+          Данные актуальны на {new Date().toLocaleDateString('ru-RU')} · Для Акимата Мангыстауской области
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
+        {[
+          { icon: '🧳', val: MONTHLY_STATS.total.toLocaleString(), label: 'Туристов за месяц', color: '#6C63FF' },
+          { icon: '🌍', val: MONTHLY_STATS.foreign, label: 'Иностранцев', color: '#06D6A0' },
+          { icon: '📅', val: MONTHLY_STATS.avgDay, label: 'В среднем в день', color: '#F4A261' },
+          { icon: '🆘', val: MONTHLY_STATS.sos, label: 'SOS за месяц', color: '#FF4757' },
+        ].map(k => (
+          <div key={k.label} style={{
+            padding: '18px 20px', borderRadius: 14,
+            background: `${k.color}10`, border: `1px solid ${k.color}30`,
+          }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>{k.icon}</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: k.color, fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>{k.val}</div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+
+        {/* Monthly trend */}
+        <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 18 }}>📈 Поток туристов по месяцам</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 100 }}>
+            {MONTHS.map(({ m, v }) => (
+              <div key={m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ fontSize: 10, color: 'var(--text3)', fontWeight: 600 }}>{v >= 100 ? v : ''}</div>
+                <div style={{
+                  width: '100%', borderRadius: '4px 4px 0 0',
+                  background: v === maxMonth ? 'var(--purple)' : 'rgba(108,99,255,0.35)',
+                  height: `${Math.round((v / maxMonth) * 80)}px`,
+                  transition: 'height 0.3s',
+                }} />
+                <div style={{ fontSize: 10, color: 'var(--text3)' }}>{m}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 14, fontSize: 11, color: 'var(--text3)', textAlign: 'center' }}>
+            ↑ Пик сезона — май–август
+          </div>
+        </div>
+
+        {/* Tourist type breakdown */}
+        <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 18 }}>🌐 Состав туристов</div>
+          {/* Stacked bar */}
+          <div style={{ height: 14, borderRadius: 8, overflow: 'hidden', display: 'flex', marginBottom: 20 }}>
+            {TOURIST_TYPES.map(t => (
+              <div key={t.label} style={{ width: `${t.pct}%`, background: t.color }} />
+            ))}
+          </div>
+          {TOURIST_TYPES.map(t => (
+            <div key={t.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 3, background: t.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: 'var(--text2)' }}>{t.label}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{t.value.toLocaleString()}</span>
+                <span style={{ fontSize: 11, color: 'var(--text3)', minWidth: 30, textAlign: 'right' }}>{t.pct}%</span>
+              </div>
+            </div>
+          ))}
+          <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(6,214,160,0.06)', border: '1px solid rgba(6,214,160,0.2)', fontSize: 12, color: 'var(--teal)' }}>
+            ✅ {MONTHLY_STATS.sosClosed}/{MONTHLY_STATS.sos} SOS закрыты · Ср. время реакции {MONTHLY_STATS.sosAvgMin} мин
+          </div>
+        </div>
+      </div>
+
+      {/* Popular routes */}
+      <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px', marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 18 }}>🗺️ Популярные маршруты</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {ROUTE_STATS.map((r, i) => (
+            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 22, fontSize: 12, fontWeight: 700, color: i < 3 ? 'var(--purple)' : 'var(--text3)', textAlign: 'center', flexShrink: 0 }}>
+                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', minWidth: 130, flexShrink: 0 }}>{r.name}</div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 4,
+                  width: `${Math.round((r.visits / maxVisits) * 100)}%`,
+                  background: i < 3 ? 'var(--purple)' : 'rgba(108,99,255,0.4)',
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', minWidth: 36, textAlign: 'right' }}>{r.visits}</div>
+              {r.sos > 0 && (
+                <div style={{ fontSize: 11, padding: '2px 7px', borderRadius: 6, background: 'rgba(255,71,87,0.12)', color: '#FF4757', border: '1px solid rgba(255,71,87,0.3)', flexShrink: 0 }}>
+                  🆘 {r.sos}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Danger zones */}
+      <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: '20px 22px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>⚠️ Опасные зоны</div>
+          <div style={{ fontSize: 11, color: 'var(--text3)' }}>По данным МЧС · Июнь 2026</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {DANGER_ZONES.map((z, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 14, padding: '12px 14px',
+              borderRadius: 10, background: `${z.color}08`, border: `1px solid ${z.color}25`,
+            }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: z.color, flexShrink: 0, marginTop: 4 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>{z.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--text3)' }}>{z.reason}</div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 6, fontWeight: 700, background: `${z.color}18`, color: z.color, border: `1px solid ${z.color}40` }}>
+                  {z.level === 'critical' ? 'Критичный' : z.level === 'high' ? 'Высокий' : 'Средний'}
+                </span>
+                {z.sos > 0 && <span style={{ fontSize: 10, color: 'var(--text3)' }}>🆘 {z.sos} SOS</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      <div style={{ background: 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.2)', borderRadius: 14, padding: '20px 22px' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--purple)', marginBottom: 14 }}>📋 Рекомендации акимату</div>
+        {[
+          { icon: '📡', text: 'Установить 3 ретранслятора на маршруте Бозжыра–Карынжарық для покрытия сети' },
+          { icon: '🪧', text: 'Разместить информационные щиты с QR-кодом на DeadEnd у въезда в Сарыташ и Жыгылған' },
+          { icon: '🏥', text: 'Оборудовать точку первой помощи у основания Карынжарық — наиболее опасная зона' },
+          { icon: '🚁', text: 'Пик сезона июль–август: усилить дежурство МЧС — ожидается рост потока до 1200 чел/мес' },
+        ].map((r, i) => (
+          <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < 3 ? 12 : 0 }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>{r.icon}</span>
+            <span style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5 }}>{r.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { activeTrip, user, currentCoords, isOnline } = useTrip();
+  const [view, setView]           = useState('ops');
   const [filter, setFilter]       = useState(null);
   const [selected, setSelected]   = useState(null);
   const [operation, setOperation] = useState(null);
@@ -730,11 +934,27 @@ export default function AdminPanel() {
             <div style={{ fontSize: 18, fontWeight: 800, fontFamily: 'Syne, sans-serif', color: 'var(--text)' }}>🛡️ МЧС — Центр мониторинга</div>
             <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>Мангыстауская область · Нажмите на карточку для фильтрации</div>
           </div>
-          <div style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, fontWeight: 600, background: isOnline ? 'rgba(6,214,160,0.1)' : 'rgba(255,71,87,0.1)', color: isOnline ? '#06D6A0' : '#FF4757', border: `1px solid ${isOnline ? 'rgba(6,214,160,0.3)' : 'rgba(255,71,87,0.3)'}` }}>
-            {isOnline ? '● Онлайн' : '● Офлайн'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* View switcher */}
+            <div style={{ display: 'flex', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+              {[
+                { key: 'ops',   label: '🛡️ МЧС' },
+                { key: 'stats', label: '📊 Акимат' },
+              ].map(v => (
+                <button key={v.key} onClick={() => setView(v.key)} style={{
+                  padding: '7px 16px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                  background: view === v.key ? 'var(--purple)' : 'transparent',
+                  color: view === v.key ? 'white' : 'var(--text3)',
+                  transition: 'all 0.15s',
+                }}>{v.label}</button>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, fontWeight: 600, background: isOnline ? 'rgba(6,214,160,0.1)' : 'rgba(255,71,87,0.1)', color: isOnline ? '#06D6A0' : '#FF4757', border: `1px solid ${isOnline ? 'rgba(6,214,160,0.3)' : 'rgba(255,71,87,0.3)'}` }}>
+              {isOnline ? '● Онлайн' : '● Офлайн'}
+            </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        {view === 'ops' && <div style={{ display: 'flex', gap: 10 }}>
           {FILTERS.map(f => (
             <StatCard key={String(f.key)} icon={f.icon} label={f.label} color={f.color}
               value={f.key === null ? counts.all : f.key === 'active' ? counts.active : f.key === 'sos' ? counts.sos : counts.overdue}
@@ -742,42 +962,46 @@ export default function AdminPanel() {
               onClick={() => setFilter(prev => prev === f.key ? null : f.key)}
             />
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* Body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
-        <TouristList tourists={visible} selected={selected} onSelect={handleSelect} />
-        {selected && (
-          <TouristPanel
-            t={selected}
-            logs={logs[selected.id] || []}
-            onClose={() => setSelected(null)}
-            onCloseIncident={handleCloseIncident}
-            onCreateOperation={setOperation}
-            onAddLog={(icon, text) => addLog(selected.id, icon, text)}
+      {view === 'ops' ? (
+        <>
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+            <TouristList tourists={visible} selected={selected} onSelect={handleSelect} />
+            {selected && (
+              <TouristPanel
+                t={selected}
+                logs={logs[selected.id] || []}
+                onClose={() => setSelected(null)}
+                onCloseIncident={handleCloseIncident}
+                onCreateOperation={setOperation}
+                onAddLog={(icon, text) => addLog(selected.id, icon, text)}
+              />
+            )}
+          </div>
+          {operation && (
+            <OperationModal
+              t={operation}
+              onClose={() => setOperation(null)}
+              onCloseIncident={handleCloseIncident}
+              onAddLog={(icon, text) => addLog(operation.id, icon, text)}
+            />
+          )}
+          <AlertTable
+            tourists={allTourists.filter(t => !closedIds.has(t.id))}
+            history={history}
+            activeTab={alertTab}
+            onTabChange={setAlertTab}
+            onSelect={handleSelect}
           />
-        )}
-      </div>
-
-      {/* Operation modal */}
-      {operation && (
-        <OperationModal
-          t={operation}
-          onClose={() => setOperation(null)}
-          onCloseIncident={handleCloseIncident}
-          onAddLog={(icon, text) => addLog(operation.id, icon, text)}
-        />
+        </>
+      ) : (
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+          <AkimatStats />
+        </div>
       )}
-
-      {/* SOS table */}
-      <AlertTable
-        tourists={allTourists.filter(t => !closedIds.has(t.id))}
-        history={history}
-        activeTab={alertTab}
-        onTabChange={setAlertTab}
-        onSelect={handleSelect}
-      />
     </div>
   );
 }
