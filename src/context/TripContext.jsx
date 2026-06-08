@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { MOCK_USER } from '../data/places';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
 
 const TripContext = createContext(null);
 
@@ -26,7 +26,6 @@ export function TripProvider({ children }) {
   const etaTimerRef = useRef(null);
   const etaAlertedRef = useRef({ thirtyMin: false, oneHour: false });
 
-  // ── Live ETA автоалерт ──
   useEffect(() => {
     if (etaTimerRef.current) clearInterval(etaTimerRef.current);
     if (!activeTrip || activeTrip.status !== 'active' || !activeTrip.expectedReturn) return;
@@ -41,29 +40,23 @@ export function TripProvider({ children }) {
       const diffMs = returnTime - now;
       const diffMin = Math.round(diffMs / 60000);
 
-      // 30 минут қалғанда ескерту
       if (diffMin <= 30 && diffMin > 0 && !etaAlertedRef.current.thirtyMin) {
         etaAlertedRef.current.thirtyMin = true;
         addNotification(`⏰ ${activeTrip.placeName} — қайтуға ${diffMin} минут қалды!`, 'info');
       }
 
-      // Уақыт өтсе — контактілерге алерт
       if (diffMin <= 0 && diffMin > -30 && !etaAlertedRef.current.oneHour) {
         etaAlertedRef.current.oneHour = true;
         addNotification(`🚨 Қайту уақыты өтті! Контактілерге хабар жіберілді.`, 'danger');
         setActiveTrip(prev => prev ? { ...prev, status: 'overdue' } : prev);
       }
-    }, 30000); // 30 сек сайын тексер
+    }, 30000);
 
     return () => clearInterval(etaTimerRef.current);
   }, [activeTrip?.id, activeTrip?.expectedReturn, activeTrip?.status]);
 
-  // ── Online/offline detection ──
   useEffect(() => {
-    const goOnline = () => {
-      setIsOnline(true);
-      syncPendingData();
-    };
+    const goOnline = () => { setIsOnline(true); syncPendingData(); };
     const goOffline = () => setIsOnline(false);
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
@@ -73,7 +66,6 @@ export function TripProvider({ children }) {
     };
   }, []);
 
-  // ── GPS watchPosition — үздіксіз жаңару ──
   useEffect(() => {
     if (!activeTrip || activeTrip.status === 'completed') {
       if (watchId.current) {
@@ -82,26 +74,19 @@ export function TripProvider({ children }) {
       }
       return;
     }
-
     if (!navigator.geolocation) return;
 
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
         setCurrentCoords(coords);
-
-        // Офлайн болса — pending queue-ға қос
         if (!navigator.onLine) {
           pendingSync.current.push({ type: 'coords', coords, time: Date.now() });
           safeSet('deadend_pending', pendingSync.current);
         }
-
-        // Чекпоинт жетті ме тексер
         checkCheckpointProximity(coords);
       },
-      (err) => {
-        console.warn('GPS error:', err.code);
-      },
+      (err) => { console.warn('GPS error:', err.code); },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
 
@@ -113,20 +98,15 @@ export function TripProvider({ children }) {
     };
   }, [activeTrip?.id, activeTrip?.status]);
 
-  // ── Автоматты чекпоинт proximity тексеру ──
   function checkCheckpointProximity(coords) {
     setActiveTrip(prev => {
       if (!prev) return prev;
       const checkpoints = prev.checkpoints || [];
       const nextIdx = checkpoints.findIndex(cp => cp.status === 'pending');
       if (nextIdx < 0) return prev;
-
       const cp = checkpoints[nextIdx];
       if (!cp.coords) return prev;
-
       const dist = getDistanceKm(coords.lat, coords.lng, cp.coords.lat, cp.coords.lng);
-
-      // 2 км радиуста болса — автоматты "arrived"
       if (dist < 2) {
         addNotification(`📍 ${cp.name} чекпоинтіне жеттіңіз! ✅`, 'success');
         return {
@@ -136,8 +116,6 @@ export function TripProvider({ children }) {
           ),
         };
       }
-
-      // Чекпоинтке жету уақыты өтіп кетсе — алерт
       if (prev.expectedReturn) {
         const now = new Date();
         const returnTime = new Date();
@@ -147,12 +125,10 @@ export function TripProvider({ children }) {
           addNotification(`⚠️ Қайту уақыты өтті! Контактілерге хабар жіберілді.`, 'danger');
         }
       }
-
       return prev;
     });
   }
 
-  // ── Офлайн деректерді синхронизациялау ──
   function syncPendingData() {
     const pending = safeGet('deadend_pending', []);
     if (pending.length > 0) {
@@ -162,7 +138,6 @@ export function TripProvider({ children }) {
     }
   }
 
-  // ── Координаттар арасындағы қашықтық (Haversine) ──
   function getDistanceKm(lat1, lng1, lat2, lng2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -176,6 +151,21 @@ export function TripProvider({ children }) {
     if (activeTrip) safeSet('deadend_trip', activeTrip);
     else safeRemove('deadend_trip');
   }, [activeTrip]);
+
+  function login(credentials) {
+    if (
+      credentials.login === ADMIN_CREDENTIALS.login &&
+      credentials.password === ADMIN_CREDENTIALS.password
+    ) {
+      setUser(prev => ({ ...prev, role: 'admin' }));
+      return true;
+    }
+    return false;
+  }
+
+  function logout() {
+    setUser(prev => ({ ...prev, role: 'tourist' }));
+  }
 
   function startTrip(place, config) {
     if (startLock.current) return null;
@@ -265,7 +255,7 @@ export function TripProvider({ children }) {
 
   return (
     <TripContext.Provider value={{
-      user, updateUser,
+      user, updateUser, login, logout,
       activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
       notifications, addNotification,
       currentCoords, isOnline,

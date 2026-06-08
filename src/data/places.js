@@ -168,7 +168,10 @@ export const MOCK_USER = {
     { name: 'Sagadat', phone: '+7 775 345 1213', relation: 'Guide' },
   ],
   pin: '482916',
+  role: 'tourist',
 };
+
+export const ADMIN_CREDENTIALS = { login: 'admin', password: 'mchs2024' };
 
 export const MOCK_ACTIVE_TOURISTS = [
   {
