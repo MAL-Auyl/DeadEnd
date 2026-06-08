@@ -25,14 +25,25 @@ export function TripProvider({ children }) {
   const pendingSync = useRef([]);
   const etaTimerRef = useRef(null);
   const etaAlertedRef = useRef({ thirtyMin: false, oneHour: false });
+  const nightRiskAlertedRef = useRef(false);
 
   useEffect(() => {
     if (etaTimerRef.current) clearInterval(etaTimerRef.current);
     if (!activeTrip || activeTrip.status !== 'active' || !activeTrip.expectedReturn) return;
 
     etaAlertedRef.current = { thirtyMin: false, oneHour: false };
+    nightRiskAlertedRef.current = false;
 
     etaTimerRef.current = setInterval(() => {
+      // Night Risk: warn 40 min before sunset (≈20:40 in Mangystau)
+      const now = new Date();
+      const sunset = new Date(); sunset.setHours(20, 40, 0, 0);
+      const minsToSunset = Math.round((sunset - now) / 60000);
+      if (minsToSunset <= 40 && minsToSunset > 0 && !nightRiskAlertedRef.current) {
+        nightRiskAlertedRef.current = true;
+        addNotification(`🌙 Ескерту! ${minsToSunset} минуттан кейін қараңғы түседі. Температура +9°C-ге дейін төмендейді.`, 'info');
+      }
+
       const now = new Date();
       const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
       const returnTime = new Date();
@@ -197,6 +208,15 @@ export function TripProvider({ children }) {
     if (stopLock.current) return;
     stopLock.current = true;
     if (activeTrip) {
+      setUser(prev => {
+        const count = (prev.tripsCompleted || 0) + 1;
+        const prev5 = prev.tripsCompleted || 0;
+        const badges = { 5: '🥉 Bronze Explorer', 10: '🥈 Silver Explorer', 20: '🥇 Gold Explorer' };
+        if (badges[count]) {
+          setTimeout(() => addNotification(`${badges[count]} статусын алдыңыз! 🎉`, 'success'), 1500);
+        }
+        return { ...prev, tripsCompleted: count };
+      });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
       setActiveTrip(null);
       setCurrentCoords(null);

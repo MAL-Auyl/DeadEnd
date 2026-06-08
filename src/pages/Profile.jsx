@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useTrip } from '../context/TripContext';
 
+function getExplorerBadge(count) {
+  if (count >= 20) return { label: 'Gold Explorer', icon: '🥇', color: '#F4C430', bg: 'rgba(244,196,48,0.1)', border: 'rgba(244,196,48,0.3)' };
+  if (count >= 10) return { label: 'Silver Explorer', icon: '🥈', color: '#A8B2BD', bg: 'rgba(168,178,189,0.1)', border: 'rgba(168,178,189,0.3)' };
+  if (count >= 5)  return { label: 'Bronze Explorer', icon: '🥉', color: '#CD7F32', bg: 'rgba(205,127,50,0.1)', border: 'rgba(205,127,50,0.3)' };
+  return null;
+}
+
 export default function Profile() {
   const { user, updateUser, addNotification } = useTrip();
   const [form, setForm] = useState(user);
@@ -8,16 +15,47 @@ export default function Profile() {
   function set(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
   function handleSave() { updateUser(form); addNotification('Profile saved! ✅', 'success'); }
 
+  const badge = getExplorerBadge(user.tripsCompleted || 0);
+  const nextBadge = user.tripsCompleted < 5 ? { need: 5, label: 'Bronze Explorer', icon: '🥉' }
+    : user.tripsCompleted < 10 ? { need: 10, label: 'Silver Explorer', icon: '🥈' }
+    : user.tripsCompleted < 20 ? { need: 20, label: 'Gold Explorer', icon: '🥇' }
+    : null;
+
   return (
     <div className="page" style={{ maxWidth: 640 }}>
       <h1 className="page-title">Profile</h1>
       <p className="page-sub">Your data is shared with MChS if you send SOS</p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
         <img src={form.photo || user.photo} alt="" style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--purple)', marginBottom: 12 }} />
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{user.firstName} {user.lastName}</div>
         <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>{user.email}</div>
         <span style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600 }}>📸 Photo required — MChS uses it to find you</span>
+      </div>
+
+      {/* Explorer Badge */}
+      <div style={{ marginBottom: 24, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--border)' }}>
+        <div style={{ padding: '14px 18px', background: badge ? badge.bg : 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ fontSize: 36 }}>{badge ? badge.icon : '🗺️'}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: badge ? badge.color : 'var(--text2)' }}>
+              {badge ? badge.label : 'Explorer'}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
+              {user.tripsCompleted || 0} маршрут аяқталды
+            </div>
+          </div>
+          {badge && <div style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, fontWeight: 700 }}>Verified ✓</div>}
+        </div>
+        {nextBadge && (
+          <div style={{ padding: '10px 18px', background: 'var(--surface)', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Келесі: {nextBadge.icon} {nextBadge.label}</span>
+            <div style={{ flex: 1, height: 4, borderRadius: 4, background: 'var(--border)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${((user.tripsCompleted || 0) / nextBadge.need) * 100}%`, background: 'var(--purple)', borderRadius: 4, transition: 'width 0.4s' }} />
+            </div>
+            <span style={{ fontSize: 11, color: 'var(--text3)', whiteSpace: 'nowrap' }}>{user.tripsCompleted || 0}/{nextBadge.need}</span>
+          </div>
+        )}
       </div>
 
       <div style={{ background: 'rgba(255,71,87,0.06)', border: '1px solid rgba(255,71,87,0.2)', borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: 24 }}>

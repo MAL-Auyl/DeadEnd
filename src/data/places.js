@@ -169,6 +169,7 @@ export const MOCK_USER = {
   ],
   pin: '482916',
   role: 'tourist',
+  tripsCompleted: 7,
 };
 
 export const ADMIN_CREDENTIALS = { login: 'admin', password: 'mchs2024' };
