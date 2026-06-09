@@ -1,17 +1,35 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { TripProvider, useTrip } from './context/TripContext';
 import { LangProvider, useLang } from './context/LangContext';
-import Home from './pages/Home';
-import PlaceDetail from './pages/PlaceDetail';
-import PlanTrip from './pages/PlanTrip';
-import Tracking from './pages/Tracking';
-import Profile from './pages/Profile';
-import AdminPanel from './pages/AdminPanel';
-import PinLogin from './pages/PinLogin';
-import NotFound from './pages/NotFound';
-import Landing from './pages/Landing';
-import AboutUs from './pages/AboutUs';
 import './index.css';
+
+const Home        = lazy(() => import('./pages/Home'));
+const PlaceDetail = lazy(() => import('./pages/PlaceDetail'));
+const PlanTrip    = lazy(() => import('./pages/PlanTrip'));
+const Tracking    = lazy(() => import('./pages/Tracking'));
+const Profile     = lazy(() => import('./pages/Profile'));
+const AdminPanel  = lazy(() => import('./pages/AdminPanel'));
+const PinLogin    = lazy(() => import('./pages/PinLogin'));
+const NotFound    = lazy(() => import('./pages/NotFound'));
+const Landing     = lazy(() => import('./pages/Landing'));
+const AboutUs     = lazy(() => import('./pages/AboutUs'));
+
+function PageLoader() {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: '100%', minHeight: 200,
+    }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%',
+        border: '2px solid rgba(201,160,85,0.15)',
+        borderTopColor: 'var(--gold)',
+        animation: 'spin 0.7s linear infinite',
+      }} />
+    </div>
+  );
+}
 
 function Notifications() {
   const { notifications } = useTrip();
@@ -87,28 +105,28 @@ function Layout() {
       <TopNav />
       <main className="app-main">
         <Notifications />
-        <Routes>
-          <Route path="/"          element={<Home />} />
-          <Route path="/place/:id" element={<PlaceDetail />} />
-          <Route path="/plan/:id"  element={<PlanTrip />} />
-          <Route path="/tracking"  element={<Tracking />} />
-          <Route path="/profile"   element={<Profile />} />
-          <Route path="/pin"       element={<PinLogin />} />
-          <Route path="/about-old"  element={<Landing />} />
-          <Route path="*"          element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/"          element={<Home />} />
+            <Route path="/place/:id" element={<PlaceDetail />} />
+            <Route path="/plan/:id"  element={<PlanTrip />} />
+            <Route path="/tracking"  element={<Tracking />} />
+            <Route path="/profile"   element={<Profile />} />
+            <Route path="/pin"       element={<PinLogin />} />
+            <Route path="/about-old" element={<Landing />} />
+            <Route path="*"          element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
     </div>
   );
 }
 
-// ── Standalone MChS panel — full screen, no nav, no auth ──────
 function MChSApp() {
   const navigate = useNavigate();
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)', position: 'relative' }}>
       <Notifications />
-      {/* Floating back button */}
       <button
         onClick={() => navigate('/')}
         style={{
@@ -120,7 +138,9 @@ function MChSApp() {
       >
         ← App
       </button>
-      <AdminPanel />
+      <Suspense fallback={<PageLoader />}>
+        <AdminPanel />
+      </Suspense>
     </div>
   );
 }
@@ -131,11 +151,12 @@ export default function App() {
       <TripProvider>
         <BrowserRouter>
           <Routes>
-            {/* MChS panel — completely separate, no tourist nav */}
-            <Route path="/mchs" element={<MChSApp />} />
-            {/* About landing — standalone, no app chrome */}
-            <Route path="/about" element={<AboutUs />} />
-            {/* Tourist app */}
+            <Route path="/mchs"  element={<MChSApp />} />
+            <Route path="/about" element={
+              <Suspense fallback={<PageLoader />}>
+                <AboutUs />
+              </Suspense>
+            } />
             <Route path="/*" element={<Layout />} />
           </Routes>
         </BrowserRouter>
