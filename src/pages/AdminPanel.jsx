@@ -493,6 +493,13 @@ function OperationModal({ t, initialStep, onStepChange, sentSteps, onStepSent, o
     found:   { label: 'Закрыть операцию',          next: 'closed',  bg: C.blue,  color: 'white' },
   };
   const LOG_MSGS = { enroute: 'Группа выехала', search: 'Начат поиск', found: 'Турист найден', closed: 'Операция завершена' };
+  const TOURIST_MSGS = {
+    new:     { text: '⏳ SOS получен. Ожидайте — МЧС принимает вызов.',   color: C.amber, bg: C.amberBg, border: C.amberBorder },
+    enroute: { text: '🚗 МЧС выехали! Не двигайтесь, оставайтесь на месте.', color: C.blue,  bg: C.blueBg,  border: C.blueBorder  },
+    search:  { text: '🔍 Спасатели ищут вас. Не двигайтесь, подавайте сигналы!', color: C.amber, bg: C.amberBg, border: C.amberBorder },
+    found:   { text: '🎉 Спасатели рядом! Помощь уже идёт.',              color: C.green, bg: C.greenBg, border: C.greenBorder },
+    closed:  { text: '✅ Операция МЧС закрыта. Вы в безопасности.',       color: C.green, bg: C.greenBg, border: C.greenBorder },
+  };
 
   function handleNext() {
     const action = ACTIONS[step];
@@ -578,6 +585,13 @@ function OperationModal({ t, initialStep, onStepChange, sentSteps, onStepSent, o
               })}
             </div>
           </div>
+
+          {TOURIST_MSGS[step] && (
+            <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: TOURIST_MSGS[step].bg, border: `1px solid ${TOURIST_MSGS[step].border}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: TOURIST_MSGS[step].color, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Сообщение туристу (видит на экране)</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: TOURIST_MSGS[step].color, lineHeight: 1.4 }}>{TOURIST_MSGS[step].text}</div>
+            </div>
+          )}
 
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Заметки</div>

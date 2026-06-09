@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
@@ -6,8 +5,6 @@ import { useLang } from '../context/LangContext';
 import { useWeather, weatherIcon } from '../hooks/useWeather';
 
 const AKTAU = { lat: 43.65, lng: 51.17 };
-
-const CAT_KEYS = ['all', 'sea', 'beach', 'mountain'];
 
 function WeatherPill() {
   const { weather } = useWeather(AKTAU);
@@ -33,29 +30,14 @@ function WeatherPill() {
 }
 
 export default function Home() {
-  const { user, activeTrip } = useTrip();
+  const { activeTrip } = useTrip();
   const { t, lang } = useLang();
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState('all');
 
-  const filtered = activeCategory === 'all'
-    ? PLACES
-    : PLACES.filter(p => p.category.includes(activeCategory));
   const hero = PLACES.find(p => p.id === 'karynzharyk') || PLACES[0];
   const heroBg = hero.images?.[1] || hero.image;
-
-  const maxDist = Math.max(...PLACES.map(p => p.distance));
-  const avgRating = (PLACES.reduce((a, b) => a + b.rating, 0) / PLACES.length).toFixed(1);
-  const totalReviews = PLACES.reduce((a, b) => a + (b.reviews || 0), 0);
-
-  const STATS = [
-    { num: `${PLACES.length}`,       label: t.home_dest_label },
-    { num: `${maxDist}+ ${t.km}`,    label: t.home_from },
-    { num: `★ ${avgRating}`,         label: t.home_avg_rating },
-    { num: `${totalReviews}+`,       label: t.home_reviews },
-  ];
-
-  const CATEGORIES = CAT_KEYS.map(id => ({ id, label: t[`cat_${id}`] || id }));
+  const featured = PLACES.find(p => p.id === 'bozzhyra') || PLACES[0];
+  const destinations = PLACES.slice(0, 4);
 
   return (
     <div style={{ animation: 'pageFadeIn 0.4s ease' }}>
@@ -98,16 +80,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS BAR */}
-      <div className="home-stats-bar">
-        {STATS.map(s => (
-          <div key={s.label} className="home-stat">
-            <div className="home-stat-num">{s.num}</div>
-            <div className="home-stat-label">{s.label}</div>
-          </div>
-        ))}
-      </div>
-
       {/* ACTIVE TRIP BANNER */}
       {activeTrip && (
         <div className="active-trip-banner" onClick={() => navigate('/tracking')}>
@@ -122,88 +94,73 @@ export default function Home() {
         </div>
       )}
 
-      {/* DESTINATIONS */}
-      <section className="home-section" id="destinations">
-        <div className="home-section-header">
-          <div>
-            <div className="section-label">{t.home_dest_label}</div>
-            <h2 className="home-section-title">
-              {user.firstName ? `${t.home_dest_for} ${user.firstName}` : t.home_dest_best}
-            </h2>
+      {/* FEATURED DESTINATION */}
+      <section className="home-featured" onClick={() => navigate(`/place/${featured.id}`)}>
+        <img
+          src={featured.images?.[1] || featured.image}
+          alt={featured.name}
+          className="home-featured-bg"
+        />
+        <div className="home-featured-overlay" />
+        <div className="home-featured-content">
+          <div className="home-featured-eyebrow">Featured Destination</div>
+          <h2 className="home-featured-title">
+            {lang === 'kz' ? (featured.nameKz || featured.name) : featured.name}
+          </h2>
+          <p className="home-featured-desc">{featured.description}</p>
+          <div className="home-featured-stats">
+            <span>{featured.distance} km</span>
+            <span className="home-featured-dot" />
+            <span>{featured.duration}</span>
+            <span className="home-featured-dot" />
+            <span>★ {featured.rating.toFixed(1)}</span>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {CATEGORIES.map(c => (
-              <button
-                key={c.id}
-                onClick={() => setActiveCategory(c.id)}
-                className={`cat-pill${activeCategory === c.id ? ' cat-pill-active' : ''}`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
+          <button
+            className="home-featured-cta"
+            onClick={e => { e.stopPropagation(); navigate(`/place/${featured.id}`); }}
+          >
+            Explore route →
+          </button>
         </div>
-
-        {filtered.length > 0 ? (
-          <div className="places-grid">
-            {filtered.map((place, i) => (
-              <div
-                key={place.id}
-                className="place-card"
-                style={{ '--card-delay': `${i * 70}ms` }}
-                onClick={() => navigate(`/place/${place.id}`)}
-              >
-                <div className="place-card-img">
-                  <img src={place.image} alt={place.name} />
-                </div>
-                <div className="place-card-overlay" />
-                <div className="place-card-badge">{place.region}</div>
-                <div className="place-card-body">
-                  <div className="place-card-name">{lang === 'kz' ? (place.nameKz || place.name) : place.name}</div>
-                  <div className="place-card-meta">
-                    <span className="rating">★ {place.rating}</span>
-                    <span className="distance">{place.distance} {t.km} · {place.duration}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text3)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🏜️</div>
-            <div style={{ fontSize: 16, fontFamily: 'Cormorant Garamond, serif' }}>{t.home_no_places}</div>
-          </div>
-        )}
       </section>
 
-      {/* TRAVEL EXPERIENCES */}
-      {PLACES.length > 1 && (
-        <section style={{ padding: '0 var(--page-px) 88px' }}>
-          <div className="home-section-header">
-            <div>
-              <div className="section-label">Experiences</div>
-              <h2 className="home-section-title">Travel Experiences</h2>
-            </div>
+      {/* DESTINATIONS GRID */}
+      <section className="home-section" id="destinations">
+        <div className="home-section-header" style={{ marginBottom: 28 }}>
+          <div>
+            <div className="section-label">{t.home_dest_label}</div>
+            <h2 className="home-section-title">{t.home_dest_best}</h2>
           </div>
-          <div className="experiences-grid">
-            {PLACES.slice(1, 4).map((place, i) => (
-              <div
-                key={place.id}
-                className={`exp-card${i === 0 ? ' exp-card--wide' : ''}`}
-                onClick={() => navigate(`/place/${place.id}`)}
-              >
+        </div>
+        <div className="home-dest-grid">
+          {destinations.map((place, i) => (
+            <div
+              key={place.id}
+              className="home-dest-card"
+              style={{ '--card-delay': `${i * 80}ms` }}
+              onClick={() => navigate(`/place/${place.id}`)}
+            >
+              <div className="home-dest-img">
                 <img src={place.image} alt={place.name} />
-                <div className="exp-card-overlay" />
-                <div className="exp-card-body">
-                  <div className="exp-card-region">{place.region}</div>
-                  <div className="exp-card-name">{place.name}</div>
-                  <div className="exp-card-cta">Explore →</div>
+              </div>
+              <div className="home-dest-overlay" />
+              <div className="home-dest-badge">{place.region}</div>
+              <div className="home-dest-body">
+                <div className="home-dest-name">
+                  {lang === 'kz' ? (place.nameKz || place.name) : place.name}
+                </div>
+                <div className="home-dest-sub">
+                  {place.description?.split('.')[0]}.
+                </div>
+                <div className="home-dest-meta">
+                  <span className="home-dest-rating">★ {place.rating}</span>
+                  <span className="home-dest-distance">{place.distance} km · {place.duration}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
