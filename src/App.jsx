@@ -7,7 +7,6 @@ import PlanTrip from './pages/PlanTrip';
 import Tracking from './pages/Tracking';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
-import AdminLogin from './pages/AdminLogin';
 import PinLogin from './pages/PinLogin';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
@@ -24,65 +23,42 @@ function Notifications() {
   );
 }
 
-function ProtectedRoute({ role, children }) {
-  const { user } = useTrip();
-  if (user.role !== role) {
-    return <Navigate to={role === 'admin' ? '/admin-login' : '/'} replace />;
-  }
-  return children;
-}
-
 function TopNav() {
-  const { activeTrip, user, logout } = useTrip();
+  const { activeTrip, user } = useTrip();
   const { lang, setLang, t } = useLang();
   const navigate = useNavigate();
-  const isAdmin = user.role === 'admin';
 
   return (
     <nav className="app-nav">
-      <div className="nav-logo" onClick={() => navigate(isAdmin ? '/admin' : '/')}>
+      <div className="nav-logo" onClick={() => navigate('/')}>
         dead<span>end</span>
       </div>
 
       <div className="nav-links">
-        {!isAdmin ? (
-          <>
-            <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-              {t.nav_explore}
-            </NavLink>
-            <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-              {t.nav_profile}
-            </NavLink>
-            <NavLink to="/pin" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-              {t.nav_emergency}
-            </NavLink>
-            <NavLink to="/admin-login" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-              {t.nav_mchs}
-            </NavLink>
-            <NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-              {t.nav_about}
-            </NavLink>
-          </>
-        ) : (
-          <>
-            <NavLink to="/admin" end className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-              {t.nav_dashboard}
-            </NavLink>
-            <button className="nav-link" onClick={() => { logout(); navigate('/'); }}>
-              {t.nav_logout}
-            </button>
-          </>
-        )}
+        <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+          {t.nav_explore}
+        </NavLink>
+        <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+          {t.nav_profile}
+        </NavLink>
+        <NavLink to="/pin" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+          {t.nav_emergency}
+        </NavLink>
+        <NavLink to="/mchs" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+          {t.nav_mchs}
+        </NavLink>
+        <NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+          {t.nav_about}
+        </NavLink>
       </div>
 
       <div className="nav-right">
-        {!isAdmin && activeTrip && (
+        {activeTrip && (
           <div className="nav-trip" onClick={() => navigate('/tracking')}>
             <span className="status-dot status-active" style={{ width: 7, height: 7 }} />
             {t.nav_in_trip} · {activeTrip.placeName}
           </div>
         )}
-        {/* Language switcher */}
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, overflow: 'hidden', marginRight: 6 }}>
           {['kz','ru','en'].map(l => (
             <button key={l} onClick={() => setLang(l)} style={{
@@ -97,7 +73,7 @@ function TopNav() {
           src={user.photo}
           alt=""
           className="nav-avatar"
-          onClick={() => navigate(isAdmin ? '/admin' : '/profile')}
+          onClick={() => navigate('/profile')}
         />
       </div>
     </nav>
@@ -111,22 +87,39 @@ function Layout() {
       <main className="app-main">
         <Notifications />
         <Routes>
-          <Route path="/"            element={<Home />} />
-          <Route path="/place/:id"   element={<PlaceDetail />} />
-          <Route path="/plan/:id"    element={<PlanTrip />} />
-          <Route path="/tracking"    element={<Tracking />} />
-          <Route path="/profile"     element={<Profile />} />
-          <Route path="/pin"         element={<PinLogin />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin" element={
-            <ProtectedRoute role="admin">
-              <AdminPanel />
-            </ProtectedRoute>
-          } />
-          <Route path="/about" element={<Landing />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/"          element={<Home />} />
+          <Route path="/place/:id" element={<PlaceDetail />} />
+          <Route path="/plan/:id"  element={<PlanTrip />} />
+          <Route path="/tracking"  element={<Tracking />} />
+          <Route path="/profile"   element={<Profile />} />
+          <Route path="/pin"       element={<PinLogin />} />
+          <Route path="/about"     element={<Landing />} />
+          <Route path="*"          element={<NotFound />} />
         </Routes>
       </main>
+    </div>
+  );
+}
+
+// ── Standalone MChS panel — full screen, no nav, no auth ──────
+function MChSApp() {
+  const navigate = useNavigate();
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)', position: 'relative' }}>
+      <Notifications />
+      {/* Floating back button */}
+      <button
+        onClick={() => navigate('/')}
+        style={{
+          position: 'absolute', top: 14, right: 16, zIndex: 200,
+          background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+          color: 'rgba(255,255,255,0.5)', borderRadius: 8,
+          padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+        }}
+      >
+        ← App
+      </button>
+      <AdminPanel />
     </div>
   );
 }
@@ -136,7 +129,12 @@ export default function App() {
     <LangProvider>
       <TripProvider>
         <BrowserRouter>
-          <Layout />
+          <Routes>
+            {/* MChS panel — completely separate, no tourist nav */}
+            <Route path="/mchs" element={<MChSApp />} />
+            {/* Tourist app */}
+            <Route path="/*" element={<Layout />} />
+          </Routes>
         </BrowserRouter>
       </TripProvider>
     </LangProvider>
