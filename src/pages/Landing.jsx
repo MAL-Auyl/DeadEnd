@@ -267,92 +267,85 @@ export default function Landing() {
   const statsRef    = useRef(null);
 
   useEffect(() => {
+    const scroller = document.querySelector('.app-main') || window;
+    const st = (extra = {}) => ({ scroller, toggleActions: 'play none none none', ...extra });
     let ctx;
+
     try {
-      // The scrollable container is .app-main, not window
-      const scroller = document.querySelector('.app-main') || window;
-      ScrollTrigger.defaults({ scroller });
-
       ctx = gsap.context(() => {
-        // ── Hero entrance ────────────────────────────────────
-        const heroEls = [
-          heroTagRef.current,
-          heroH1Ref.current,
-          heroSubRef.current,
-          statsRef.current,
-        ].filter(Boolean);
-
+        // ── Hero entrance (fires immediately, no scroll trigger) ──
         const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-        if (heroTagRef.current)  tl.from(heroTagRef.current,  { opacity: 0, y: 20, duration: 0.6 });
-        if (heroH1Ref.current)   tl.from(heroH1Ref.current,   { opacity: 0, y: 40, duration: 0.7 }, '-=0.3');
-        if (heroSubRef.current)  tl.from(heroSubRef.current,  { opacity: 0, y: 24, duration: 0.6 }, '-=0.4');
-        if (heroBtnsRef.current?.children?.length) {
-          tl.from(Array.from(heroBtnsRef.current.children), { opacity: 0, y: 16, stagger: 0.12, duration: 0.5 }, '-=0.35');
-        }
-        if (statsRef.current)    tl.from(statsRef.current,    { opacity: 0, y: 30, duration: 0.6 }, '-=0.2');
+        if (heroTagRef.current)
+          tl.fromTo(heroTagRef.current,  { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55 });
+        if (heroH1Ref.current)
+          tl.fromTo(heroH1Ref.current,   { opacity: 0, y: 36 }, { opacity: 1, y: 0, duration: 0.65 }, '-=0.25');
+        if (heroSubRef.current)
+          tl.fromTo(heroSubRef.current,  { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.55 }, '-=0.35');
+        if (heroBtnsRef.current?.children?.length)
+          tl.fromTo(Array.from(heroBtnsRef.current.children),
+            { opacity: 0, y: 14 }, { opacity: 1, y: 0, stagger: 0.1, duration: 0.45 }, '-=0.3');
+        if (statsRef.current)
+          tl.fromTo(statsRef.current,    { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
 
-        // ── Section headers on scroll ────────────────────────
+        // ── Section headers on scroll ─────────────────────────
         gsap.utils.toArray('.land-section-head').forEach(el => {
           gsap.fromTo(el,
-            { y: 30 },
-            { y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false,
-              scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' } }
+            { opacity: 0, y: 28 },
+            { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out',
+              scrollTrigger: { trigger: el, start: 'top 90%', ...st() } }
           );
         });
 
-        // ── Cards stagger ────────────────────────────────────
+        // ── Card groups stagger ───────────────────────────────
         gsap.utils.toArray('.land-card-group').forEach(group => {
           const cards = Array.from(group.querySelectorAll('.land-card'));
-          if (cards.length) {
-            gsap.fromTo(cards,
-              { y: 35 },
-              { y: 0, stagger: 0.08, duration: 0.55, ease: 'power2.out', immediateRender: false,
-                scrollTrigger: { trigger: group, start: 'top 85%', toggleActions: 'play none none none' } }
-            );
-          }
+          if (!cards.length) return;
+          gsap.fromTo(cards,
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0, stagger: 0.07, duration: 0.5, ease: 'power2.out',
+              scrollTrigger: { trigger: group, start: 'top 88%', ...st() } }
+          );
         });
 
-        // ── Tech pills wave ──────────────────────────────────
+        // ── Tech pills wave ───────────────────────────────────
         const pills = gsap.utils.toArray('.land-tech-pill');
         if (pills.length) {
           gsap.fromTo(pills,
-            { scale: 0.88, opacity: 0 },
-            { scale: 1, opacity: 1, stagger: 0.06, duration: 0.4, ease: 'back.out(1.4)', immediateRender: false,
-              scrollTrigger: { trigger: '.land-tech-pills', start: 'top 88%', toggleActions: 'play none none none' } }
+            { opacity: 0, scale: 0.85, y: 10 },
+            { opacity: 1, scale: 1, y: 0, stagger: 0.05, duration: 0.38, ease: 'back.out(1.5)',
+              scrollTrigger: { trigger: '.land-tech-pills', start: 'top 90%', ...st() } }
           );
         }
 
-        // ── Market counters ──────────────────────────────────
+        // ── Market counters ───────────────────────────────────
         gsap.utils.toArray('.land-counter').forEach(el => {
           const target = parseFloat(el.dataset.val);
           const suffix = el.dataset.suffix || '';
           const prefix = el.dataset.prefix || '';
-          if (!isNaN(target)) {
-            const obj = { val: 0 };
-            gsap.to(obj, {
-              val: target, duration: 1.4, ease: 'power2.out',
-              onUpdate() { el.textContent = prefix + Math.round(obj.val).toLocaleString() + suffix; },
-              scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' },
-            });
-          }
+          if (isNaN(target)) return;
+          const obj = { val: 0 };
+          gsap.to(obj, {
+            val: target, duration: 1.4, ease: 'power2.out',
+            onUpdate() { el.textContent = prefix + Math.round(obj.val).toLocaleString() + suffix; },
+            scrollTrigger: { trigger: el, start: 'top 90%', ...st() },
+          });
         });
 
-        // ── CTA section ──────────────────────────────────────
+        // ── CTA block ─────────────────────────────────────────
         const cta = document.querySelector('.land-cta-inner');
         if (cta) {
           gsap.fromTo(cta,
-            { y: 24 },
-            { y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false,
-              scrollTrigger: { trigger: cta, start: 'top 82%', toggleActions: 'play none none none' } }
+            { opacity: 0, y: 22 },
+            { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out',
+              scrollTrigger: { trigger: cta, start: 'top 85%', ...st() } }
           );
         }
 
       }, rootRef);
     } catch (e) {
-      // GSAP failed — clear any inline opacity:0 so content stays visible
       if (rootRef.current) {
         rootRef.current.querySelectorAll('[style*="opacity"]').forEach(el => {
-          el.style.opacity = '';
+          el.style.removeProperty('opacity');
         });
       }
     }
@@ -360,7 +353,6 @@ export default function Landing() {
     return () => {
       ctx?.revert();
       ScrollTrigger.getAll().forEach(t => t.kill());
-      ScrollTrigger.defaults({ scroller: window });
     };
   }, []);
 
@@ -569,41 +561,51 @@ export default function Landing() {
             <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', whiteSpace: 'pre-line' }}>{tx.feat_title}</h2>
           </div>
 
-          {/* BENTO GRID — asymmetric, not 3 equal columns */}
-          <div className="land-card-group land-bento-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: 'auto auto', gap: 10 }}>
-            {FEATURES(tx).map((f, i) => {
-              const isWide = i === 0;
-              const isTall = i === 1;
-              return (
-                <div key={i} className="land-card" style={{
-                  gridColumn: isWide ? '1 / 3' : undefined,
-                  gridRow: isTall ? '1 / 3' : undefined,
-                  padding: isWide ? '36px 40px' : '28px',
-                  borderRadius: 14,
-                  background: isTall ? 'rgba(108,99,255,0.07)' : 'rgba(255,255,255,0.025)',
-                  border: isTall ? '1px solid rgba(108,99,255,0.2)' : '1px solid rgba(255,255,255,0.055)',
-                  display: 'flex', flexDirection: 'column', gap: isWide ? 14 : 10,
-                  transition: 'border-color 0.2s, background 0.2s',
-                  cursor: 'default',
-                }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'rgba(108,99,255,0.38)';
-                    e.currentTarget.style.background = isTall ? 'rgba(108,99,255,0.11)' : 'rgba(255,255,255,0.04)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = isTall ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.055)';
-                    e.currentTarget.style.background = isTall ? 'rgba(108,99,255,0.07)' : 'rgba(255,255,255,0.025)';
-                  }}
-                >
-                  <div style={{ fontSize: isWide ? 36 : 26 }}>{f.icon}</div>
-                  <div>
-                    <div style={{ fontSize: isWide ? 17 : 14, fontWeight: 700, color: '#fff', marginBottom: 5, letterSpacing: '-0.01em' }}>{f.title}</div>
-                    <div style={{ fontSize: isWide ? 14 : 13, color: 'rgba(255,255,255,0.48)', lineHeight: 1.7 }}>{f.desc}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {/* BENTO GRID — explicit placement for each cell */}
+          {(() => {
+            const PLACEMENT = [
+              { gridColumn: '1 / 3', gridRow: '1',     wide: true,  tall: false },
+              { gridColumn: '3',     gridRow: '1 / 3', wide: false, tall: true  },
+              { gridColumn: '1',     gridRow: '2',     wide: false, tall: false },
+              { gridColumn: '2',     gridRow: '2',     wide: false, tall: false },
+              { gridColumn: '1',     gridRow: '3',     wide: false, tall: false },
+              { gridColumn: '2 / 4', gridRow: '3',     wide: true,  tall: false },
+            ];
+            return (
+              <div className="land-card-group land-bento-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                {FEATURES(tx).map((f, i) => {
+                  const p = PLACEMENT[i];
+                  return (
+                    <div key={i} className="land-card" style={{
+                      gridColumn: p.gridColumn, gridRow: p.gridRow,
+                      padding: p.wide ? '36px 40px' : p.tall ? '32px 28px' : '28px',
+                      borderRadius: 14, minHeight: p.tall ? 260 : undefined,
+                      background: p.tall ? 'rgba(108,99,255,0.08)' : 'rgba(255,255,255,0.025)',
+                      border: p.tall ? '1px solid rgba(108,99,255,0.22)' : '1px solid rgba(255,255,255,0.06)',
+                      display: 'flex', flexDirection: 'column',
+                      justifyContent: p.tall ? 'space-between' : 'flex-start',
+                      gap: 10, transition: 'border-color 0.2s, background 0.2s', cursor: 'default',
+                    }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.borderColor = 'rgba(108,99,255,0.4)';
+                        e.currentTarget.style.background = p.tall ? 'rgba(108,99,255,0.13)' : 'rgba(255,255,255,0.045)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.borderColor = p.tall ? 'rgba(108,99,255,0.22)' : 'rgba(255,255,255,0.06)';
+                        e.currentTarget.style.background = p.tall ? 'rgba(108,99,255,0.08)' : 'rgba(255,255,255,0.025)';
+                      }}
+                    >
+                      <div style={{ fontSize: p.wide ? 34 : p.tall ? 40 : 26 }}>{f.icon}</div>
+                      <div>
+                        <div style={{ fontSize: p.wide || p.tall ? 16 : 14, fontWeight: 700, color: '#fff', marginBottom: 6, letterSpacing: '-0.01em' }}>{f.title}</div>
+                        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7 }}>{f.desc}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </section>
 
