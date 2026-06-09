@@ -10,6 +10,7 @@ import AdminPanel from './pages/AdminPanel';
 import PinLogin from './pages/PinLogin';
 import NotFound from './pages/NotFound';
 import Landing from './pages/Landing';
+import AboutUs from './pages/AboutUs';
 import './index.css';
 
 function Notifications() {
@@ -93,7 +94,7 @@ function Layout() {
           <Route path="/tracking"  element={<Tracking />} />
           <Route path="/profile"   element={<Profile />} />
           <Route path="/pin"       element={<PinLogin />} />
-          <Route path="/about"     element={<Landing />} />
+          <Route path="/about-old"  element={<Landing />} />
           <Route path="*"          element={<NotFound />} />
         </Routes>
       </main>
@@ -132,6 +133,8 @@ export default function App() {
           <Routes>
             {/* MChS panel — completely separate, no tourist nav */}
             <Route path="/mchs" element={<MChSApp />} />
+            {/* About landing — standalone, no app chrome */}
+            <Route path="/about" element={<AboutUs />} />
             {/* Tourist app */}
             <Route path="/*" element={<Layout />} />
           </Routes>

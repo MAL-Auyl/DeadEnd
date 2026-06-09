@@ -81,6 +81,19 @@ html, body, #root {
   .land-stats-panel  { display: none !important; }
 }
 
+/* ── ABOUT PAGE MOBILE ── */
+@media (max-width: 768px) {
+  .about-2col   { grid-template-columns: 1fr !important; gap: 40px !important; }
+  .about-3col   { grid-template-columns: 1fr !important; }
+  .about-bento  { grid-template-columns: 1fr !important; }
+  .about-bento > * { grid-column: auto !important; grid-row: auto !important; }
+  .about-stats  { grid-template-columns: 1fr 1fr !important; }
+  .about-px     { padding-left: 20px !important; padding-right: 20px !important; }
+  .about-hero-h { font-size: clamp(40px, 11vw, 72px) !important; }
+  .about-nav    { padding: 0 20px !important; }
+  .about-hide-m { display: none !important; }
+}
+
 /* ── TOP NAVIGATION ── */
 .app-nav {
   position: relative;
