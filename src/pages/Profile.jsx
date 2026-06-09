@@ -1,6 +1,178 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
+
+const MORDOR_KM = 1800;
+const WAYPOINTS = [
+  { km: 0,    label: 'Шир' },
+  { km: 450,  label: 'Бри' },
+  { km: 750,  label: 'Ривенделл' },
+  { km: 1050, label: 'Мория' },
+  { km: 1150, label: 'Лóриэн' },
+  { km: 1650, label: 'Минас Тирит' },
+  { km: 1800, label: 'Роковая гора' },
+];
+
+function getCurrentWaypoint(km) {
+  for (let i = WAYPOINTS.length - 1; i >= 0; i--) {
+    if (km >= WAYPOINTS[i].km) return WAYPOINTS[i];
+  }
+  return WAYPOINTS[0];
+}
+
+function LotRProgress({ totalKm }) {
+  const km        = Math.min(totalKm || 0, MORDOR_KM);
+  const pct       = (km / MORDOR_KM) * 100;
+  const remaining = MORDOR_KM - km;
+  const current   = getCurrentWaypoint(km);
+  const [mounted, setMounted]   = useState(false);
+  const [hov, setHov]           = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 520);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    const onResize = () => setIsMobile(window.innerWidth < 520);
+    window.addEventListener('resize', onResize);
+    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', onResize); };
+  }, []);
+
+  const visibleWaypoints = isMobile
+    ? WAYPOINTS.filter(wp => [0, 750, 1050, 1800].includes(wp.km))
+    : WAYPOINTS;
+
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.985)'; }}
+      onMouseUp={e => { e.currentTarget.style.transform = hov ? 'translateY(-3px)' : ''; }}
+      style={{
+        background: 'var(--surface)',
+        border: `1px solid ${hov ? 'rgba(201,160,85,0.3)' : 'var(--border)'}`,
+        borderRadius: 'var(--radius-sm)',
+        padding: '20px 20px 22px',
+        marginBottom: 16,
+        cursor: 'default',
+        transform: hov ? 'translateY(-3px)' : 'none',
+        transition: `transform 260ms ${E}, border-color 220ms ease, box-shadow 260ms ease`,
+        boxShadow: hov ? '0 8px 32px rgba(201,160,85,0.1)' : 'none',
+      }}
+    >
+      {/* header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <div style={{
+            fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 900,
+            color: 'var(--text)', letterSpacing: '-0.04em', lineHeight: 1,
+          }}>
+            {km.toLocaleString()} км
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4, letterSpacing: '0.01em' }}>
+            пройдено в DeadEnd
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{
+            fontFamily: 'Syne, sans-serif', fontSize: 15, fontWeight: 800,
+            color: 'var(--gold)', letterSpacing: '-0.02em', lineHeight: 1,
+          }}>
+            {remaining > 0 ? `−${remaining.toLocaleString()} км` : 'Ты дошёл!'}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>
+            {remaining > 0 ? 'до Роковой горы' : 'до Роковой горы'}
+          </div>
+        </div>
+      </div>
+
+      {/* progress bar */}
+      <div style={{ position: 'relative', marginBottom: 10 }}>
+        <div style={{
+          height: 6, borderRadius: 3, background: 'var(--border)', overflow: 'visible', position: 'relative',
+        }}>
+          <div style={{
+            height: '100%', borderRadius: 3,
+            width: mounted ? `${pct}%` : '0%',
+            background: `linear-gradient(90deg, var(--gold) 0%, var(--gold2) 100%)`,
+            transition: `width 900ms ${E}`,
+            position: 'relative',
+          }}>
+            {/* you are here dot */}
+            <div style={{
+              position: 'absolute', right: -6, top: '50%',
+              transform: 'translateY(-50%)',
+              width: 12, height: 12, borderRadius: '50%',
+              background: 'var(--gold)',
+              border: '2px solid var(--bg)',
+              animation: 'lotrPulse 2s infinite',
+            }} />
+          </div>
+        </div>
+
+        {/* waypoint ticks */}
+        {visibleWaypoints.map((wp, i) => {
+          const pos    = (wp.km / MORDOR_KM) * 100;
+          const passed = km >= wp.km;
+          return (
+            <div key={wp.km} style={{
+              position: 'absolute', top: -3,
+              left: `${pos}%`, transform: 'translateX(-50%)',
+            }}>
+              <div style={{
+                width: 2, height: 12, borderRadius: 1,
+                background: passed ? 'var(--gold)' : 'var(--border2)',
+                transition: `background 400ms ease ${i * 80}ms`,
+              }} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* waypoint labels */}
+      <div style={{ position: 'relative', height: 28 }}>
+        {visibleWaypoints.map((wp, i) => {
+          const pos    = (wp.km / MORDOR_KM) * 100;
+          const passed = km >= wp.km;
+          const isNow  = current.km === wp.km;
+          const last   = i === visibleWaypoints.length - 1;
+          return (
+            <div key={wp.km} style={{
+              position: 'absolute',
+              left: `${pos}%`,
+              transform: i === 0 ? 'none' : last ? 'translateX(-100%)' : 'translateX(-50%)',
+              fontSize: isMobile ? 9 : 10, fontWeight: isNow ? 700 : 500,
+              color: isNow ? 'var(--gold)' : passed ? 'var(--text2)' : 'var(--text3)',
+              whiteSpace: 'nowrap',
+              transition: `color 400ms ease`,
+              lineHeight: 1.2,
+            }}>
+              {last ? '🌋' : wp.label}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* current location line */}
+      <div style={{
+        marginTop: 14, paddingTop: 14,
+        borderTop: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: 'var(--gold)', flexShrink: 0, display: 'inline-block',
+          boxShadow: '0 0 6px rgba(201,160,85,0.6)',
+        }} />
+        <span style={{ fontSize: 12, color: 'var(--text2)' }}>
+          Сейчас ты у{' '}
+          <span style={{ fontWeight: 700, color: 'var(--gold)' }}>{current.label}</span>
+          {remaining > 0
+            ? ` — ${remaining.toLocaleString()} км до того, как бросить кольцо`
+            : ' — ты дошёл до Роковой горы!'}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function getExplorerBadge(count) {
   if (count >= 20) return { label: 'Gold Explorer',   color: '#F4C430', bg: 'rgba(244,196,48,0.1)',  border: 'rgba(244,196,48,0.3)'  };
@@ -136,6 +308,9 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* LOTR PROGRESS */}
+      <LotRProgress totalKm={user.totalKm} />
 
       {/* EMERGENCY PIN */}
       <div className="profile-pin-card">

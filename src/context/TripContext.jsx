@@ -284,6 +284,7 @@ export function TripProvider({ children }) {
       status: 'active',
       pin: user.pin,
       sosCount: 0,
+      placeDistance: place.distance || 0,
     };
     setActiveTrip(trip);
 
@@ -318,12 +319,15 @@ export function TripProvider({ children }) {
     if (activeTrip) {
       setUser(prev => {
         const count = (prev.tripsCompleted || 0) + 1;
-        const prev5 = prev.tripsCompleted || 0;
         const badges = { 5: '🥉 Bronze Explorer', 10: '🥈 Silver Explorer', 20: '🥇 Gold Explorer' };
         if (badges[count]) {
           setTimeout(() => addNotification(`${badges[count]} статусын алдыңыз! 🎉`, 'success'), 1500);
         }
-        return { ...prev, tripsCompleted: count };
+        return {
+          ...prev,
+          tripsCompleted: count,
+          totalKm: (prev.totalKm || 0) + (activeTrip.placeDistance || 0),
+        };
       });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
       removeTourist(DEVICE_ID);
