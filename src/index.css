@@ -546,6 +546,76 @@ html, body, #root {
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
 
+/* ── PROFILE PAGE ── */
+.profile-page {
+  padding: 44px var(--page-px) 80px;
+  max-width: 680px;
+  margin: 0 auto;
+  animation: pageFadeIn 0.4s ease;
+}
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: 28px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 10px;
+}
+.profile-section-line {
+  width: 16px;
+  height: 1px;
+  background: var(--text3);
+  flex-shrink: 0;
+  display: block;
+}
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.profile-pin-card {
+  background: linear-gradient(135deg, rgba(201,160,85,0.09) 0%, rgba(201,160,85,0.03) 100%);
+  border: 1px solid rgba(201,160,85,0.22);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+}
+.profile-pin-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.profile-pin-number {
+  font-family: 'Syne', sans-serif;
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.profile-pin-hint {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
 /* ── PLACES GRID ── */
 .places-grid {
   display: grid;
@@ -758,12 +828,12 @@ html, body, #root {
   margin-bottom: 36px;
 }
 .home-section-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 38px;
-  font-weight: 600;
+  font-family: 'Syne', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
   color: var(--text);
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
   margin-top: 8px;
 }
 

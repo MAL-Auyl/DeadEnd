@@ -3,10 +3,21 @@ import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 
 function getExplorerBadge(count) {
-  if (count >= 20) return { label: 'Gold Explorer', icon: '🥇', color: '#F4C430', bg: 'rgba(244,196,48,0.1)', border: 'rgba(244,196,48,0.3)' };
-  if (count >= 10) return { label: 'Silver Explorer', icon: '🥈', color: '#A8B2BD', bg: 'rgba(168,178,189,0.1)', border: 'rgba(168,178,189,0.3)' };
-  if (count >= 5)  return { label: 'Bronze Explorer', icon: '🥉', color: '#CD7F32', bg: 'rgba(205,127,50,0.1)', border: 'rgba(205,127,50,0.3)' };
+  if (count >= 20) return { label: 'Gold Explorer',   color: '#F4C430', bg: 'rgba(244,196,48,0.1)',  border: 'rgba(244,196,48,0.3)'  };
+  if (count >= 10) return { label: 'Silver Explorer', color: '#A8B2BD', bg: 'rgba(168,178,189,0.1)', border: 'rgba(168,178,189,0.3)' };
+  if (count >= 5)  return { label: 'Bronze Explorer', color: '#CD7F32', bg: 'rgba(205,127,50,0.1)',  border: 'rgba(205,127,50,0.3)'  };
   return null;
+}
+
+const E = 'cubic-bezier(0.16,1,0.3,1)';
+
+function SectionLabel({ children, accent }) {
+  return (
+    <div className="profile-section-label" style={accent ? { color: accent } : {}}>
+      <span className="profile-section-line" style={accent ? { background: accent } : {}} />
+      {children}
+    </div>
+  );
 }
 
 export default function Profile() {
@@ -18,30 +29,45 @@ export default function Profile() {
   function handleSave() { updateUser(form); addNotification(t.prof_saved, 'success'); }
 
   const badge = getExplorerBadge(user.tripsCompleted || 0);
-  const nextBadge = user.tripsCompleted < 5 ? { need: 5, label: 'Bronze Explorer', icon: '🥉' }
-    : user.tripsCompleted < 10 ? { need: 10, label: 'Silver Explorer', icon: '🥈' }
-    : user.tripsCompleted < 20 ? { need: 20, label: 'Gold Explorer', icon: '🥇' }
+  const trips = user.tripsCompleted || 0;
+  const nextBadge = trips < 5
+    ? { need: 5,  label: 'Bronze Explorer' }
+    : trips < 10 ? { need: 10, label: 'Silver Explorer' }
+    : trips < 20 ? { need: 20, label: 'Gold Explorer' }
     : null;
 
   return (
-    <div className="page" style={{ maxWidth: 640 }}>
-      <h1 className="page-title">{t.prof_title}</h1>
-      <p className="page-sub">{t.prof_sub}</p>
+    <div className="profile-page">
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
-        <div style={{ position: 'relative', marginBottom: 12 }}>
+      {/* HEADER */}
+      <div className="profile-header">
+        <div style={{ position: 'relative', flexShrink: 0 }}>
           <img
             src={form.photo || user.photo}
             alt=""
-            style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--gold)' }}
+            style={{
+              width: 88, height: 88, borderRadius: '50%',
+              objectFit: 'cover', border: '2px solid var(--border2)', display: 'block',
+            }}
           />
-          <label htmlFor="avatar-upload" style={{
-            position: 'absolute', bottom: 0, right: 0,
-            width: 28, height: 28, borderRadius: '50%',
-            background: 'var(--gold)', border: '2px solid var(--bg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', fontSize: 14,
-          }} title="Change photo">📷</label>
+          <label
+            htmlFor="avatar-upload"
+            style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 26, height: 26, borderRadius: '50%',
+              background: 'var(--gold)', border: '2px solid var(--bg)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: '#0B0907',
+              transition: `transform 140ms ${E}`,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </label>
           <input
             id="avatar-upload"
             type="file"
@@ -56,86 +82,152 @@ export default function Profile() {
             }}
           />
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{user.firstName} {user.lastName}</div>
-        <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 4 }}>{user.email}</div>
-        <span style={{ fontSize: 11, color: 'var(--text3)' }}>{t.prof_change}</span>
+
+        <div style={{ flex: 1, paddingTop: 2 }}>
+          <h1 style={{
+            fontFamily: 'Syne, sans-serif', fontSize: 26, fontWeight: 800,
+            color: 'var(--text)', letterSpacing: '-0.025em', lineHeight: 1.1, marginBottom: 7,
+          }}>
+            {user.firstName} {user.lastName}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: 13, color: 'var(--text2)' }}>{user.email}</span>
+            <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--text3)', display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: 'var(--text2)' }}>{trips} {t.prof_trips}</span>
+          </div>
+          {badge ? (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', padding: '3px 12px',
+              borderRadius: 100, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+              color: badge.color, background: badge.bg, border: `1px solid ${badge.border}`,
+            }}>{badge.label}</span>
+          ) : (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', padding: '3px 12px',
+              borderRadius: 100, fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+              color: 'var(--text3)', background: 'var(--surface)', border: '1px solid var(--border)',
+            }}>Explorer</span>
+          )}
+          <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 10 }}>{t.prof_change}</div>
+        </div>
       </div>
 
-      {/* Explorer Badge */}
-      <div style={{ marginBottom: 24, borderRadius: 14, overflow: 'hidden', border: '1px solid var(--border)' }}>
-        <div style={{ padding: '14px 18px', background: badge ? badge.bg : 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ fontSize: 36 }}>{badge ? badge.icon : '🗺️'}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: badge ? badge.color : 'var(--text2)' }}>
-              {badge ? badge.label : 'Explorer'}
+      {/* BADGE PROGRESS */}
+      {nextBadge && (
+        <div style={{
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-sm)', padding: '14px 18px', marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text2)' }}>
+              {t.prof_next} {nextBadge.label}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--text3)', fontVariantNumeric: 'tabular-nums' }}>
+              {trips} / {nextBadge.need}
+            </span>
+          </div>
+          <div style={{ height: 2, borderRadius: 1, background: 'var(--border)', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.min((trips / nextBadge.need) * 100, 100)}%`,
+              background: 'var(--gold)', borderRadius: 1,
+              transition: `width 0.7s ${E}`,
+            }} />
+          </div>
+        </div>
+      )}
+
+      {/* EMERGENCY PIN */}
+      <div className="profile-pin-card">
+        <div className="profile-pin-label">Emergency PIN</div>
+        <div className="profile-pin-number">
+          {String(user.pin).slice(0, 3)}
+          <span style={{ color: 'var(--text3)', fontWeight: 400, letterSpacing: '0.04em' }}> - </span>
+          {String(user.pin).slice(3)}
+        </div>
+        <div className="profile-pin-hint">
+          Write this down. Works from any phone to send SOS without login.
+        </div>
+      </div>
+
+      {/* CRITICAL INFO */}
+      <div>
+        <SectionLabel accent="var(--red)">{t.prof_critical}</SectionLabel>
+        <div style={{
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderLeft: '2px solid rgba(224,82,82,0.5)',
+          borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
+          padding: '18px 20px', marginBottom: 16,
+        }}>
+          <div className="grid-2" style={{ gap: 12 }}>
+            <div className="form-group">
+              <label className="form-label">{t.prof_blood}</label>
+              <select className="form-select" value={form.bloodType} onChange={e => set('bloodType', e.target.value)}>
+                {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bt => <option key={bt}>{bt}</option>)}
+              </select>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
-              {user.tripsCompleted || 0} {t.prof_trips}
+            <div className="form-group">
+              <label className="form-label">{t.prof_country}</label>
+              <select className="form-select" value={form.country} onChange={e => set('country', e.target.value)}>
+                {['Kazakhstan','USA','Russia','Germany','UK','France','Other'].map(c => <option key={c}>{c}</option>)}
+              </select>
             </div>
           </div>
-          {badge && <div style={{ fontSize: 11, padding: '4px 10px', borderRadius: 20, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, fontWeight: 700 }}>{t.prof_verified}</div>}
         </div>
-        {nextBadge && (
-          <div style={{ padding: '10px 18px', background: 'var(--surface)', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 11, color: 'var(--text3)' }}>{t.prof_next} {nextBadge.icon} {nextBadge.label}</span>
-            <div style={{ flex: 1, height: 4, borderRadius: 4, background: 'var(--border)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${((user.tripsCompleted || 0) / nextBadge.need) * 100}%`, background: 'var(--purple)', borderRadius: 4, transition: 'width 0.4s' }} />
+      </div>
+
+      {/* PERSONAL INFO */}
+      <div>
+        <SectionLabel>Personal</SectionLabel>
+        <div className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {[
+            { key: 'firstName', labelKey: 'prof_fname', type: 'text' },
+            { key: 'lastName',  labelKey: 'prof_lname', type: 'text' },
+            { key: 'phone',     labelKey: 'prof_phone', type: 'tel'  },
+          ].map(f => (
+            <div key={f.key} className="form-group">
+              <label className="form-label">{t[f.labelKey]}</label>
+              <input
+                type={f.type}
+                value={form[f.key] || ''}
+                onChange={e => set(f.key, e.target.value)}
+                className="form-input"
+              />
             </div>
-            <span style={{ fontSize: 11, color: 'var(--text3)', whiteSpace: 'nowrap' }}>{user.tripsCompleted || 0}/{nextBadge.need}</span>
-          </div>
-        )}
-      </div>
-
-      <div style={{ background: 'rgba(255,71,87,0.06)', border: '1px solid rgba(255,71,87,0.2)', borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: 24 }}>
-        <div style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>🩸 {t.prof_critical}</div>
-        <div className="grid-2" style={{ gap: 12 }}>
-          <div className="form-group">
-            <label className="form-label">{t.prof_blood}</label>
-            <select className="form-select" value={form.bloodType} onChange={e => set('bloodType', e.target.value)}>
-              {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bt => <option key={bt}>{bt}</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">{t.prof_country}</label>
-            <select className="form-select" value={form.country} onChange={e => set('country', e.target.value)}>
-              {['Kazakhstan','USA','Russia','Germany','UK','France','Other'].map(c => <option key={c}>{c}</option>)}
-            </select>
-          </div>
+          ))}
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
-        {[
-          { key: 'firstName', labelKey: 'prof_fname', type: 'text' },
-          { key: 'lastName',  labelKey: 'prof_lname', type: 'text' },
-          { key: 'phone',     labelKey: 'prof_phone', type: 'tel' },
-        ].map(f => (
-          <div key={f.key} className="form-group">
-            <label className="form-label">{t[f.labelKey]}</label>
-            <input type={f.type} value={form[f.key] || ''} onChange={e => set(f.key, e.target.value)} className="form-input" />
-          </div>
-        ))}
-      </div>
-
-      <div className="section-label" style={{ marginBottom: 12 }}>{t.prof_contacts}</div>
-      {form.contacts.map((c, i) => (
-        <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-          <input value={c.name} onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], name: e.target.value }; set('contacts', cs); }} placeholder={t.pt_contact_name} className="form-input" style={{ flex: 1 }} />
-          <input value={c.phone} onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], phone: e.target.value }; set('contacts', cs); }} placeholder={t.pt_contact_ph} className="form-input" style={{ flex: 1 }} />
-          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--purple)', fontSize: 20 }}>📞</span>
-        </div>
-      ))}
-
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: 28, display: 'flex', gap: 16, alignItems: 'center', marginTop: 20 }}>
-        <span style={{ fontSize: 28 }}>🔑</span>
-        <div>
-          <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>YOUR EMERGENCY PIN CODE</div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: 'var(--purple)', letterSpacing: '0.3em' }}>{user.pin}</div>
-          <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Write this down. Use from any phone to send SOS.</div>
+      {/* EMERGENCY CONTACTS */}
+      <div>
+        <SectionLabel>{t.prof_contacts}</SectionLabel>
+        <div className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {form.contacts.map((c, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10 }}>
+              <input
+                value={c.name}
+                onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], name: e.target.value }; set('contacts', cs); }}
+                placeholder={t.pt_contact_name}
+                className="form-input"
+                style={{ flex: 1 }}
+              />
+              <input
+                value={c.phone}
+                onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], phone: e.target.value }; set('contacts', cs); }}
+                placeholder={t.pt_contact_ph}
+                className="form-input"
+                style={{ flex: 1 }}
+              />
+            </div>
+          ))}
         </div>
       </div>
 
-      <button onClick={handleSave} className="btn btn-primary btn-lg btn-full">{t.prof_save}</button>
+      <button
+        onClick={handleSave}
+        className="btn btn-primary btn-lg btn-full"
+        style={{ marginTop: 8 }}
+      >{t.prof_save}</button>
     </div>
   );
 }

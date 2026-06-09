@@ -221,10 +221,10 @@ function Tag({ children, accent, center }) {
 function FCard({ icon, title, desc, col, row, accent, delay }) {
   const [ref, v] = useInView();
   const [hov, setHov] = useState(false);
-  const bg    = accent ? `${accent}0d` : 'rgba(255,255,255,0.025)';
-  const bgH   = accent ? `${accent}1a` : 'rgba(255,255,255,0.045)';
-  const bd    = accent ? `${accent}33` : border;
-  const bdH   = accent ? `${accent}55` : 'rgba(255,255,255,0.14)';
+  const bg  = accent ? `${accent}0d` : 'rgba(255,255,255,0.025)';
+  const bgH = accent ? `${accent}1a` : 'rgba(255,255,255,0.04)';
+  const bd  = accent ? `${accent}33` : border;
+  const bdH = accent ? `${accent}55` : 'rgba(255,255,255,0.13)';
   return (
     <div ref={ref} style={{
       gridColumn: col, gridRow: row,
@@ -236,18 +236,23 @@ function FCard({ icon, title, desc, col, row, accent, delay }) {
         onMouseEnter={() => setHov(true)}
         onMouseLeave={() => setHov(false)}
         style={{
-          height: '100%', padding: '30px 28px', borderRadius: 14,
+          height: '100%', padding: '28px 26px', borderRadius: 14,
           background: hov ? bgH : bg,
           border: `1px solid ${hov ? bdH : bd}`,
-          display: 'flex', flexDirection: 'column', gap: 12,
-          transition: 'background 220ms ease, border-color 220ms ease',
+          display: 'flex', flexDirection: 'column', gap: 18,
+          transition: `background 220ms ease, border-color 220ms ease, transform 260ms ${E}`,
+          transform: hov ? 'translateY(-3px)' : 'none',
           cursor: 'default', boxSizing: 'border-box',
         }}
       >
-        <span style={{ fontSize: 28, lineHeight: 1 }}>{icon}</span>
+        <span style={{
+          fontFamily: 'Syne, sans-serif', fontSize: 11, fontWeight: 700,
+          letterSpacing: '0.14em', color: accent || 'rgba(255,255,255,0.2)',
+          display: 'block',
+        }}>{icon}</span>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', marginBottom: 7 }}>{title}</div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.72 }}>{desc}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.42)', lineHeight: 1.75 }}>{desc}</div>
         </div>
       </div>
     </div>
@@ -276,20 +281,27 @@ function TCard({ name, role, note, delay }) {
           cursor: 'default',
         }}
       >
-        <div style={{
-          width: 42, height: 42, borderRadius: '50%', marginBottom: 18,
-          background: hov ? 'rgba(201,160,85,0.1)' : 'rgba(255,255,255,0.06)',
-          border: `1px solid ${hov ? 'rgba(201,160,85,0.3)' : 'rgba(255,255,255,0.1)'}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'Syne, sans-serif', fontWeight: 900, fontSize: 15,
-          color: hov ? gold : 'rgba(255,255,255,0.35)',
-          transition: 'all 200ms ease',
-        }}>
-          {name[0].toUpperCase()}
+        <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: hov ? 'rgba(201,160,85,0.12)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${hov ? 'rgba(201,160,85,0.32)' : 'rgba(255,255,255,0.08)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'Syne, sans-serif', fontWeight: 900, fontSize: 14,
+            color: hov ? gold : 'rgba(255,255,255,0.3)',
+            letterSpacing: '-0.02em',
+            transition: 'all 200ms ease',
+          }}>
+            {name.slice(0, 2).toUpperCase()}
+          </div>
+          <span style={{
+            fontFamily: 'Syne, sans-serif', fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.1em', color: 'rgba(255,255,255,0.15)',
+          }}>{role.slice(0, 3).toUpperCase()}</span>
         </div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em', marginBottom: 3 }}>{name}</div>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.09em', color: gold, marginBottom: 12 }}>{role}</div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.36)', lineHeight: 1.7 }}>{note}</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', marginBottom: 3 }}>{name}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: gold, marginBottom: 12 }}>{role}</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.38)', lineHeight: 1.75 }}>{note}</div>
       </div>
     </div>
   );
@@ -326,12 +338,12 @@ export default function AboutUs() {
   const release = e => { e.currentTarget.style.transform = ''; };
 
   const features = [
-    { icon: '📍', title: tx.f1_t, desc: tx.f1, col: '1 / 3', row: '1',     accent: null      },
-    { icon: '🆘', title: tx.f2_t, desc: tx.f2, col: '3',     row: '1 / 3', accent: '#E05252' },
-    { icon: '🗺️', title: tx.f3_t, desc: tx.f3, col: '1',     row: '2',     accent: null      },
-    { icon: '🛡️', title: tx.f4_t, desc: tx.f4, col: '2',     row: '2',     accent: null      },
-    { icon: '📶', title: tx.f5_t, desc: tx.f5, col: '1',     row: '3',     accent: null      },
-    { icon: '🌤️', title: tx.f6_t, desc: tx.f6, col: '2 / 4', row: '3',     accent: null      },
+    { icon: '01', title: tx.f1_t, desc: tx.f1, col: '1 / 3', row: '1',     accent: null      },
+    { icon: '02', title: tx.f2_t, desc: tx.f2, col: '3',     row: '1 / 3', accent: '#E05252' },
+    { icon: '03', title: tx.f3_t, desc: tx.f3, col: '1',     row: '2',     accent: null      },
+    { icon: '04', title: tx.f4_t, desc: tx.f4, col: '2',     row: '2',     accent: null      },
+    { icon: '05', title: tx.f5_t, desc: tx.f5, col: '1',     row: '3',     accent: null      },
+    { icon: '06', title: tx.f6_t, desc: tx.f6, col: '2 / 4', row: '3',     accent: null      },
   ];
 
   const team = [
@@ -494,14 +506,26 @@ export default function AboutUs() {
             </Reveal>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
-                { t: tx.prob_c1_t, b: tx.prob_c1 },
-                { t: tx.prob_c2_t, b: tx.prob_c2 },
-                { t: tx.prob_c3_t, b: tx.prob_c3 },
+                { t: tx.prob_c1_t, b: tx.prob_c1, n: '01' },
+                { t: tx.prob_c2_t, b: tx.prob_c2, n: '02' },
+                { t: tx.prob_c3_t, b: tx.prob_c3, n: '03' },
               ].map((c, i) => (
                 <Reveal key={i} delay={i * 65 + 100}>
-                  <div style={{ padding: '18px 20px', background: 'rgba(255,255,255,0.025)', borderLeft: '2px solid rgba(201,160,85,0.4)', borderTop: `1px solid rgba(255,255,255,0.04)`, borderRight: `1px solid rgba(255,255,255,0.04)`, borderBottom: `1px solid rgba(255,255,255,0.04)`, borderRadius: '0 10px 10px 0' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{c.t}</div>
-                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.44)', lineHeight: 1.65 }}>{c.b}</div>
+                  <div style={{
+                    padding: '18px 20px',
+                    background: 'rgba(255,255,255,0.025)',
+                    borderLeft: '2px solid rgba(201,160,85,0.4)',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                    borderLeft: '2px solid rgba(201,160,85,0.4)',
+                    borderRadius: '0 10px 10px 0',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 5 }}>
+                      <span style={{ fontFamily: 'Syne, sans-serif', fontSize: 10, fontWeight: 700, color: 'rgba(201,160,85,0.45)', letterSpacing: '0.12em', flexShrink: 0 }}>{c.n}</span>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', letterSpacing: '-0.01em' }}>
+                        {c.t.replace(/^[^\w\sЀ-ӿ]+\s*/, '')}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.44)', lineHeight: 1.7, paddingLeft: 28 }}>{c.b}</div>
                   </div>
                 </Reveal>
               ))}
@@ -531,18 +555,29 @@ export default function AboutUs() {
 
       {/* ── STACK ────────────────────────────────────────────── */}
       <section style={{ padding: `72px ${isMobile ? 20 : 48}px`, maxWidth: 1200, margin: '0 auto' }}>
-        <Reveal style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Tag center>{tx.stack_tag}</Tag>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.35)' }}>{tx.stack_sub}</p>
+        <Reveal style={{ marginBottom: 36 }}>
+          <Tag>{tx.stack_tag}</Tag>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.35)', maxWidth: '52ch', lineHeight: 1.7 }}>{tx.stack_sub}</p>
         </Reveal>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 8 }}>
           {TECH.map((name, i) => (
-            <Reveal key={i} delay={i * 38} style={{ flexShrink: 0 }}>
+            <Reveal key={i} delay={i * 35}>
               <div
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,160,85,0.35)'; e.currentTarget.style.background = 'rgba(201,160,85,0.06)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
-                style={{ padding: '10px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: `1px solid ${border}`, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.62)', whiteSpace: 'nowrap', cursor: 'default', transition: 'background 200ms ease, border-color 200ms ease' }}
-              >{name}</div>
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,160,85,0.32)'; e.currentTarget.style.background = 'rgba(201,160,85,0.05)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.background = 'rgba(255,255,255,0.025)'; }}
+                style={{
+                  padding: '14px 16px', borderRadius: 10,
+                  background: 'rgba(255,255,255,0.025)', border: `1px solid ${border}`,
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  cursor: 'default', transition: 'background 200ms ease, border-color 200ms ease',
+                }}
+              >
+                <span style={{
+                  fontFamily: 'Syne, sans-serif', fontSize: 10, fontWeight: 700,
+                  color: 'rgba(201,160,85,0.38)', letterSpacing: '0.1em', flexShrink: 0,
+                }}>{String(i + 1).padStart(2, '0')}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.62)' }}>{name}</span>
+              </div>
             </Reveal>
           ))}
         </div>
