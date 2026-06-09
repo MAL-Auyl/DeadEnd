@@ -46,13 +46,28 @@ export default function Home() {
     : PLACES.filter(p => p.category.includes(activeCategory));
   const hero = PLACES[0];
 
+  const maxDist = Math.max(...PLACES.map(p => p.distance));
+  const avgRating = (PLACES.reduce((a, b) => a + b.rating, 0) / PLACES.length).toFixed(1);
+  const totalReviews = PLACES.reduce((a, b) => a + (b.reviews || 0), 0);
+
+  const STATS = [
+    { num: `${PLACES.length}`,       label: 'Destinations' },
+    { num: `${maxDist}+ km`,         label: 'from Aktau' },
+    { num: `★ ${avgRating}`,         label: 'Avg rating' },
+    { num: `${totalReviews}+`,       label: 'Reviews' },
+  ];
+
   return (
     <div style={{ animation: 'pageFadeIn 0.4s ease' }}>
+      {/* AMBIENT ORBS */}
+      <div className="ambient-orb ambient-orb-1" />
+      <div className="ambient-orb ambient-orb-2" />
 
       {/* HERO */}
       <section className="home-hero" onClick={() => navigate(`/place/${hero.id}`)}>
         <img src={hero.image} alt={hero.name} className="home-hero-bg" />
         <div className="home-hero-gradient" />
+        <div className="home-hero-grain" />
 
         <div className="home-hero-top">
           <WeatherPill />
@@ -85,6 +100,16 @@ export default function Home() {
           <span>scroll</span>
         </div>
       </section>
+
+      {/* STATS BAR */}
+      <div className="home-stats-bar">
+        {STATS.map(s => (
+          <div key={s.label} className="home-stat">
+            <div className="home-stat-num">{s.num}</div>
+            <div className="home-stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
 
       {/* ACTIVE TRIP BANNER */}
       {activeTrip && (
@@ -124,8 +149,13 @@ export default function Home() {
 
         {filtered.length > 0 ? (
           <div className="places-grid">
-            {filtered.map(place => (
-              <div key={place.id} className="place-card" onClick={() => navigate(`/place/${place.id}`)}>
+            {filtered.map((place, i) => (
+              <div
+                key={place.id}
+                className="place-card"
+                style={{ '--card-delay': `${i * 70}ms` }}
+                onClick={() => navigate(`/place/${place.id}`)}
+              >
                 <div className="place-card-img">
                   <img src={place.image} alt={place.name} />
                 </div>

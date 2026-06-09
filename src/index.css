@@ -191,8 +191,11 @@ html, body, #root {
   transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 .place-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.65);
+  transform: translateY(-10px);
+  box-shadow:
+    0 36px 80px rgba(0,0,0,0.75),
+    0 0 0 1.5px rgba(201,160,85,0.45),
+    0 8px 40px rgba(201,160,85,0.18);
 }
 .place-card:active { transform: translateY(-3px) scale(0.99); }
 
@@ -778,3 +781,169 @@ html, body, #root {
   transition: color 0.2s;
 }
 .exp-card:hover .exp-card-cta { color: var(--gold); }
+
+/* ── СТАГЕР-АНИМАЦИЯ КАРТОЧЕК ── */
+@keyframes cardFadeUp {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.places-grid .place-card {
+  animation: cardFadeUp 0.55s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay: var(--card-delay, 0ms);
+}
+
+/* ── SHIMMER НА КАРТАХ ── */
+.place-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201,160,85,0.07) 50%,
+    transparent 100%
+  );
+  transition: left 0.65s ease;
+  pointer-events: none;
+  z-index: 3;
+}
+.place-card:hover::after { left: 160%; }
+
+/* ── HERO GRAIN TEXTURE ── */
+.home-hero-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* ── HERO GRADIENT УЛУЧШЕННЫЙ ── */
+.home-hero-gradient {
+  background: linear-gradient(
+    170deg,
+    rgba(11,9,7,0.45) 0%,
+    rgba(11,9,7,0.0)  30%,
+    rgba(11,9,7,0.6)  65%,
+    rgba(11,9,7,0.98) 100%
+  ) !important;
+}
+
+/* ── HERO TITLE УСИЛЕН ── */
+.home-hero-title {
+  text-shadow: 0 4px 40px rgba(0,0,0,0.5);
+}
+
+/* ── АНИМИРОВАННЫЙ SCROLL INDICATOR ── */
+@keyframes scrollPulse {
+  0%, 100% { transform: scaleY(1);   opacity: 0.3; }
+  50%       { transform: scaleY(0.5); opacity: 0.75; }
+}
+.home-scroll-line {
+  animation: scrollPulse 2.2s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+/* ── STATS BAR ── */
+.home-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 100%);
+}
+.home-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 16px;
+  gap: 5px;
+  transition: background 0.2s;
+  cursor: default;
+}
+.home-stat:not(:last-child) { border-right: 1px solid var(--border); }
+.home-stat:hover { background: var(--surface); }
+.home-stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.home-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+/* ── AMBIENT BACKGROUND ORBS ── */
+@keyframes orbDrift {
+  0%,100% { transform: translate(0, 0)     scale(1);    }
+  25%      { transform: translate(40px,-30px) scale(1.06); }
+  50%      { transform: translate(-20px,20px) scale(0.94); }
+  75%      { transform: translate(20px,40px)  scale(1.03); }
+}
+.ambient-orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+.ambient-orb-1 {
+  top: 5vh; left: 10vw;
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(201,160,85,0.09) 0%, transparent 65%);
+  filter: blur(70px);
+  animation: orbDrift 28s ease-in-out infinite;
+}
+.ambient-orb-2 {
+  bottom: 8vh; right: 8vw;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, rgba(76,175,125,0.07) 0%, transparent 65%);
+  filter: blur(70px);
+  animation: orbDrift 20s ease-in-out infinite reverse;
+}
+
+/* ── EXP CARDS УЛУЧШЕНЫ ── */
+.exp-card {
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease;
+}
+.exp-card:hover {
+  transform: scale(1.025);
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(201,160,85,0.22);
+}
+
+/* ── CATEGORY PILLS УЛУЧШЕНЫ ── */
+.cat-pill-active {
+  background: linear-gradient(135deg, rgba(201,160,85,0.2), rgba(221,185,106,0.1)) !important;
+  color: var(--gold2) !important;
+  border-color: rgba(201,160,85,0.5) !important;
+  box-shadow: 0 2px 14px rgba(201,160,85,0.15);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .places-grid { grid-template-columns: repeat(3, 1fr); }
+  .experiences-grid { grid-template-columns: 1fr 1fr; grid-template-rows: 280px 280px; }
+  .exp-card--wide { grid-column: span 2; }
+}
+@media (max-width: 768px) {
+  :root { --page-px: 20px; }
+  .places-grid { grid-template-columns: repeat(2, 1fr); }
+  .home-stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .home-stat:nth-child(2) { border-right: none; }
+  .experiences-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .exp-card--wide { grid-column: span 1; }
+  .home-hero-title { font-size: clamp(38px, 11vw, 72px); }
+  .home-section-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
