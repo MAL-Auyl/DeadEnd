@@ -9,7 +9,7 @@ export const PLACES = [
     rating: 5.0,
     reviews: 390,
     category: ['popular', 'mountain'],
-    image: 'https://central-asia.guide/wp-content/uploads/2024/10/Bozhyra-Mangystau-1024x682.jpg',
+    image: 'https://eurasia.travel/wp-content/uploads/2024/10/12.-Boszhira-mountain-1024x683.jpg',
     images: [
       'https://central-asia.guide/wp-content/uploads/2024/10/Bozhyra-Mangystau-1024x682.jpg',
       'https://eurasia.travel/wp-content/uploads/2024/10/12.-Boszhira-mountain-1024x683.jpg',
@@ -50,7 +50,7 @@ export const PLACES = [
     rating: 4.8,
     reviews: 214,
     category: ['popular', 'mountain', 'beach'],
-    image: 'https://central-asia.guide/wp-content/uploads/2024/10/Airakty-Mangystau-1024x682.jpg',
+    image: 'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Airakty-Valley-of-Castles-1024x682.jpg',
     images: [
       'https://central-asia.guide/wp-content/uploads/2024/10/Airakty-Mangystau-1024x682.jpg',
       'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Airakty-Valley-of-Castles-1024x682.jpg',
@@ -116,7 +116,7 @@ export const PLACES = [
     rating: 4.9,
     reviews: 178,
     category: ['mountain', 'popular'],
-    image: 'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Sherkala-mountain-1024x682.jpg',
+    image: 'https://eurasia.travel/wp-content/uploads/2024/10/9.-Mangystau-1024x683.jpg',
     images: [
       'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Sherkala-mountain-1024x682.jpg',
       'https://eurasia.travel/wp-content/uploads/2024/10/9.-Mangystau-1024x683.jpg',
@@ -190,7 +190,7 @@ export const PLACES = [
     rating: 4.8,
     reviews: 207,
     category: ['popular', 'mountain', 'sea'],
-    image: 'https://eurasia.travel/wp-content/uploads/2024/10/12.-Zhygylgan-Cape-Mangystau-1024x683.jpg',
+    image: 'https://central-asia.guide/wp-content/uploads/2025/02/Zhigylgan-Fallen-Earth-Mangystau-1024x682.jpg',
     images: [
       'https://eurasia.travel/wp-content/uploads/2024/10/12.-Zhygylgan-Cape-Mangystau-1024x683.jpg',
       'https://central-asia.guide/wp-content/uploads/2025/02/Zhigylgan-Fallen-Earth-Mangystau-1024x682.jpg',
@@ -227,7 +227,7 @@ export const PLACES = [
     rating: 4.9,
     reviews: 92,
     category: ['popular', 'mountain'],
-    image: 'https://central-asia.guide/wp-content/uploads/2025/01/Shakpak-ata-Mangystau-1024x682.jpg',
+    image: 'https://central-asia.guide/wp-content/uploads/2025/01/Mangyshlak-sacred-cave-mosque-1024x682.jpg',
     images: [
       'https://central-asia.guide/wp-content/uploads/2025/01/Shakpak-ata-Mangystau-1024x682.jpg',
       'https://www.planetesoterica.com/wp-content/uploads/2021/06/shakpak-ata-outside-mangystau-768x512.jpg',
@@ -334,7 +334,7 @@ export const PLACES = [
     rating: 4.8,
     reviews: 119,
     category: ['popular', 'mountain'],
-    image: 'https://eurasia.travel/wp-content/uploads/2024/10/2.-Torysh-Valley-1024x683.jpg',
+    image: 'https://central-asia.guide/wp-content/uploads/2021/01/IMG_7088-1024x683.jpg',
     images: [
       'https://eurasia.travel/wp-content/uploads/2024/10/2.-Torysh-Valley-1024x683.jpg',
       'https://central-asia.guide/wp-content/uploads/2021/01/IMG_7088-1024x683.jpg',

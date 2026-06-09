@@ -12,9 +12,14 @@ function QuickStartDrawer({ place, onClose }) {
   const navigate = useNavigate();
   const [returnTime, setReturnTime] = useState('18:00');
   const [vehicle, setVehicle] = useState(place.vehicles[0]);
+  const [plate, setPlate] = useState('');
+
+  const NON_MOTOR = ['🚶 On foot', '🤙 Hitchhiking'];
+  const allVehicles = [...NON_MOTOR, ...place.vehicles];
+  const isMotorized = !NON_MOTOR.includes(vehicle);
 
   function handleStart() {
-    startTrip(place, { returnTime, vehicle, contacts: user.contacts, groupType: 'solo', clothing: '' });
+    startTrip(place, { returnTime, vehicle, plate, contacts: user.contacts, groupType: 'solo', clothing: '' });
     navigate('/tracking');
   }
 
@@ -41,14 +46,20 @@ function QuickStartDrawer({ place, onClose }) {
             </div>
           </div>
         </div>
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: isMotorized ? 12 : 24 }}>
           <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>🚙 Транспорт</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {place.vehicles.map(v => (
+            {allVehicles.map(v => (
               <button key={v} onClick={() => setVehicle(v)} className={`qs-vehicle-btn${vehicle === v ? ' active' : ''}`}>{v}</button>
             ))}
           </div>
         </div>
+        {isMotorized && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>🔢 Номер машины</div>
+            <input value={plate} onChange={e => setPlate(e.target.value)} placeholder="014 BTE 02" className="form-input" style={{ width: '100%' }} />
+          </div>
+        )}
         {place.warnings.length > 0 && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
             {place.warnings.slice(0, 3).map((w, i) => (

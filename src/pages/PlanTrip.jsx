@@ -13,14 +13,19 @@ export default function PlanTrip() {
 
   const [clothing, setClothing] = useState('');
   const [vehicle, setVehicle] = useState(place?.vehicles[0] || '');
+  const [plate, setPlate] = useState('');
   const [returnTime, setReturnTime] = useState('18:00');
   const [groupType, setGroupType] = useState('solo');
   const [contacts, setContacts] = useState(user.contacts);
 
+  const NON_MOTOR = ['🚶 On foot', '🤙 Hitchhiking'];
+  const allVehicles = [...NON_MOTOR, ...(place?.vehicles || []), 'Other'];
+  const isMotorized = !NON_MOTOR.includes(vehicle);
+
   if (!place) return <div className="page">Place not found</div>;
 
   function handleStart() {
-    startTrip(place, { clothing, vehicle, returnTime, groupType, contacts });
+    startTrip(place, { clothing, vehicle, plate, returnTime, groupType, contacts });
     navigate('/tracking');
   }
 
@@ -76,12 +81,24 @@ export default function PlanTrip() {
 
         {/* Vehicle */}
         <div className="form-group">
-          <label className="form-label">🚙 Vehicle</label>
+          <label className="form-label">🚙 Transport</label>
           <select value={vehicle} onChange={e => setVehicle(e.target.value)} className="form-select">
-            {place.vehicles.map(v => <option key={v}>{v}</option>)}
-            <option>Other</option>
+            {allVehicles.map(v => <option key={v}>{v}</option>)}
           </select>
         </div>
+
+        {/* Plate number — only for motorized transport */}
+        {isMotorized && (
+          <div className="form-group">
+            <label className="form-label">🔢 Plate number</label>
+            <input
+              value={plate}
+              onChange={e => setPlate(e.target.value)}
+              placeholder="e.g. 014 BTE 02"
+              className="form-input"
+            />
+          </div>
+        )}
 
         {/* Contacts */}
         <div>
