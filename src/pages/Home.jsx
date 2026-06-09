@@ -2,16 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
+import { useLang } from '../context/LangContext';
 import { useWeather, weatherIcon } from '../hooks/useWeather';
 
 const AKTAU = { lat: 43.65, lng: 51.17 };
 
-const CATEGORIES = [
-  { id: 'all',      label: 'All' },
-  { id: 'sea',      label: 'Sea' },
-  { id: 'beach',    label: 'Beach' },
-  { id: 'mountain', label: 'Mountain' },
-];
+const CAT_KEYS = ['all', 'sea', 'beach', 'mountain'];
 
 function WeatherPill() {
   const { weather } = useWeather(AKTAU);
@@ -38,6 +34,7 @@ function WeatherPill() {
 
 export default function Home() {
   const { user, activeTrip } = useTrip();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('all');
 
@@ -52,11 +49,13 @@ export default function Home() {
   const totalReviews = PLACES.reduce((a, b) => a + (b.reviews || 0), 0);
 
   const STATS = [
-    { num: `${PLACES.length}`,       label: 'Destinations' },
-    { num: `${maxDist}+ km`,         label: 'from Aktau' },
-    { num: `★ ${avgRating}`,         label: 'Avg rating' },
-    { num: `${totalReviews}+`,       label: 'Reviews' },
+    { num: `${PLACES.length}`,       label: t.home_dest_label },
+    { num: `${maxDist}+ ${t.km}`,    label: t.home_from },
+    { num: `★ ${avgRating}`,         label: t.home_avg_rating },
+    { num: `${totalReviews}+`,       label: t.home_reviews },
   ];
+
+  const CATEGORIES = CAT_KEYS.map(id => ({ id, label: t[`cat_${id}`] || id }));
 
   return (
     <div style={{ animation: 'pageFadeIn 0.4s ease' }}>
@@ -75,30 +74,27 @@ export default function Home() {
         </div>
 
         <div className="home-hero-content">
-          <div className="home-hero-eyebrow">Mangystau · Kazakhstan</div>
-          <h1 className="home-hero-title">
-            Explore the<br />
-            <em>Wild Frontier</em>
+          <div className="home-hero-eyebrow">{t.home_eyebrow}</div>
+          <h1 className="home-hero-title" style={{ whiteSpace: 'pre-line' }}>
+            {t.home_title}
           </h1>
-          <p className="home-hero-sub">
-            Ancient canyons, salt flats, and cosmic landscapes at the edge of the Caspian Sea.
-          </p>
+          <p className="home-hero-sub">{t.home_sub}</p>
           <div className="home-hero-actions" onClick={e => e.stopPropagation()}>
             <button className="btn btn-primary btn-lg" onClick={() => navigate(`/place/${hero.id}`)}>
-              Start your journey →
+              {t.home_start}
             </button>
             <button
               className="btn btn-glass btn-lg"
               onClick={() => document.getElementById('destinations')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              View All Places
+              {t.home_view_all}
             </button>
           </div>
         </div>
 
         <div className="home-hero-scroll">
           <div className="home-scroll-line" />
-          <span>scroll</span>
+          <span>{t.home_scroll}</span>
         </div>
       </section>
 
@@ -117,9 +113,9 @@ export default function Home() {
         <div className="active-trip-banner" onClick={() => navigate('/tracking')}>
           <span className="status-dot status-active" />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gold)' }}>Active trip in progress</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--gold)' }}>{t.home_active_trip}</div>
             <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 2 }}>
-              {activeTrip.placeName} · Tap to view tracking
+              {activeTrip.placeName} · {t.home_tap_track}
             </div>
           </div>
           <span style={{ color: 'var(--gold)', fontSize: 18 }}>→</span>
@@ -130,9 +126,9 @@ export default function Home() {
       <section className="home-section" id="destinations">
         <div className="home-section-header">
           <div>
-            <div className="section-label">Destinations</div>
+            <div className="section-label">{t.home_dest_label}</div>
             <h2 className="home-section-title">
-              {user.firstName ? `For you, ${user.firstName}` : 'Best Destinations'}
+              {user.firstName ? `${t.home_dest_for} ${user.firstName}` : t.home_dest_best}
             </h2>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -163,10 +159,10 @@ export default function Home() {
                 <div className="place-card-overlay" />
                 <div className="place-card-badge">{place.region}</div>
                 <div className="place-card-body">
-                  <div className="place-card-name">{place.name}</div>
+                  <div className="place-card-name">{lang === 'kz' ? (place.nameKz || place.name) : place.name}</div>
                   <div className="place-card-meta">
                     <span className="rating">★ {place.rating}</span>
-                    <span className="distance">{place.distance} km · {place.duration}</span>
+                    <span className="distance">{place.distance} {t.km} · {place.duration}</span>
                   </div>
                 </div>
               </div>
@@ -175,7 +171,7 @@ export default function Home() {
         ) : (
           <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text3)' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🏜️</div>
-            <div style={{ fontSize: 16, fontFamily: 'Cormorant Garamond, serif' }}>No places in this category yet</div>
+            <div style={{ fontSize: 16, fontFamily: 'Cormorant Garamond, serif' }}>{t.home_no_places}</div>
           </div>
         )}
       </section>

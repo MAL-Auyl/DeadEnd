@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
+import { useLang } from '../context/LangContext';
 import { PLACES, VIBES } from '../data/places';
 import MapView from '../components/MapView';
 
@@ -91,6 +92,7 @@ function CompletionScreen({ data, onHome }) {
 export default function Tracking() {
   const navigate = useNavigate();
   const { activeTrip, stopTrip, triggerSOS, updateCheckpoint, user } = useTrip();
+  const { t } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
@@ -111,9 +113,9 @@ export default function Tracking() {
     return (
       <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 16 }}>
         <span style={{ fontSize: 48 }}>🗺️</span>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text)' }}>No active trip</h2>
-        <p style={{ color: 'var(--text2)' }}>Start a trip from the Home page</p>
-        <button onClick={() => navigate('/')} className="btn btn-primary">Browse places</button>
+        <h2 style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text)' }}>{t.tr_no_trip}</h2>
+        <p style={{ color: 'var(--text2)' }}>{t.tr_no_trip_sub}</p>
+        <button onClick={() => navigate('/')} className="btn btn-primary">{t.tr_browse}</button>
       </div>
     );
   }
@@ -196,8 +198,8 @@ export default function Tracking() {
         }}>
           <span style={{ fontSize: 28, flexShrink: 0 }}>🆘</span>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif' }}>SOS отправлен — МЧС оповещены</div>
-            <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>Оставайтесь на месте. Ждите подтверждения от спасателей.</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif' }}>{t.tr_sos_sent}</div>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>{t.tr_sos_stay}</div>
           </div>
         </div>
       )}
@@ -211,23 +213,23 @@ export default function Tracking() {
           <span style={{ fontSize: 28, flexShrink: 0 }}>⏰</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 900, color: '#F4A261', fontFamily: 'Syne, sans-serif' }}>
-              Время возврата прошло!
+              {t.tr_overdue}
             </div>
             <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>
-              Просрочено на <strong style={{ color: '#F4A261' }}>{overdueMinutes} мин</strong> · Возврат был в {activeTrip.expectedReturn} · МЧС уведомлены
+              {t.tr_overdue_by} <strong style={{ color: '#F4A261' }}>{overdueMinutes} {t.tr_min}</strong> · {t.tr_overdue_was} {activeTrip.expectedReturn}
             </div>
           </div>
           <button onClick={() => setShowStopConfirm(true)} style={{
             background: '#06D6A0', color: 'white', border: 'none',
             borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-          }}>Я вернулся ✅</button>
+          }}>{t.tr_returned}</button>
         </div>
       )}
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
         <div>
-          <h1 className="page-title" style={{ fontSize: 28 }}>В пути</h1>
+          <h1 className="page-title" style={{ fontSize: 28 }}>{t.tr_title}</h1>
           <p style={{ color: 'var(--text2)', fontSize: 14 }}>📍 {activeTrip.placeName}</p>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -236,7 +238,7 @@ export default function Tracking() {
             🕐 {clockStr}
           </div>
           <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, color: isOverdue ? '#F4A261' : 'var(--purple)', letterSpacing: '0.05em' }}>{timeStr}</div>
-          <div style={{ fontSize: 12, color: 'var(--text3)' }}>в пути · возврат {activeTrip.expectedReturn}</div>
+          <div style={{ fontSize: 12, color: 'var(--text3)' }}>{t.tr_title} · {activeTrip.expectedReturn}</div>
         </div>
       </div>
 
@@ -328,9 +330,9 @@ export default function Tracking() {
 
       {/* Trip info */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, marginBottom: 24 }}>
-        <div className="section-label" style={{ marginBottom: 12 }}>Trip info (visible to MChS)</div>
-        <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 6 }}>🧥 <strong style={{ color: 'var(--text)' }}>Clothing:</strong> {activeTrip.clothing || 'Not specified'}</div>
-        <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 12 }}>🚙 <strong style={{ color: 'var(--text)' }}>Vehicle:</strong> {activeTrip.vehicle || 'Not specified'}</div>
+        <div className="section-label" style={{ marginBottom: 12 }}>{t.tr_trip_info}</div>
+        <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 6 }}>🧥 <strong style={{ color: 'var(--text)' }}>{t.tr_clothing}</strong> {activeTrip.clothing || '—'}</div>
+        <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 12 }}>🚙 <strong style={{ color: 'var(--text)' }}>{t.tr_vehicle}</strong> {activeTrip.vehicle || '—'}</div>
         {(activeTrip.contacts || []).map((c, i) => (
           <div key={i} style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 4 }}>📞 {c.name} · {c.phone}</div>
         ))}
@@ -338,9 +340,9 @@ export default function Tracking() {
 
       {/* Action buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button onClick={() => setShowSOSConfirm(true)} className="sos-btn">🆘 SOS — EMERGENCY</button>
+        <button onClick={() => setShowSOSConfirm(true)} className="sos-btn">{t.tr_sos_btn}</button>
         {activeTrip.status !== 'sos' && (
-          <button onClick={() => setShowStopConfirm(true)} className="btn btn-ghost btn-lg btn-full">⏹ Stop Trip — I'm safe</button>
+          <button onClick={() => setShowStopConfirm(true)} className="btn btn-ghost btn-lg btn-full">{t.tr_stop_btn}</button>
         )}
       </div>
 
@@ -349,12 +351,12 @@ export default function Tracking() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24 }}>
           <div style={{ background: 'var(--bg2)', border: '1px solid rgba(255,71,87,0.4)', borderRadius: 'var(--radius)', padding: 32, maxWidth: 400, width: '100%' }}>
             <div style={{ fontSize: 40, textAlign: 'center', marginBottom: 16 }}>🆘</div>
-            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, textAlign: 'center', color: 'var(--red)', marginBottom: 12 }}>Send SOS?</h3>
-            <p style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', lineHeight: 1.6, marginBottom: 24 }}>Your GPS location, profile and trip details will be sent immediately to MChS and your emergency contacts.</p>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, textAlign: 'center', color: 'var(--red)', marginBottom: 12 }}>{t.tr_sos_modal_title}</h3>
+            <p style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', lineHeight: 1.6, marginBottom: 24 }}>{t.tr_sos_modal_sub}</p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowSOSConfirm(false)} className="btn btn-ghost btn-full" disabled={sosSending}>Cancel</button>
+              <button onClick={() => setShowSOSConfirm(false)} className="btn btn-ghost btn-full" disabled={sosSending}>{t.tr_cancel}</button>
               <button onClick={handleSOS} className="btn btn-danger btn-full" disabled={sosSending} style={{ opacity: sosSending ? 0.7 : 1 }}>
-                {sosSending ? '📡 Жіберілуде...' : 'SEND SOS NOW'}
+                {sosSending ? '📡...' : t.tr_send_sos}
               </button>
             </div>
           </div>
@@ -366,12 +368,12 @@ export default function Tracking() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24 }}>
           <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 32, maxWidth: 400, width: '100%' }}>
             <div style={{ fontSize: 40, textAlign: 'center', marginBottom: 16 }}>✅</div>
-            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, textAlign: 'center', color: 'var(--teal)', marginBottom: 12 }}>End trip?</h3>
-            <p style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', lineHeight: 1.6, marginBottom: 24 }}>Your contacts and MChS will be notified that you returned safely.</p>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, textAlign: 'center', color: 'var(--teal)', marginBottom: 12 }}>{t.tr_end_trip}</h3>
+            <p style={{ fontSize: 14, color: 'var(--text2)', textAlign: 'center', lineHeight: 1.6, marginBottom: 24 }}>{t.tr_end_sub}</p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowStopConfirm(false)} className="btn btn-ghost btn-full" disabled={stopSending}>Continue trip</button>
+              <button onClick={() => setShowStopConfirm(false)} className="btn btn-ghost btn-full" disabled={stopSending}>{t.tr_continue}</button>
               <button onClick={handleStop} className="btn btn-primary btn-full" disabled={stopSending} style={{ opacity: stopSending ? 0.7 : 1 }}>
-                {stopSending ? 'Аяқталуда...' : "I'm safe, end trip"}
+                {stopSending ? '...' : t.tr_end_safe}
               </button>
             </div>
           </div>
