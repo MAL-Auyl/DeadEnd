@@ -339,7 +339,9 @@ export default function Tracking() {
       {/* Action buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <button onClick={() => setShowSOSConfirm(true)} className="sos-btn">🆘 SOS — EMERGENCY</button>
-        <button onClick={() => setShowStopConfirm(true)} className="btn btn-ghost btn-lg btn-full">⏹ Stop Trip — I'm safe</button>
+        {activeTrip.status !== 'sos' && (
+          <button onClick={() => setShowStopConfirm(true)} className="btn btn-ghost btn-lg btn-full">⏹ Stop Trip — I'm safe</button>
+        )}
       </div>
 
       {/* SOS Modal */}
