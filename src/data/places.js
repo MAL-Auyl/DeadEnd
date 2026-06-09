@@ -482,7 +482,7 @@ export const MOCK_ACTIVE_TOURISTS = [
     checkpointsDone: 2,
     checkpointsTotal: 3,
   },
-  // Demo tourist — expectedReturn is 2 minutes after module load so the auto-overdue transition is visible
+  // Demo tourist — expectedReturn is 12h05m ago so the 12h no-signal escalation fires on page load
   {
     id: 't005',
     name: 'Арарат Берекет',
@@ -490,9 +490,9 @@ export const MOCK_ACTIVE_TOURISTS = [
     phone: '+7 707 123 4567',
     destination: 'Karynzharyk Depression',
     status: 'active',
-    startTime: (() => { const d = new Date(); d.setHours(d.getHours() - 3); return d.toTimeString().slice(0, 5); })(),
-    expectedReturn: (() => { const d = new Date(); d.setMinutes(d.getMinutes() + 2); return d.toTimeString().slice(0, 5); })(),
-    lastSignal: (() => new Date().toTimeString().slice(0, 5))(),
+    startTime: (() => { const d = new Date(); d.setHours(d.getHours() - 15); return d.toTimeString().slice(0, 5); })(),
+    expectedReturn: (() => { const d = new Date(); d.setHours(d.getHours() - 12); d.setMinutes(d.getMinutes() - 5); return d.toTimeString().slice(0, 5); })(),
+    lastSignal: (() => { const d = new Date(); d.setHours(d.getHours() - 12); return d.toTimeString().slice(0, 5); })(),
     clothing: 'Синяя куртка, серые брюки',
     vehicle: 'Toyota Hilux',
     plate: '456 AKT 02',

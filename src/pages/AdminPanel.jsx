@@ -93,13 +93,17 @@ function initLogs(t) {
   return entries;
 }
 
-// ── Auto-overdue: computes effective status from current time ──
+// ── Auto-overdue: escalate active → overdue 12 h after expectedReturn ──
 function getEffectiveStatus(t) {
   if (t.status !== 'active') return t.status;
   if (!t.expectedReturn) return 'active';
   const [h, m] = t.expectedReturn.split(':').map(Number);
-  const ret = new Date(); ret.setHours(h, m, 0, 0);
-  return new Date() > ret ? 'overdue' : 'active';
+  const now = new Date();
+  const ret = new Date(now);
+  ret.setHours(h, m, 0, 0);
+  if (ret > now) return 'active';
+  const hoursLate = (now - ret) / 3_600_000;
+  return hoursLate >= 12 ? 'overdue' : 'active';
 }
 
 function applyEffectiveStatuses(tourists) {
@@ -950,9 +954,9 @@ export default function AdminPanel() {
       if (!t._autoEscalated || closedIds.has(t.id) || notifiedOverdueRef.current.has(t.id)) return;
       notifiedOverdueRef.current.add(t.id);
       const alertId = `${t.id}-od`;
-      const msg = `${t.name} — не вернулся в срок. Ожидался в ${t.expectedReturn}`;
+      const msg = `${t.name} — нет связи 12+ ч. Ожидался в ${t.expectedReturn}`;
       setAdminAlerts(prev => [...prev, { id: alertId, msg }]);
-      addLog(t.id, 'warn', `Время возврата прошло — статус изменён на «Нет связи»`);
+      addLog(t.id, 'warn', `Прошло 12 часов с момента возврата — статус «Нет связи»`);
       setTimeout(() => setAdminAlerts(prev => prev.filter(a => a.id !== alertId)), 10000);
     });
   }, [tick, allTourists.length]);
