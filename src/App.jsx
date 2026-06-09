@@ -9,6 +9,7 @@ import AdminPanel from './pages/AdminPanel';
 import AdminLogin from './pages/AdminLogin';
 import PinLogin from './pages/PinLogin';
 import NotFound from './pages/NotFound';
+import Landing from './pages/Landing';
 import './index.css';
 
 function Notifications() {
@@ -55,6 +56,9 @@ function TopNav() {
             </NavLink>
             <NavLink to="/admin-login" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
               МЧС Panel
+            </NavLink>
+            <NavLink to="/about" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+              About
             </NavLink>
           </>
         ) : (
@@ -109,6 +113,7 @@ function Layout() {
               <AdminPanel />
             </ProtectedRoute>
           } />
+          <Route path="/about" element={<Landing />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
