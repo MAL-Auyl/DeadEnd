@@ -93,6 +93,22 @@ function initLogs(t) {
   return entries;
 }
 
+// ── Auto-overdue: computes effective status from current time ──
+function getEffectiveStatus(t) {
+  if (t.status !== 'active') return t.status;
+  if (!t.expectedReturn) return 'active';
+  const [h, m] = t.expectedReturn.split(':').map(Number);
+  const ret = new Date(); ret.setHours(h, m, 0, 0);
+  return new Date() > ret ? 'overdue' : 'active';
+}
+
+function applyEffectiveStatuses(tourists) {
+  return tourists.map(t => {
+    const eff = getEffectiveStatus(t);
+    return eff !== t.status ? { ...t, status: eff, _autoEscalated: true } : t;
+  });
+}
+
 // ── Design tokens ─────────────────────────────────────────────
 const C = {
   bg:          '#f4f5f7',
@@ -839,6 +855,9 @@ export default function AdminPanel() {
   const prevStatusRef             = useRef(null);
   const liveTouristRef            = useRef(null);
   const [firebaseTourists, setFirebaseTourists] = useState([]);
+  const [tick, setTick]           = useState(0);         // 30s ticker → re-evaluate statuses
+  const [adminAlerts, setAdminAlerts] = useState([]);    // overdue transition toasts
+  const notifiedOverdueRef        = useRef(new Set());
 
   const liveTourist = activeTrip ? {
     id: 'live-' + activeTrip.id,
@@ -896,13 +915,35 @@ export default function AdminPanel() {
     setLogs(prev => ({ ...prev, [touristId]: [{ time, text, type }, ...(prev[touristId] || [])] }));
   };
 
+  // 30-second ticker — forces re-render so status badges stay in sync with real time
+  useEffect(() => {
+    const id = setInterval(() => setTick(n => n + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
+
   const firebaseIds  = new Set(firebaseTourists.map(t => t.id));
   const mockFallback = MOCK_ACTIVE_TOURISTS.filter(t => !firebaseIds.has(t.id));
   const baseTourists = firebaseTourists.length > 0
     ? [...firebaseTourists, ...mockFallback]
     : (liveTourist ? [liveTourist, ...MOCK_ACTIVE_TOURISTS] : MOCK_ACTIVE_TOURISTS);
-  const allTourists  = baseTourists;
-  const visible      = allTourists.filter(t => !closedIds.has(t.id)).filter(t => filter === null || t.status === filter);
+
+  // Apply real-time status: active → overdue when expectedReturn has passed
+  const allTourists = applyEffectiveStatuses(baseTourists);
+
+  // Detect new overdue transitions on each tick and fire admin notifications
+  useEffect(() => {
+    allTourists.forEach(t => {
+      if (!t._autoEscalated || closedIds.has(t.id) || notifiedOverdueRef.current.has(t.id)) return;
+      notifiedOverdueRef.current.add(t.id);
+      const alertId = `${t.id}-od`;
+      const msg = `${t.name} — не вернулся в срок. Ожидался в ${t.expectedReturn}`;
+      setAdminAlerts(prev => [...prev, { id: alertId, msg }]);
+      addLog(t.id, 'warn', `Время возврата прошло — статус изменён на «Нет связи»`);
+      setTimeout(() => setAdminAlerts(prev => prev.filter(a => a.id !== alertId)), 10000);
+    });
+  }, [tick, allTourists.length]);
+
+  const visible = allTourists.filter(t => !closedIds.has(t.id)).filter(t => filter === null || t.status === filter);
 
   const counts = {
     all:     allTourists.filter(t => !closedIds.has(t.id)).length,
@@ -910,6 +951,13 @@ export default function AdminPanel() {
     sos:     allTourists.filter(t => !closedIds.has(t.id) && t.status === 'sos').length,
     overdue: allTourists.filter(t => !closedIds.has(t.id) && t.status === 'overdue').length,
   };
+
+  // Keep selected tourist's status in sync with live auto-escalation
+  useEffect(() => {
+    if (!selected) return;
+    const live = allTourists.find(t => t.id === selected.id);
+    if (live && live.status !== selected.status) setSelected(live);
+  }, [tick, allTourists.length]);
 
   const handleSelect = (t) => {
     setSelected(prev => {
@@ -938,8 +986,29 @@ export default function AdminPanel() {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.55; }
         }
+        @keyframes adminAlertIn {
+          from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
       `}</style>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: C.bg, fontFamily: 'DM Sans, sans-serif', color: C.text1 }}>
+
+        {/* Overdue transition alerts */}
+        {adminAlerts.length > 0 && (
+          <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 500, display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'none' }}>
+            {adminAlerts.map(a => (
+              <div key={a.id} style={{
+                padding: '10px 18px', borderRadius: 10, background: C.amberBg, border: `1px solid ${C.amberBorder}`,
+                color: C.amber, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap',
+                animation: 'adminAlertIn 0.25s cubic-bezier(0.23,1,0.32,1)',
+              }}>
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                {a.msg}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Header */}
         <div style={{ padding: '14px 24px', borderBottom: `1px solid ${C.border}`, flexShrink: 0, background: C.surface }}>
