@@ -30,97 +30,85 @@ function ProtectedRoute({ role, children }) {
   return children;
 }
 
-const TOURIST_LINKS = [
-  { to: '/', icon: '🏠', label: 'Home' },
-  { to: '/profile', icon: '👤', label: 'Profile' },
-  { to: '/pin', icon: '🔑', label: 'Emergency' },
-];
-
-const ADMIN_LINKS = [
-  { to: '/admin', icon: '🛡️', label: 'Dashboard' },
-];
-
-function Sidebar() {
+function TopNav() {
   const { activeTrip, user, logout } = useTrip();
   const navigate = useNavigate();
   const isAdmin = user.role === 'admin';
-  const links = isAdmin ? ADMIN_LINKS : TOURIST_LINKS;
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo" onClick={() => navigate(isAdmin ? '/admin' : '/')}>
-        <span className="logo-dead">Dead</span><span className="logo-end">End</span>
+    <nav className="app-nav">
+      <div className="nav-logo" onClick={() => navigate(isAdmin ? '/admin' : '/')}>
+        dead<span>end</span>
       </div>
 
-      {!isAdmin && activeTrip && (
-        <div className="sidebar-trip-badge" onClick={() => navigate('/tracking')}>
-          <span className="trip-pulse"></span>
-          <span>Active trip</span>
-          <span className="trip-dest">{activeTrip.placeName}</span>
-        </div>
-      )}
-
-      <nav className="sidebar-nav">
-        {links.map(l => (
-          <NavLink key={l.to} to={l.to} end={l.to === '/' || l.to === '/admin'} className={({ isActive }) => `nav-link ${isActive ? 'nav-active' : ''}`}>
-            <span className="nav-icon">{l.icon}</span>
-            <span>{l.label}</span>
-          </NavLink>
-        ))}
-
-        {isAdmin && (
-          <button
-            className="nav-link"
-            style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
-            onClick={() => { logout(); navigate('/'); }}
-          >
-            <span className="nav-icon">🚪</span>
-            <span>Выйти</span>
-          </button>
+      <div className="nav-links">
+        {!isAdmin ? (
+          <>
+            <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+              Explore
+            </NavLink>
+            <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+              Profile
+            </NavLink>
+            <NavLink to="/pin" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+              Emergency
+            </NavLink>
+            <NavLink to="/admin-login" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+              МЧС Panel
+            </NavLink>
+          </>
+        ) : (
+          <>
+            <NavLink to="/admin" end className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+              Dashboard
+            </NavLink>
+            <button
+              className="nav-link"
+              onClick={() => { logout(); navigate('/'); }}
+            >
+              Выйти
+            </button>
+          </>
         )}
-
-        {!isAdmin && (
-          <NavLink to="/admin-login" className={({ isActive }) => `nav-link ${isActive ? 'nav-active' : ''}`}>
-            <span className="nav-icon">🛡️</span>
-            <span>МЧС Panel</span>
-          </NavLink>
-        )}
-      </nav>
-
-      <div className="sidebar-user">
-        <img src={user.photo} alt="" className="sidebar-avatar" />
-        <div>
-          <div className="sidebar-name">{user.firstName} {user.lastName}</div>
-          <div className="sidebar-email">{isAdmin ? '🛡️ Admin' : user.email}</div>
-        </div>
       </div>
-    </aside>
+
+      <div className="nav-right">
+        {!isAdmin && activeTrip && (
+          <div className="nav-trip" onClick={() => navigate('/tracking')}>
+            <span className="status-dot status-active" style={{ width: 7, height: 7 }} />
+            В пути · {activeTrip.placeName}
+          </div>
+        )}
+        <img
+          src={user.photo}
+          alt=""
+          className="nav-avatar"
+          onClick={() => navigate(isAdmin ? '/admin' : '/profile')}
+        />
+      </div>
+    </nav>
   );
 }
 
 function Layout() {
   return (
     <div className="app-layout">
-      <Sidebar />
+      <TopNav />
       <main className="app-main">
         <Notifications />
         <Routes>
-          {/* Tourist routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/place/:id" element={<PlaceDetail />} />
-          <Route path="/plan/:id" element={<PlanTrip />} />
-          <Route path="/tracking" element={<Tracking />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/pin" element={<PinLogin />} />
-
-          {/* Admin routes */}
+          <Route path="/"            element={<Home />} />
+          <Route path="/place/:id"   element={<PlaceDetail />} />
+          <Route path="/plan/:id"    element={<PlanTrip />} />
+          <Route path="/tracking"    element={<Tracking />} />
+          <Route path="/profile"     element={<Profile />} />
+          <Route path="/pin"         element={<PinLogin />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin" element={
             <ProtectedRoute role="admin">
               <AdminPanel />
             </ProtectedRoute>
           } />
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
