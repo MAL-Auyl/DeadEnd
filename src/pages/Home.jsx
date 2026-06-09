@@ -7,6 +7,7 @@ import { useWeather, weatherIcon } from '../hooks/useWeather';
 const AKTAU = { lat: 43.65, lng: 51.17 };
 
 function WeatherPill() {
+  const { t } = useLang();
   const { weather } = useWeather(AKTAU);
   if (!weather) return null;
   const { current, today } = weather;
@@ -24,7 +25,7 @@ function WeatherPill() {
       {current.temp}°C
       <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.15)', display: 'inline-block' }} />
       <span style={{ fontSize: 12, fontWeight: 500 }}>💨 {current.wind} m/s</span>
-      {isDangerous && <span style={{ fontSize: 11, color: '#E89A3A' }}>⚠️ сложные</span>}
+      {isDangerous && <span style={{ fontSize: 11, color: '#E89A3A' }}>⚠️ {t.home_difficult}</span>}
     </div>
   );
 }
@@ -103,13 +104,13 @@ export default function Home() {
         />
         <div className="home-featured-overlay" />
         <div className="home-featured-content">
-          <div className="home-featured-eyebrow">Featured Destination</div>
+          <div className="home-featured-eyebrow">{t.home_featured}</div>
           <h2 className="home-featured-title">
             {lang === 'kz' ? (featured.nameKz || featured.name) : featured.name}
           </h2>
           <p className="home-featured-desc">{featured.description}</p>
           <div className="home-featured-stats">
-            <span>{featured.distance} km</span>
+            <span>{featured.distance} {t.km}</span>
             <span className="home-featured-dot" />
             <span>{featured.duration}</span>
             <span className="home-featured-dot" />
@@ -119,7 +120,7 @@ export default function Home() {
             className="home-featured-cta"
             onClick={e => { e.stopPropagation(); navigate(`/place/${featured.id}`); }}
           >
-            Explore route →
+            {t.home_explore}
           </button>
         </div>
       </section>
@@ -154,7 +155,7 @@ export default function Home() {
                 </div>
                 <div className="home-dest-meta">
                   <span className="home-dest-rating">★ {place.rating}</span>
-                  <span className="home-dest-distance">{place.distance} km · {place.duration}</span>
+                  <span className="home-dest-distance">{place.distance} {t.km} · {place.duration}</span>
                 </div>
               </div>
             </div>

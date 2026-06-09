@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef } from 'react';
 import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
+import { useLang } from '../context/LangContext';
 import LiveAlerts from '../components/LiveAlerts';
 import WeatherWidget from '../components/WeatherWidget';
 import MapView from '../components/MapView';
@@ -9,6 +10,7 @@ import MapView from '../components/MapView';
 // ── Quick Start Drawer ────────────────────────────────────────
 function QuickStartDrawer({ place, onClose }) {
   const { user, startTrip } = useTrip();
+  const { t } = useLang();
   const navigate = useNavigate();
   const [returnTime, setReturnTime] = useState('18:00');
   const [vehicle, setVehicle] = useState(place.vehicles[0]);
@@ -29,25 +31,25 @@ function QuickStartDrawer({ place, onClose }) {
         <div className="qs-handle" />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Syne, sans-serif', color: 'var(--text)', marginBottom: 4 }}>Готов к старту?</div>
-            <div style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {place.name} · {place.distance} км · {place.duration}</div>
+            <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Syne, sans-serif', color: 'var(--text)', marginBottom: 4 }}>{t.pd_ready}</div>
+            <div style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {place.name} · {place.distance} {t.km} · {place.duration}</div>
           </div>
           <button onClick={onClose} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text3)', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>✕</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>⏰ Время возврата</div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.qs_return}</div>
             <input type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)} className="form-input" style={{ width: '100%' }} />
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>📞 Уведомим</div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.pd_notify}</div>
             <div style={{ padding: '11px 14px', borderRadius: 8, background: 'rgba(6,214,160,0.06)', border: '1px solid rgba(6,214,160,0.2)', fontSize: 13, color: 'var(--teal)', fontWeight: 600 }}>
-              {user.contacts.length > 0 ? user.contacts.map(c => c.name).join(', ') : 'Контакты не добавлены'}
+              {user.contacts.length > 0 ? user.contacts.map(c => c.name).join(', ') : t.pd_contacts_none}
             </div>
           </div>
         </div>
         <div style={{ marginBottom: isMotorized ? 12 : 24 }}>
-          <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>🚙 Транспорт</div>
+          <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{t.qs_vehicle}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {allVehicles.map(v => (
               <button key={v} onClick={() => setVehicle(v)} className={`qs-vehicle-btn${vehicle === v ? ' active' : ''}`}>{v}</button>
@@ -56,7 +58,7 @@ function QuickStartDrawer({ place, onClose }) {
         </div>
         {isMotorized && (
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>🔢 Номер машины</div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.qs_plate}</div>
             <input value={plate} onChange={e => setPlate(e.target.value)} placeholder="014 BTE 02" className="form-input" style={{ width: '100%' }} />
           </div>
         )}
@@ -69,7 +71,7 @@ function QuickStartDrawer({ place, onClose }) {
             ))}
           </div>
         )}
-        <button onClick={handleStart} className="btn btn-primary btn-lg btn-full" style={{ fontSize: 17 }}>🚀 Начать маршрут</button>
+        <button onClick={handleStart} className="btn btn-primary btn-lg btn-full" style={{ fontSize: 17 }}>{t.pd_start_btn}</button>
       </div>
     </div>
   );
@@ -77,6 +79,7 @@ function QuickStartDrawer({ place, onClose }) {
 
 // ── Photo + Video Slider ──────────────────────────────────────
 function PhotoSlider({ images, name }) {
+  const { t } = useLang();
   const [idx, setIdx] = useState(0);
   const slides = [...images, 'VIDEO'];
   const total = slides.length;
@@ -98,10 +101,10 @@ function PhotoSlider({ images, name }) {
             fontSize: 32, cursor: 'pointer',
             boxShadow: '0 0 40px rgba(108,99,255,0.3)',
           }}>▶</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>Видео-обзор</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'white' }}>{t.pd_video}</div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{name}</div>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 8, textAlign: 'center', padding: '0 40px' }}>
-            Снято с дрона · Мангыстау
+            {t.pd_drone}
           </div>
         </div>
       ) : (
@@ -166,13 +169,16 @@ function PhotoSlider({ images, name }) {
 }
 
 // ── Highlights row ────────────────────────────────────────────
-const HIGHLIGHTS = [
-  { id: 'weather', icon: '🌤️', label: 'Погода' },
-  { id: 'warnings', icon: '⚠️', label: 'Риски' },
-  { id: 'mama', icon: '💬', label: 'Советы' },
-  { id: 'gear', icon: '🎒', label: 'Снаряжение' },
-  { id: 'route', icon: '🗺️', label: 'Маршрут' },
-];
+function useHighlights() {
+  const { t } = useLang();
+  return [
+    { id: 'weather', icon: '🌤️', label: t.pd_hl_weather },
+    { id: 'warnings', icon: '⚠️', label: t.pd_hl_risks },
+    { id: 'mama', icon: '💬', label: t.pd_hl_tips },
+    { id: 'gear', icon: '🎒', label: t.pd_hl_gear },
+    { id: 'route', icon: '🗺️', label: t.pd_hl_route },
+  ];
+}
 
 // ── Section wrapper ───────────────────────────────────────────
 function Section({ id, title, icon, children }) {
@@ -190,15 +196,18 @@ function Section({ id, title, icon, children }) {
 export default function PlaceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, lang } = useLang();
   const place = PLACES.find(p => p.id === id);
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [likeCount] = useState(place?.reviews || 0);
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [expandDesc, setExpandDesc] = useState(false);
+  const highlights = useHighlights();
 
   if (!place) return <div className="page"><div style={{ color: 'var(--text2)' }}>Place not found</div></div>;
 
+  const placeName = lang === 'kz' ? (place.nameKz || place.name) : place.name;
   const hashtags = `#${place.id} #Мангыстау #Kazakhstan #Adventure #Travel #Explore`;
 
   function scrollTo(sectionId) {
@@ -223,7 +232,7 @@ export default function PlaceDetail() {
             boxShadow: '0 0 0 2px var(--bg), 0 0 0 4px rgba(108,99,255,0.5)',
           }}>⛰️</div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)', fontFamily: 'Syne, sans-serif' }}>{place.name}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)', fontFamily: 'Syne, sans-serif' }}>{placeName}</div>
             <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 1 }}>📍 {place.region}</div>
           </div>
         </div>
@@ -235,7 +244,7 @@ export default function PlaceDetail() {
             fontWeight: 700, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
           }}
         >
-          Поехать
+          {t.pd_go}
         </button>
       </div>
 
@@ -259,16 +268,16 @@ export default function PlaceDetail() {
       {/* ── STATS ROW ── */}
       <div style={{ padding: '0 16px 12px', display: 'flex', gap: 20, alignItems: 'center' }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
-          {liked ? (likeCount + 1).toLocaleString() : likeCount.toLocaleString()} отметок
+          {liked ? (likeCount + 1).toLocaleString() : likeCount.toLocaleString()} {t.pd_likes}
         </span>
         <span style={{ fontSize: 13, color: 'var(--amber)', fontWeight: 700 }}>★ {place.rating}</span>
-        <span style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {place.distance} км</span>
+        <span style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {place.distance} {t.km}</span>
         <span style={{ fontSize: 13, color: 'var(--text3)' }}>⏱ {place.duration}</span>
       </div>
 
       {/* ── CAPTION ── */}
       <div style={{ padding: '0 16px 16px' }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginRight: 6 }}>{place.name}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginRight: 6 }}>{placeName}</span>
         <span style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6 }}>
           {expandDesc ? place.description : place.description.slice(0, 100) + (place.description.length > 100 ? '...' : '')}
         </span>
@@ -276,14 +285,14 @@ export default function PlaceDetail() {
           <button onClick={() => setExpandDesc(e => !e)} style={{
             background: 'none', border: 'none', color: 'var(--text3)',
             cursor: 'pointer', fontSize: 13, padding: 0, marginLeft: 4,
-          }}>{expandDesc ? 'скрыть' : 'ещё'}</button>
+          }}>{expandDesc ? t.pd_show_less : t.pd_show_more}</button>
         )}
         <div style={{ marginTop: 8, fontSize: 13, color: 'var(--purple)', lineHeight: 1.8 }}>{hashtags}</div>
       </div>
 
       {/* ── STORY HIGHLIGHTS ── */}
       <div style={{ padding: '4px 16px 18px', display: 'flex', gap: 18, overflowX: 'auto', scrollbarWidth: 'none' }}>
-        {HIGHLIGHTS.map(h => (
+        {highlights.map(h => (
           <div key={h.id} onClick={() => scrollTo(h.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer', flexShrink: 0 }}>
             <div style={{
               width: 62, height: 62, borderRadius: '50%',
@@ -310,12 +319,12 @@ export default function PlaceDetail() {
       </div>
 
       {/* ── WEATHER ── */}
-      <Section id="weather" icon="🌤️" title="Погода сейчас">
+      <Section id="weather" icon="🌤️" title={t.pd_weather_now}>
         <WeatherWidget coords={place.coords} placeName={place.name} />
       </Section>
 
       {/* ── WARNINGS ── */}
-      <Section id="warnings" icon="⚠️" title="Предупреждения маршрута">
+      <Section id="warnings" icon="⚠️" title={t.pd_route_warnings}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {place.warnings.map((w, i) => (
             <div key={i} style={{
@@ -335,13 +344,13 @@ export default function PlaceDetail() {
       </Section>
 
       {/* ── MAMA SAYS ── */}
-      <Section id="mama" icon="💬" title="Мама говорит">
+      <Section id="mama" icon="💬" title={t.pd_mama_says}>
         <div style={{
           background: 'rgba(108,99,255,0.07)', border: '1px solid rgba(108,99,255,0.2)',
           borderRadius: 12, padding: '12px 14px', marginBottom: 12,
           fontSize: 13, color: 'var(--text2)', fontStyle: 'italic',
         }}>
-          💜 Жылы кеңестер, жергілікті тәжірибеден. Сіздің қауіпсіздігіңіз — бізге маңызды.
+          {t.pd_mama_sub}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {place.mamaSays.map((m, i) => (
@@ -359,7 +368,7 @@ export default function PlaceDetail() {
       </Section>
 
       {/* ── GEAR ── */}
-      <Section id="gear" icon="🎒" title="Что взять с собой">
+      <Section id="gear" icon="🎒" title={t.pd_gear_title}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {place.gear.map((g, i) => (
             <div key={i} style={{
@@ -376,7 +385,7 @@ export default function PlaceDetail() {
       </Section>
 
       {/* ── ROUTE MAP + CHECKPOINTS ── */}
-      <Section id="route" icon="🗺️" title={`Маршрут · ${place.checkpoints.length} точек`}>
+      <Section id="route" icon="🗺️" title={`${t.pd_hl_route} · ${place.checkpoints.length} ${t.pd_pts}`}>
         <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 16, border: '1px solid var(--border)' }}>
           <MapView place={place} height={200} />
         </div>
@@ -398,7 +407,7 @@ export default function PlaceDetail() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{cp.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{cp.km} км от старта</div>
+                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{cp.km} {t.pd_from_start}</div>
               </div>
             </div>
           ))}
@@ -421,7 +430,7 @@ export default function PlaceDetail() {
       }}>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setShowQuickStart(true)} className="btn btn-primary btn-lg btn-full" style={{ fontSize: 16, fontWeight: 800 }}>
-            🚀 Начать маршрут
+            {t.pd_start_btn}
           </button>
           <button onClick={() => navigate(`/plan/${place.id}`)} className="btn btn-ghost btn-lg" style={{ flexShrink: 0, padding: '16px 18px', fontSize: 14 }} title="Детальные настройки">
             ⚙️
