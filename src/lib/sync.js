@@ -50,7 +50,8 @@ export function listenTourists(callback) {
   const r = ref(db, `${SESSION}/tourists`);
   onValue(r, snap => {
     const raw = snap.val();
-    callback(raw ? Object.values(raw) : []);
+    const tourists = raw ? Object.values(raw).filter(t => t && t.name && t.id) : [];
+    callback(tourists);
   });
   return () => off(r);
 }
