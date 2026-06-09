@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const T = {
   en: {
@@ -253,11 +257,73 @@ export default function Landing() {
   const [lang, setLang] = useState('ru');
   const navigate = useNavigate();
   const tx = T[lang];
-
   const LANGS = ['kz', 'ru', 'en'];
 
+  const rootRef     = useRef(null);
+  const heroTagRef  = useRef(null);
+  const heroH1Ref   = useRef(null);
+  const heroSubRef  = useRef(null);
+  const heroBtnsRef = useRef(null);
+  const statsRef    = useRef(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // ── Hero entrance ──────────────────────────────────────
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      tl.from(heroTagRef.current,  { opacity: 0, y: 20, duration: 0.6 })
+        .from(heroH1Ref.current,   { opacity: 0, y: 40, duration: 0.7 }, '-=0.3')
+        .from(heroSubRef.current,  { opacity: 0, y: 24, duration: 0.6 }, '-=0.4')
+        .from(heroBtnsRef.current.children, { opacity: 0, y: 16, stagger: 0.12, duration: 0.5 }, '-=0.35')
+        .from(statsRef.current,    { opacity: 0, y: 30, duration: 0.6 }, '-=0.2');
+
+      // ── Section headers on scroll ──────────────────────────
+      gsap.utils.toArray('.land-section-head').forEach(el => {
+        gsap.from(el, {
+          scrollTrigger: { trigger: el, start: 'top 85%' },
+          opacity: 0, y: 36, duration: 0.7, ease: 'power3.out',
+        });
+      });
+
+      // ── Cards stagger ──────────────────────────────────────
+      gsap.utils.toArray('.land-card-group').forEach(group => {
+        const cards = group.querySelectorAll('.land-card');
+        gsap.from(cards, {
+          scrollTrigger: { trigger: group, start: 'top 80%' },
+          opacity: 0, y: 40, stagger: 0.1, duration: 0.6, ease: 'power2.out',
+        });
+      });
+
+      // ── Tech pills wave ────────────────────────────────────
+      gsap.from('.land-tech-pill', {
+        scrollTrigger: { trigger: '.land-tech-pills', start: 'top 85%' },
+        opacity: 0, scale: 0.85, stagger: 0.07, duration: 0.45, ease: 'back.out(1.4)',
+      });
+
+      // ── Market counters ────────────────────────────────────
+      gsap.utils.toArray('.land-counter').forEach(el => {
+        const target = parseFloat(el.dataset.val);
+        const suffix = el.dataset.suffix || '';
+        const prefix = el.dataset.prefix || '';
+        gsap.from({ val: 0 }, {
+          scrollTrigger: { trigger: el, start: 'top 85%' },
+          val: target, duration: 1.4, ease: 'power2.out',
+          onUpdate() { el.textContent = prefix + Math.round(this.targets()[0].val).toLocaleString() + suffix; },
+        });
+      });
+
+      // ── CTA section ────────────────────────────────────────
+      gsap.from('.land-cta-inner', {
+        scrollTrigger: { trigger: '.land-cta-inner', start: 'top 80%' },
+        opacity: 0, scale: 0.97, y: 30, duration: 0.7, ease: 'power3.out',
+      });
+
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div style={{ background: '#0a0a0a', color: '#fff', fontFamily: 'DM Sans, sans-serif', minHeight: '100vh' }}>
+    <div ref={rootRef} style={{ background: '#0a0a0a', color: '#fff', fontFamily: 'DM Sans, sans-serif', minHeight: '100vh' }}>
 
       {/* ── NAV ── */}
       <nav style={{
@@ -324,7 +390,7 @@ export default function Landing() {
         }} />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 760 }}>
-          <div style={{
+          <div ref={heroTagRef} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)',
             borderRadius: 100, padding: '6px 16px', fontSize: 13, color: '#a8a3ff',
@@ -334,18 +400,18 @@ export default function Landing() {
             {tx.hero_tag}
           </div>
 
-          <h1 style={{
+          <h1 ref={heroH1Ref} style={{
             fontFamily: 'Syne, sans-serif', fontSize: 'clamp(48px, 7vw, 86px)',
             fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em',
             margin: '0 0 24px',
             whiteSpace: 'pre-line',
           }}>{tx.hero_title}</h1>
 
-          <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, maxWidth: 580, marginBottom: 40 }}>
+          <p ref={heroSubRef} style={{ fontSize: 18, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, maxWidth: 580, marginBottom: 40 }}>
             {tx.hero_sub}
           </p>
 
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <div ref={heroBtnsRef} style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/')} style={{
               padding: '14px 32px', borderRadius: 10, background: '#6C63FF',
               border: 'none', color: '#fff', fontWeight: 800, fontSize: 16, cursor: 'pointer',
@@ -361,7 +427,7 @@ export default function Landing() {
         </div>
 
         {/* Stats bar */}
-        <div style={{
+        <div ref={statsRef} style={{
           position: 'absolute', bottom: 40, left: 40, right: 40, zIndex: 2,
           display: 'flex', gap: 0,
           background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
@@ -386,17 +452,19 @@ export default function Landing() {
 
       {/* ── PROBLEM ── */}
       <section id="problem" style={{ padding: '100px 40px', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ fontSize: 12, color: '#6C63FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.problem_tag}</div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 24, whiteSpace: 'pre-line' }}>{tx.problem_title}</h2>
-        <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, maxWidth: 660, marginBottom: 60 }}>{tx.problem_text}</p>
+        <div className="land-section-head">
+          <div style={{ fontSize: 12, color: '#6C63FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.problem_tag}</div>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 24, whiteSpace: 'pre-line' }}>{tx.problem_title}</h2>
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, maxWidth: 660, marginBottom: 60 }}>{tx.problem_text}</p>
+        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+        <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
           {[
             { title: tx.problem_c1_title, text: tx.problem_c1, color: '#F4A261' },
             { title: tx.problem_c2_title, text: tx.problem_c2, color: '#FF4757' },
             { title: tx.problem_c3_title, text: tx.problem_c3, color: '#6C63FF' },
           ].map((c, i) => (
-            <div key={i} style={{
+            <div key={i} className="land-card" style={{
               padding: '28px', borderRadius: 16,
               background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
             }}>
@@ -410,12 +478,14 @@ export default function Landing() {
       {/* ── FEATURES ── */}
       <section id="features" style={{ padding: '100px 40px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ fontSize: 12, color: '#06D6A0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.feat_tag}</div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60, whiteSpace: 'pre-line' }}>{tx.feat_title}</h2>
+          <div className="land-section-head">
+            <div style={{ fontSize: 12, color: '#06D6A0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.feat_tag}</div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60, whiteSpace: 'pre-line' }}>{tx.feat_title}</h2>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+          <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             {FEATURES(tx).map((f, i) => (
-              <div key={i} style={{
+              <div key={i} className="land-card" style={{
                 padding: '28px', borderRadius: 16,
                 background: 'rgba(255,255,255,0.02)', border: `1px solid ${f.color}22`,
                 transition: 'border-color 0.2s, background 0.2s',
@@ -434,13 +504,15 @@ export default function Landing() {
 
       {/* ── TECH ── */}
       <section style={{ padding: '100px 40px', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ fontSize: 12, color: '#F4A261', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.tech_tag}</div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 16, whiteSpace: 'pre-line' }}>{tx.tech_title}</h2>
-        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 48 }}>{tx.tech_text}</p>
+        <div className="land-section-head">
+          <div style={{ fontSize: 12, color: '#F4A261', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.tech_tag}</div>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 16, whiteSpace: 'pre-line' }}>{tx.tech_title}</h2>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 48 }}>{tx.tech_text}</p>
+        </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+        <div className="land-tech-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {TECH.map((t, i) => (
-            <div key={i} style={{
+            <div key={i} className="land-tech-pill" style={{
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '12px 20px', borderRadius: 100,
               background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
@@ -458,17 +530,19 @@ export default function Landing() {
       {/* ── ROADMAP ── */}
       <section id="roadmap" style={{ padding: '100px 40px', background: 'rgba(108,99,255,0.04)', borderTop: '1px solid rgba(108,99,255,0.12)', borderBottom: '1px solid rgba(108,99,255,0.12)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ fontSize: 12, color: '#a8a3ff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.road_tag}</div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60 }}>{tx.road_title}</h2>
+          <div className="land-section-head">
+            <div style={{ fontSize: 12, color: '#a8a3ff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.road_tag}</div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60 }}>{tx.road_title}</h2>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20 }}>
+          <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20 }}>
             {[
               { q: tx.road_q1, title: tx.road_q1_title, items: tx.road_q1_items, color: '#6C63FF', done: false },
               { q: tx.road_q2, title: tx.road_q2_title, items: tx.road_q2_items, color: '#06D6A0', done: false },
               { q: tx.road_q3, title: tx.road_q3_title, items: tx.road_q3_items, color: '#F4A261', done: false },
               { q: tx.road_q4, title: tx.road_q4_title, items: tx.road_q4_items, color: '#FF4757', done: false },
             ].map((phase, i) => (
-              <div key={i} style={{
+              <div key={i} className="land-card" style={{
                 padding: '28px', borderRadius: 16,
                 background: i === 0 ? `${phase.color}12` : 'rgba(255,255,255,0.02)',
                 border: `1px solid ${phase.color}${i === 0 ? '44' : '22'}`,
@@ -489,17 +563,19 @@ export default function Landing() {
 
       {/* ── INVEST ── */}
       <section id="invest" style={{ padding: '100px 40px', maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ fontSize: 12, color: '#FFD700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.invest_tag}</div>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 50px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60, whiteSpace: 'pre-line' }}>{tx.invest_title}</h2>
+        <div className="land-section-head">
+          <div style={{ fontSize: 12, color: '#FFD700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.invest_tag}</div>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 50px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60, whiteSpace: 'pre-line' }}>{tx.invest_title}</h2>
+        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20, marginBottom: 64 }}>
+        <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20, marginBottom: 64 }}>
           {[
             { title: tx.b1_title, text: tx.b1 },
             { title: tx.b2_title, text: tx.b2 },
             { title: tx.b3_title, text: tx.b3 },
             { title: tx.b4_title, text: tx.b4 },
           ].map((b, i) => (
-            <div key={i} style={{
+            <div key={i} className="land-card" style={{
               padding: '28px', borderRadius: 16,
               background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.12)',
             }}>
@@ -514,13 +590,21 @@ export default function Landing() {
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 28 }}>{tx.market_title}</div>
           <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
             {[
-              { n: '500K+', l: tx.market_1 },
-              { n: '+40%', l: tx.market_2 },
-              { n: '2M+', l: tx.market_3 },
+              { val: 500, suffix: 'K+', label: tx.market_1 },
+              { val: 40,  prefix: '+', suffix: '%', label: tx.market_2 },
+              { val: 2,   suffix: 'M+', label: tx.market_3 },
             ].map((s, i) => (
               <div key={i}>
-                <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 42, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.n}</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 6, maxWidth: 180 }}>{s.l}</div>
+                <div
+                  className="land-counter"
+                  data-val={s.val}
+                  data-suffix={s.suffix || ''}
+                  data-prefix={s.prefix || ''}
+                  style={{ fontFamily: 'Syne, sans-serif', fontSize: 42, fontWeight: 900, color: '#fff', lineHeight: 1 }}
+                >
+                  {(s.prefix || '') + s.val + (s.suffix || '')}
+                </div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 6, maxWidth: 180 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -533,13 +617,15 @@ export default function Landing() {
         background: 'linear-gradient(135deg, rgba(108,99,255,0.15) 0%, rgba(255,71,87,0.08) 100%)',
         borderTop: '1px solid rgba(108,99,255,0.2)',
       }}>
-        <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 54px)', fontWeight: 900, marginBottom: 20 }}>{tx.cta_title}</h2>
-        <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.55)', marginBottom: 40, maxWidth: 520, margin: '0 auto 40px' }}>{tx.cta_sub}</p>
-        <button onClick={() => navigate('/')} style={{
-          padding: '16px 40px', borderRadius: 12, background: '#6C63FF',
-          border: 'none', color: '#fff', fontWeight: 800, fontSize: 18, cursor: 'pointer',
-          boxShadow: '0 0 48px rgba(108,99,255,0.5)',
-        }}>{tx.cta_btn}</button>
+        <div className="land-cta-inner">
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 54px)', fontWeight: 900, marginBottom: 20 }}>{tx.cta_title}</h2>
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.55)', marginBottom: 40, maxWidth: 520, margin: '0 auto 40px' }}>{tx.cta_sub}</p>
+          <button onClick={() => navigate('/')} style={{
+            padding: '16px 40px', borderRadius: 12, background: '#6C63FF',
+            border: 'none', color: '#fff', fontWeight: 800, fontSize: 18, cursor: 'pointer',
+            boxShadow: '0 0 48px rgba(108,99,255,0.5)',
+          }}>{tx.cta_btn}</button>
+        </div>
       </section>
 
       {/* ── FOOTER ── */}
