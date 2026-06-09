@@ -20,7 +20,7 @@ function getDeviceId() {
 const DEVICE_ID = getDeviceId();
 
 export function TripProvider({ children }) {
-  const [user, setUser] = useState(() => safeGet('deadend_user', MOCK_USER));
+  const [user, setUser] = useState(() => ({ ...MOCK_USER, ...safeGet('deadend_user', {}) }));
   const [activeTrip, setActiveTrip] = useState(() => safeGet('deadend_trip', null));
   const [notifications, setNotifications] = useState([]);
   const [currentCoords, setCurrentCoords] = useState(null);
