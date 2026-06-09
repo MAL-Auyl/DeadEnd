@@ -267,59 +267,88 @@ export default function Landing() {
   const statsRef    = useRef(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // ── Hero entrance ──────────────────────────────────────
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.from(heroTagRef.current,  { opacity: 0, y: 20, duration: 0.6 })
-        .from(heroH1Ref.current,   { opacity: 0, y: 40, duration: 0.7 }, '-=0.3')
-        .from(heroSubRef.current,  { opacity: 0, y: 24, duration: 0.6 }, '-=0.4')
-        .from(heroBtnsRef.current.children, { opacity: 0, y: 16, stagger: 0.12, duration: 0.5 }, '-=0.35')
-        .from(statsRef.current,    { opacity: 0, y: 30, duration: 0.6 }, '-=0.2');
+    let ctx;
+    try {
+      ctx = gsap.context(() => {
+        // ── Hero entrance ────────────────────────────────────
+        const heroEls = [
+          heroTagRef.current,
+          heroH1Ref.current,
+          heroSubRef.current,
+          statsRef.current,
+        ].filter(Boolean);
 
-      // ── Section headers on scroll ──────────────────────────
-      gsap.utils.toArray('.land-section-head').forEach(el => {
-        gsap.from(el, {
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-          opacity: 0, y: 36, duration: 0.7, ease: 'power3.out',
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        if (heroTagRef.current)  tl.from(heroTagRef.current,  { opacity: 0, y: 20, duration: 0.6 });
+        if (heroH1Ref.current)   tl.from(heroH1Ref.current,   { opacity: 0, y: 40, duration: 0.7 }, '-=0.3');
+        if (heroSubRef.current)  tl.from(heroSubRef.current,  { opacity: 0, y: 24, duration: 0.6 }, '-=0.4');
+        if (heroBtnsRef.current?.children?.length) {
+          tl.from(Array.from(heroBtnsRef.current.children), { opacity: 0, y: 16, stagger: 0.12, duration: 0.5 }, '-=0.35');
+        }
+        if (statsRef.current)    tl.from(statsRef.current,    { opacity: 0, y: 30, duration: 0.6 }, '-=0.2');
+
+        // ── Section headers on scroll ────────────────────────
+        gsap.utils.toArray('.land-section-head').forEach(el => {
+          gsap.from(el, {
+            scrollTrigger: { trigger: el, start: 'top 85%' },
+            opacity: 0, y: 36, duration: 0.7, ease: 'power3.out',
+          });
         });
-      });
 
-      // ── Cards stagger ──────────────────────────────────────
-      gsap.utils.toArray('.land-card-group').forEach(group => {
-        const cards = group.querySelectorAll('.land-card');
-        gsap.from(cards, {
-          scrollTrigger: { trigger: group, start: 'top 80%' },
-          opacity: 0, y: 40, stagger: 0.1, duration: 0.6, ease: 'power2.out',
+        // ── Cards stagger ────────────────────────────────────
+        gsap.utils.toArray('.land-card-group').forEach(group => {
+          const cards = group.querySelectorAll('.land-card');
+          if (cards.length) {
+            gsap.from(cards, {
+              scrollTrigger: { trigger: group, start: 'top 80%' },
+              opacity: 0, y: 40, stagger: 0.1, duration: 0.6, ease: 'power2.out',
+            });
+          }
         });
-      });
 
-      // ── Tech pills wave ────────────────────────────────────
-      gsap.from('.land-tech-pill', {
-        scrollTrigger: { trigger: '.land-tech-pills', start: 'top 85%' },
-        opacity: 0, scale: 0.85, stagger: 0.07, duration: 0.45, ease: 'back.out(1.4)',
-      });
+        // ── Tech pills wave ──────────────────────────────────
+        const pills = gsap.utils.toArray('.land-tech-pill');
+        if (pills.length) {
+          gsap.from(pills, {
+            scrollTrigger: { trigger: '.land-tech-pills', start: 'top 85%' },
+            opacity: 0, scale: 0.85, stagger: 0.07, duration: 0.45, ease: 'back.out(1.4)',
+          });
+        }
 
-      // ── Market counters ────────────────────────────────────
-      gsap.utils.toArray('.land-counter').forEach(el => {
-        const target = parseFloat(el.dataset.val);
-        const suffix = el.dataset.suffix || '';
-        const prefix = el.dataset.prefix || '';
-        gsap.from({ val: 0 }, {
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-          val: target, duration: 1.4, ease: 'power2.out',
-          onUpdate() { el.textContent = prefix + Math.round(this.targets()[0].val).toLocaleString() + suffix; },
+        // ── Market counters ──────────────────────────────────
+        gsap.utils.toArray('.land-counter').forEach(el => {
+          const target = parseFloat(el.dataset.val);
+          const suffix = el.dataset.suffix || '';
+          const prefix = el.dataset.prefix || '';
+          if (!isNaN(target)) {
+            gsap.from({ val: 0 }, {
+              scrollTrigger: { trigger: el, start: 'top 85%' },
+              val: target, duration: 1.4, ease: 'power2.out',
+              onUpdate() { el.textContent = prefix + Math.round(this.targets()[0].val).toLocaleString() + suffix; },
+            });
+          }
         });
-      });
 
-      // ── CTA section ────────────────────────────────────────
-      gsap.from('.land-cta-inner', {
-        scrollTrigger: { trigger: '.land-cta-inner', start: 'top 80%' },
-        opacity: 0, scale: 0.97, y: 30, duration: 0.7, ease: 'power3.out',
-      });
+        // ── CTA section ──────────────────────────────────────
+        const cta = document.querySelector('.land-cta-inner');
+        if (cta) {
+          gsap.from(cta, {
+            scrollTrigger: { trigger: cta, start: 'top 80%' },
+            opacity: 0, scale: 0.97, y: 30, duration: 0.7, ease: 'power3.out',
+          });
+        }
 
-    }, rootRef);
+      }, rootRef);
+    } catch (e) {
+      // GSAP failed — clear any inline opacity:0 so content stays visible
+      if (rootRef.current) {
+        rootRef.current.querySelectorAll('[style*="opacity"]').forEach(el => {
+          el.style.opacity = '';
+        });
+      }
+    }
 
-    return () => ctx.revert();
+    return () => ctx?.revert();
   }, []);
 
   return (
