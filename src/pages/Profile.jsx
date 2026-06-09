@@ -5,7 +5,7 @@ import { useLang } from '../context/LangContext';
 import mapLotr from '../assets/map-lotr.webp';
 
 const MORDOR_KM = 1800;
-// x/y = % position on the map image
+// x/y = % of map image (800×785px)
 const WAYPOINTS = [
   { km: 0,    label: 'Шир',          x: 17, y: 73 },
   { km: 450,  label: 'Бри',          x: 23, y: 60 },
@@ -15,6 +15,17 @@ const WAYPOINTS = [
   { km: 1650, label: 'Минас Тирит',  x: 41, y: 25 },
   { km: 1800, label: 'Роковая гора', x: 68, y: 19 },
 ];
+
+// smooth cubic-bezier path through all waypoints (viewBox 0 0 100 100)
+const ROUTE_PATH = [
+  'M 17,73',
+  'C 19,68 21,64 23,60',
+  'C 25,55 27,51 30,47',
+  'C 37,45 42,44 47,43',
+  'C 52,47 55,51 57,53',
+  'C 53,44 47,34 41,25',
+  'C 51,22 60,20 68,19',
+].join(' ');
 
 function getCurrentWaypoint(km) {
   for (let i = WAYPOINTS.length - 1; i >= 0; i--) {
@@ -27,107 +38,138 @@ function LotRProgress({ totalKm }) {
   const km        = Math.min(totalKm || 0, MORDOR_KM);
   const remaining = MORDOR_KM - km;
   const current   = getCurrentWaypoint(km);
+  const pathRef   = useRef(null);
+  const [pathLen, setPathLen] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    if (pathRef.current) setPathLen(pathRef.current.getTotalLength());
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
   }, []);
 
+  const progress    = km / MORDOR_KM;
+  const dashArray   = pathLen || 9999;
+  // before measured: hide; after: animate traveled portion
+  const dashOffset  = pathLen === 0 ? 9999 : mounted ? pathLen * (1 - progress) : pathLen;
+
   return (
     <div style={{ marginBottom: 16, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-
-      {/* map with waypoint overlays */}
       <div style={{ position: 'relative', lineHeight: 0 }}>
-        <img
-          src={mapLotr}
-          alt="Путь от Шира до Роковой горы"
-          style={{ width: '100%', display: 'block', objectFit: 'cover' }}
-        />
 
-        {/* dim overlay over future area */}
+        {/* base map */}
+        <img src={mapLotr} alt="Путь Фродо" style={{ width: '100%', display: 'block' }} />
+
+        {/* SVG route overlay — same coordinate space as image */}
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+        >
+          {/* ghost path — future route, very dim */}
+          <path
+            d={ROUTE_PATH}
+            fill="none"
+            stroke="rgba(201,160,85,0.18)"
+            strokeWidth="1.4"
+            strokeDasharray="2 2"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {/* traveled path — draws in on mount */}
+          <path
+            ref={pathRef}
+            d={ROUTE_PATH}
+            fill="none"
+            stroke="#C9A055"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeDasharray={dashArray}
+            strokeDashoffset={dashOffset}
+            vectorEffect="non-scaling-stroke"
+            style={{ transition: `stroke-dashoffset 1400ms ${E}`, filter: 'drop-shadow(0 0 3px rgba(201,160,85,0.7))' }}
+          />
+
+          {/* waypoint circles — only passed ones */}
+          {WAYPOINTS.map((wp, i) => {
+            const passed    = km >= wp.km;
+            const isCurrent = current.km === wp.km;
+            return (
+              <circle
+                key={wp.km}
+                cx={wp.x} cy={wp.y} r="1.6"
+                fill={isCurrent ? '#C9A055' : passed ? '#DDB96A' : 'rgba(201,160,85,0.08)'}
+                stroke={passed ? 'rgba(11,9,7,0.85)' : 'rgba(201,160,85,0.1)'}
+                strokeWidth="0.5"
+                vectorEffect="non-scaling-stroke"
+                opacity={passed ? (mounted ? 1 : 0) : 0.25}
+                style={{ transition: `opacity 400ms ease ${i * 90}ms, fill 600ms ease` }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* traveler icon — moves to current waypoint */}
         <div style={{
-          position: 'absolute', inset: 0,
-          background: 'rgba(11,9,7,0.18)',
+          position: 'absolute',
+          left: `${current.x}%`,
+          top:  `${current.y}%`,
+          transform: 'translate(-50%, -160%)',
+          fontSize: 17,
+          lineHeight: 1,
+          filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.95))',
+          transition: `left 900ms ${E}, top 900ms ${E}`,
+          zIndex: 5,
           pointerEvents: 'none',
-        }} />
+        }}>🧙</div>
 
-        {/* waypoint markers */}
+        {/* labels — only passed waypoints */}
         {WAYPOINTS.map((wp, i) => {
-          const passed  = km >= wp.km;
+          const passed    = km >= wp.km;
           const isCurrent = current.km === wp.km;
-          const isLast  = wp.km === MORDOR_KM;
           if (!passed) return null;
           return (
-            <div
-              key={wp.km}
-              style={{
-                position: 'absolute',
-                left: `${wp.x}%`,
-                top:  `${wp.y}%`,
-                transform: 'translate(-50%, -50%)',
-                opacity: mounted ? 1 : 0,
-                transition: `opacity 400ms ${E} ${i * 120}ms`,
-                zIndex: isCurrent ? 3 : 2,
-              }}
-            >
-              {/* glow ring for current */}
-              {isCurrent && (
-                <div style={{
-                  position: 'absolute', inset: -6,
-                  borderRadius: '50%',
-                  background: 'rgba(201,160,85,0.2)',
-                  animation: 'lotrPulse 2s infinite',
-                }} />
-              )}
-              {/* dot */}
-              <div style={{
-                width:  isCurrent ? 12 : 8,
-                height: isCurrent ? 12 : 8,
-                borderRadius: '50%',
-                background: isCurrent ? 'var(--gold)' : isLast ? '#ff4444' : 'var(--gold2)',
-                border: `2px solid rgba(11,9,7,0.7)`,
-                boxShadow: isCurrent
-                  ? '0 0 10px rgba(201,160,85,0.9), 0 0 3px rgba(201,160,85,0.6)'
-                  : '0 0 5px rgba(201,160,85,0.5)',
-              }} />
-              {/* label */}
-              <div style={{
-                position: 'absolute',
-                left: '50%', top: -20,
-                transform: 'translateX(-50%)',
-                fontSize: 9, fontWeight: 700,
-                fontFamily: 'Syne, sans-serif',
-                color: isCurrent ? 'var(--gold)' : 'rgba(240,232,216,0.75)',
-                whiteSpace: 'nowrap',
-                textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.8)',
-                letterSpacing: '0.04em',
-              }}>
-                {wp.label}
-              </div>
+            <div key={wp.km} style={{
+              position: 'absolute',
+              left: `${wp.x}%`,
+              top:  `${wp.y}%`,
+              transform: `translate(-50%, ${isCurrent ? '-290%' : '-240%'})`,
+              fontSize: isCurrent ? 9 : 8,
+              fontFamily: 'Syne, sans-serif',
+              fontWeight: isCurrent ? 700 : 500,
+              color: isCurrent ? '#C9A055' : 'rgba(240,232,216,0.78)',
+              whiteSpace: 'nowrap',
+              textShadow: '0 1px 5px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.8)',
+              letterSpacing: '0.04em',
+              opacity: mounted ? 1 : 0,
+              transition: `opacity 450ms ease ${i * 90}ms`,
+              zIndex: 4,
+              pointerEvents: 'none',
+            }}>
+              {wp.label}
             </div>
           );
         })}
       </div>
 
-      {/* bottom stats strip */}
+      {/* stats strip */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px',
+        padding: '11px 16px',
         background: 'var(--surface)',
         borderTop: '1px solid var(--border)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
           <span style={{
-            width: 7, height: 7, borderRadius: '50%',
-            background: 'var(--gold)', flexShrink: 0, display: 'inline-block',
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: 'var(--gold)', display: 'inline-block',
             animation: 'lotrPulse 2s infinite',
           }} />
           <span style={{ fontSize: 12, color: 'var(--text2)' }}>
             у <span style={{ fontWeight: 700, color: 'var(--gold)' }}>{current.label}</span>
           </span>
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div>
           <span style={{
             fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 800,
             color: 'var(--text)', letterSpacing: '-0.03em',
@@ -135,7 +177,7 @@ function LotRProgress({ totalKm }) {
             {km.toLocaleString()} км
           </span>
           <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 6 }}>
-            {remaining > 0 ? `ещё ${remaining.toLocaleString()} до Роковой горы` : '🌋 ты дошёл!'}
+            {remaining > 0 ? `· ещё ${remaining.toLocaleString()} до Роковой горы` : '· 🌋 дошёл!'}
           </span>
         </div>
       </div>
