@@ -44,7 +44,8 @@ export default function Home() {
   const filtered = activeCategory === 'all'
     ? PLACES
     : PLACES.filter(p => p.category.includes(activeCategory));
-  const hero = PLACES[0];
+  const hero = PLACES.find(p => p.id === 'karynzharyk') || PLACES[0];
+  const heroBg = hero.images?.[1] || hero.image;
 
   const maxDist = Math.max(...PLACES.map(p => p.distance));
   const avgRating = (PLACES.reduce((a, b) => a + b.rating, 0) / PLACES.length).toFixed(1);
@@ -65,7 +66,7 @@ export default function Home() {
 
       {/* HERO */}
       <section className="home-hero" onClick={() => navigate(`/place/${hero.id}`)}>
-        <img src={hero.image} alt={hero.name} className="home-hero-bg" />
+        <img src={heroBg} alt={hero.name} className="home-hero-bg" />
         <div className="home-hero-gradient" />
         <div className="home-hero-grain" />
 
@@ -84,7 +85,7 @@ export default function Home() {
           </p>
           <div className="home-hero-actions" onClick={e => e.stopPropagation()}>
             <button className="btn btn-primary btn-lg" onClick={() => navigate(`/place/${hero.id}`)}>
-              Explore {hero.name} →
+              Start your journey →
             </button>
             <button
               className="btn btn-glass btn-lg"
