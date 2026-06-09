@@ -289,30 +289,33 @@ export default function Landing() {
 
         // ── Section headers on scroll ────────────────────────
         gsap.utils.toArray('.land-section-head').forEach(el => {
-          gsap.from(el, {
-            scrollTrigger: { trigger: el, start: 'top 85%' },
-            opacity: 0, y: 36, duration: 0.7, ease: 'power3.out',
-          });
+          gsap.fromTo(el,
+            { y: 30 },
+            { y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false,
+              scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' } }
+          );
         });
 
         // ── Cards stagger ────────────────────────────────────
         gsap.utils.toArray('.land-card-group').forEach(group => {
-          const cards = group.querySelectorAll('.land-card');
+          const cards = Array.from(group.querySelectorAll('.land-card'));
           if (cards.length) {
-            gsap.from(cards, {
-              scrollTrigger: { trigger: group, start: 'top 80%' },
-              opacity: 0, y: 40, stagger: 0.1, duration: 0.6, ease: 'power2.out',
-            });
+            gsap.fromTo(cards,
+              { y: 35 },
+              { y: 0, stagger: 0.08, duration: 0.55, ease: 'power2.out', immediateRender: false,
+                scrollTrigger: { trigger: group, start: 'top 85%', toggleActions: 'play none none none' } }
+            );
           }
         });
 
         // ── Tech pills wave ──────────────────────────────────
         const pills = gsap.utils.toArray('.land-tech-pill');
         if (pills.length) {
-          gsap.from(pills, {
-            scrollTrigger: { trigger: '.land-tech-pills', start: 'top 85%' },
-            opacity: 0, scale: 0.85, stagger: 0.07, duration: 0.45, ease: 'back.out(1.4)',
-          });
+          gsap.fromTo(pills,
+            { scale: 0.88, opacity: 0 },
+            { scale: 1, opacity: 1, stagger: 0.06, duration: 0.4, ease: 'back.out(1.4)', immediateRender: false,
+              scrollTrigger: { trigger: '.land-tech-pills', start: 'top 88%', toggleActions: 'play none none none' } }
+          );
         }
 
         // ── Market counters ──────────────────────────────────
@@ -321,10 +324,11 @@ export default function Landing() {
           const suffix = el.dataset.suffix || '';
           const prefix = el.dataset.prefix || '';
           if (!isNaN(target)) {
-            gsap.from({ val: 0 }, {
-              scrollTrigger: { trigger: el, start: 'top 85%' },
+            const obj = { val: 0 };
+            gsap.to(obj, {
               val: target, duration: 1.4, ease: 'power2.out',
-              onUpdate() { el.textContent = prefix + Math.round(this.targets()[0].val).toLocaleString() + suffix; },
+              onUpdate() { el.textContent = prefix + Math.round(obj.val).toLocaleString() + suffix; },
+              scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' },
             });
           }
         });
@@ -332,10 +336,11 @@ export default function Landing() {
         // ── CTA section ──────────────────────────────────────
         const cta = document.querySelector('.land-cta-inner');
         if (cta) {
-          gsap.from(cta, {
-            scrollTrigger: { trigger: cta, start: 'top 80%' },
-            opacity: 0, scale: 0.97, y: 30, duration: 0.7, ease: 'power3.out',
-          });
+          gsap.fromTo(cta,
+            { y: 24 },
+            { y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false,
+              scrollTrigger: { trigger: cta, start: 'top 82%', toggleActions: 'play none none none' } }
+          );
         }
 
       }, rootRef);
