@@ -1,8 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { PLACES, VIBES } from '../data/places';
 import MapView from '../components/MapView';
+
+function useClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 const BADGES = { 5: '🥉 Bronze Explorer', 10: '🥈 Silver Explorer', 20: '🥇 Gold Explorer' };
 
@@ -89,6 +98,7 @@ export default function Tracking() {
   const [sosSending, setSosSending] = useState(false);
   const [stopSending, setStopSending] = useState(false);
   const [completionData, setCompletionData] = useState(null);
+  const now = useClock();
 
   useEffect(() => {
     if (!activeTrip) return;
@@ -116,6 +126,17 @@ export default function Tracking() {
   const timeStr = `${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
   const checkpoints = activeTrip.checkpoints || [];
   const doneCps = checkpoints.filter(cp => cp.status === 'done').length;
+
+  // Current time + overdue calculation
+  const clockStr = now.toTimeString().slice(0, 5);
+  const isOverdue = activeTrip.status === 'overdue' || activeTrip.status === 'sos';
+  const overdueMinutes = (() => {
+    if (!activeTrip.expectedReturn) return 0;
+    const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
+    const ret = new Date(); ret.setHours(h, m, 0, 0);
+    const diff = Math.round((now - ret) / 60000);
+    return diff > 0 ? diff : 0;
+  })();
 
   function handleSOS() {
     setSosSending(true);
@@ -164,15 +185,58 @@ export default function Tracking() {
 
   return (
     <div className="page" style={{ maxWidth: 700 }}>
+
+      {/* Overdue / SOS banner */}
+      {activeTrip.status === 'sos' && (
+        <div style={{
+          marginBottom: 20, padding: '14px 18px', borderRadius: 14,
+          background: 'rgba(255,71,87,0.12)', border: '2px solid rgba(255,71,87,0.6)',
+          display: 'flex', alignItems: 'center', gap: 14,
+          animation: 'pulse 1.2s infinite',
+        }}>
+          <span style={{ fontSize: 28, flexShrink: 0 }}>🆘</span>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif' }}>SOS отправлен — МЧС оповещены</div>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>Оставайтесь на месте. Ждите подтверждения от спасателей.</div>
+          </div>
+        </div>
+      )}
+
+      {activeTrip.status === 'overdue' && (
+        <div style={{
+          marginBottom: 20, padding: '14px 18px', borderRadius: 14,
+          background: 'rgba(244,162,97,0.1)', border: '2px solid rgba(244,162,97,0.5)',
+          display: 'flex', alignItems: 'center', gap: 14,
+        }}>
+          <span style={{ fontSize: 28, flexShrink: 0 }}>⏰</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: '#F4A261', fontFamily: 'Syne, sans-serif' }}>
+              Время возврата прошло!
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>
+              Просрочено на <strong style={{ color: '#F4A261' }}>{overdueMinutes} мин</strong> · Возврат был в {activeTrip.expectedReturn} · МЧС уведомлены
+            </div>
+          </div>
+          <button onClick={() => setShowStopConfirm(true)} style={{
+            background: '#06D6A0', color: 'white', border: 'none',
+            borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+          }}>Я вернулся ✅</button>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
         <div>
-          <h1 className="page-title" style={{ fontSize: 28 }}>In progress</h1>
+          <h1 className="page-title" style={{ fontSize: 28 }}>В пути</h1>
           <p style={{ color: 'var(--text2)', fontSize: 14 }}>📍 {activeTrip.placeName}</p>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 32, fontWeight: 800, color: 'var(--purple)', letterSpacing: '0.05em' }}>{timeStr}</div>
-          <div style={{ fontSize: 12, color: 'var(--text3)' }}>elapsed</div>
+          {/* Live clock */}
+          <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 2, fontFamily: 'Syne, sans-serif' }}>
+            🕐 {clockStr}
+          </div>
+          <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 800, color: isOverdue ? '#F4A261' : 'var(--purple)', letterSpacing: '0.05em' }}>{timeStr}</div>
+          <div style={{ fontSize: 12, color: 'var(--text3)' }}>в пути · возврат {activeTrip.expectedReturn}</div>
         </div>
       </div>
 
@@ -183,16 +247,29 @@ export default function Tracking() {
 
       {/* Stats */}
       <div className="grid-3" style={{ marginBottom: 24 }}>
-        {[
-          { label: 'Return by', val: activeTrip.expectedReturn || '—', icon: '⏰' },
-          { label: 'Checkpoints', val: `${doneCps}/${checkpoints.length}`, icon: '📍' },
-          { label: 'Trip type', val: activeTrip.groupType || 'solo', icon: '👤' },
-        ].map(s => (
-          <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{s.icon} {s.label}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', textTransform: 'capitalize' }}>{s.val}</div>
+        {/* Return time card — dynamic */}
+        <div style={{
+          background: isOverdue ? 'rgba(244,162,97,0.08)' : 'var(--surface)',
+          border: `1px solid ${isOverdue ? 'rgba(244,162,97,0.4)' : 'var(--border)'}`,
+          borderRadius: 'var(--radius-sm)', padding: '14px 16px',
+        }}>
+          <div style={{ fontSize: 11, color: isOverdue ? '#F4A261' : 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+            ⏰ {isOverdue ? 'Просрочено' : 'Вернуться к'}
           </div>
-        ))}
+          <div style={{ fontSize: 15, fontWeight: 700, color: isOverdue ? '#F4A261' : 'var(--text)' }}>
+            {isOverdue ? `+${overdueMinutes} мин` : activeTrip.expectedReturn || '—'}
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
+          <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>📍 Чекпоинты</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{doneCps}/{checkpoints.length}</div>
+        </div>
+
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '14px 16px' }}>
+          <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>👤 Группа</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', textTransform: 'capitalize' }}>{activeTrip.groupType || 'solo'}</div>
+        </div>
       </div>
 
       {/* Checkpoints */}

@@ -400,11 +400,30 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
 
           {/* Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Создать операцию — первая кнопка при SOS */}
+            {(isSOS || isNoSignal) && (
+              <button onClick={() => {
+                onCreateOperation(t);
+                onAddLog('🚨', 'Создана операция');
+                // Немедленно уведомить туриста что SOS принят
+                try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'accepted', time: new Date().toTimeString().slice(0, 5) })); } catch {}
+                window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'accepted' } }));
+              }} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: isSOS ? '#FF4757' : 'rgba(244,162,97,0.12)',
+                border: isSOS ? 'none' : '1px solid rgba(244,162,97,0.3)',
+                color: isSOS ? 'white' : '#F4A261',
+                borderRadius: 10, padding: '12px', fontWeight: 800, fontSize: 14, cursor: 'pointer', width: '100%',
+                animation: isSOS ? 'pulse 1.2s infinite' : 'none',
+              }}>🚨 Начать операцию</button>
+            )}
+
             {isSOS && t.phone && (
               <a href={`tel:${t.phone}`} onClick={() => onAddLog('📞', 'Позвонили туристу')} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                background: '#FF4757', color: 'white', borderRadius: 10, padding: '11px',
-                fontWeight: 700, fontSize: 14, textDecoration: 'none', animation: 'pulse 1.2s infinite',
+                background: 'rgba(255,71,87,0.12)', color: '#FF4757', border: '1px solid rgba(255,71,87,0.3)',
+                borderRadius: 10, padding: '10px',
+                fontWeight: 700, fontSize: 13, textDecoration: 'none',
               }}>📞 Позвонить туристу</a>
             )}
 
@@ -413,14 +432,6 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
               background: 'rgba(108,99,255,0.12)', color: '#6C63FF', border: '1px solid rgba(108,99,255,0.3)',
               borderRadius: 10, padding: '10px', fontWeight: 600, fontSize: 13, cursor: 'pointer', width: '100%',
             }}>🗺️ Открыть в Google Maps</button>
-
-            {(isSOS || isNoSignal) && (
-              <button onClick={() => { onCreateOperation(t); onAddLog('🚨', 'Создана операция'); }} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                background: 'rgba(244,162,97,0.1)', color: '#F4A261', border: '1px solid rgba(244,162,97,0.3)',
-                borderRadius: 10, padding: '10px', fontWeight: 600, fontSize: 13, cursor: 'pointer', width: '100%',
-              }}>🚨 Создать операцию</button>
-            )}
 
             {(isSOS || isNoSignal) && !confirming && (
               <button onClick={() => setConfirming(true)} style={{
@@ -461,34 +472,86 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
 function OperationModal({ t, onClose, onCloseIncident, onAddLog }) {
   const [step, setStep]   = useState('new');
   const [notes, setNotes] = useState('');
+  const [deadline, setDeadline] = useState(() => {
+    const d = new Date(); d.setHours(d.getHours() + 2);
+    return d.toTimeString().slice(0, 5);
+  });
+  const [deadlineCd, setDeadlineCd] = useState('');
   const elapsed = useElapsed(t.lastSignal || t.startTime);
   const stepIndex = OP_STEPS.findIndex(s => s.key === step);
-  const canClose = step === 'found' || step === 'closed';
 
-  const handleStepChange = (s) => {
-    setStep(s.key);
-    const msgs = { enroute: 'Группа выехала', search: 'Начат активный поиск', found: 'Турист найден', closed: 'Операция завершена' };
-    if (msgs[s.key]) onAddLog(s.icon, msgs[s.key]);
+  // Deadline countdown
+  useEffect(() => {
+    const calc = () => {
+      const [h, m] = deadline.split(':').map(Number);
+      const now = new Date();
+      const dl = new Date(); dl.setHours(h, m, 0, 0);
+      const diff = dl - now;
+      if (diff < 0) { setDeadlineCd('⚠️ Дедлайн прошёл!'); return; }
+      const hrs = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      setDeadlineCd(hrs > 0 ? `${hrs}ч ${mins}м` : `${mins}м`);
+    };
+    calc();
+    const id = setInterval(calc, 15000);
+    return () => clearInterval(id);
+  }, [deadline]);
+
+  function notifyTourist(s) {
+    try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: s, time: nowTime() })); } catch {}
+    window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: s } }));
+  }
+
+  // step → { label, next, color }
+  const ACTIONS = {
+    new:     { label: '✅ Принять SOS — выслать группу', next: 'enroute', color: '#FF4757' },
+    enroute: { label: '🔍 Прибыли — начать поиск',       next: 'search',  color: '#F4A261' },
+    search:  { label: '✅ Турист найден!',                next: 'found',   color: '#06D6A0' },
+    found:   { label: '🏁 Закрыть операцию',             next: 'closed',  color: '#6C63FF' },
+  };
+  const LOG_MSGS = {
+    enroute: 'Группа выехала к туристу',
+    search:  'Начат активный поиск',
+    found:   'Турист найден',
+    closed:  'Операция завершена',
   };
 
-  const handleFinish = () => {
-    const label = OP_STEPS.find(s => s.key === step)?.label || step;
-    onAddLog('🏁', `Дело закрыто: ${notes || label}`);
-    onCloseIncident(t, notes ? `${label}: ${notes}` : label, elapsed);
-  };
+  function handleNext() {
+    const action = ACTIONS[step];
+    if (!action) return;
+    const next = action.next;
+    const opStep = OP_STEPS.find(s => s.key === next);
+    if (LOG_MSGS[next]) onAddLog(opStep?.icon || '✅', LOG_MSGS[next]);
+    if (['enroute', 'search', 'found'].includes(next)) notifyTourist(next);
+    setStep(next);
+    if (next === 'closed') {
+      onAddLog('🏁', `Дело закрыто: ${notes || 'Операция завершена'}`);
+      onCloseIncident(t, notes || 'Операция завершена', elapsed);
+    }
+  }
+
+  const action = ACTIONS[step];
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 520, borderRadius: 16, background: 'var(--bg2)', border: '1px solid rgba(255,71,87,0.25)', boxShadow: '0 28px 64px rgba(0,0,0,0.7)', overflow: 'hidden' }}>
+
+        {/* Header */}
         <div style={{ padding: '16px 20px', background: 'rgba(255,71,87,0.08)', borderBottom: '1px solid rgba(255,71,87,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 16, fontWeight: 800, color: '#FF4757' }}>🚨 Операция</span>
+            <span style={{ fontSize: 16, fontWeight: 800, color: '#FF4757', animation: step === 'new' ? 'pulse 1s infinite' : 'none' }}>🚨 Операция</span>
             <span style={{ fontSize: 12, color: 'var(--text3)', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: 6 }}>#{String(t.id).slice(-4).toUpperCase()}</span>
+            {step !== 'new' && (
+              <span style={{ fontSize: 11, color: '#06D6A0', background: 'rgba(6,214,160,0.1)', border: '1px solid rgba(6,214,160,0.3)', padding: '2px 8px', borderRadius: 6, fontWeight: 700 }}>
+                {OP_STEPS.find(s => s.key === step)?.icon} {OP_STEPS.find(s => s.key === step)?.label}
+              </span>
+            )}
           </div>
           <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: 'var(--text3)', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14 }}>✕</button>
         </div>
 
         <div style={{ padding: 20 }}>
+          {/* Tourist card */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', marginBottom: 16, background: 'rgba(255,255,255,0.03)', borderRadius: 12, border: '1px solid var(--border)' }}>
             <img src={t.photo} alt="" style={{ width: 50, height: 50, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
@@ -501,52 +564,68 @@ function OperationModal({ t, onClose, onCloseIncident, onAddLog }) {
             </div>
           </div>
 
-          {/* Timer */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 10, marginBottom: 20, background: 'rgba(255,71,87,0.07)', border: '1px solid rgba(255,71,87,0.2)' }}>
-            <span style={{ fontSize: 24 }}>⏱️</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, color: 'var(--text3)' }}>SOS поступил</div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif', lineHeight: 1.1 }}>{elapsed} назад</div>
+          {/* Timer + Deadline */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+            <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(255,71,87,0.07)', border: '1px solid rgba(255,71,87,0.2)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>⏱ SOS поступил</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>{elapsed}</div>
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Сигнал: {t.lastSignal || t.startTime}</div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase' }}>Сигнал</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{t.lastSignal || t.startTime}</div>
+            <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(108,99,255,0.07)', border: '1px solid rgba(108,99,255,0.2)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>⏰ Дедлайн прибытия</div>
+              <input type="time" value={deadline} onChange={e => setDeadline(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--purple)', fontSize: 22, fontWeight: 900, fontFamily: 'Syne, sans-serif', outline: 'none', width: '100%', padding: 0 }} />
+              <div style={{ fontSize: 11, color: deadlineCd.includes('⚠️') ? '#FF4757' : 'var(--text3)', marginTop: 2, fontWeight: deadlineCd.includes('⚠️') ? 700 : 400 }}>{deadlineCd}</div>
             </div>
           </div>
 
-          {/* Stepper */}
+          {/* Progress stepper — visual only, advance via button */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Статус операции</div>
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Прогресс операции</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {OP_STEPS.map((s, i) => {
                 const isDone = i < stepIndex; const isActive = i === stepIndex; const isLast = i === OP_STEPS.length - 1;
                 return (
                   <Fragment key={s.key}>
-                    <button onClick={() => handleStepChange(s)} style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                      padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: 'none', minWidth: 68,
-                      background: isActive ? 'rgba(108,99,255,0.18)' : isDone ? 'rgba(6,214,160,0.1)' : 'rgba(255,255,255,0.04)',
-                      outline: isActive ? '2px solid var(--purple)' : isDone ? '1px solid rgba(6,214,160,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                      transition: 'all 0.15s',
-                    }}>
-                      <span style={{ fontSize: 18 }}>{s.icon}</span>
-                      <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? 'var(--purple)' : isDone ? '#06D6A0' : 'var(--text3)', whiteSpace: 'nowrap' }}>{s.label}</span>
-                    </button>
-                    {!isLast && <div style={{ flex: 1, height: 2, background: isDone ? '#06D6A0' : 'rgba(255,255,255,0.08)', transition: 'background 0.3s', minWidth: 8 }} />}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 60 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: isDone ? '#06D6A0' : isActive ? 'var(--purple)' : 'rgba(255,255,255,0.06)',
+                        border: `2px solid ${isDone ? '#06D6A0' : isActive ? 'var(--purple)' : 'rgba(255,255,255,0.12)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: isDone ? 14 : 16, color: isDone || isActive ? 'white' : 'var(--text3)',
+                        transition: 'all 0.3s',
+                        boxShadow: isActive ? '0 0 12px rgba(108,99,255,0.4)' : 'none',
+                      }}>
+                        {isDone ? '✓' : s.icon}
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 400, color: isActive ? 'var(--purple)' : isDone ? '#06D6A0' : 'var(--text3)', whiteSpace: 'nowrap', textAlign: 'center' }}>{s.label}</span>
+                    </div>
+                    {!isLast && <div style={{ flex: 1, height: 2, background: isDone ? '#06D6A0' : 'rgba(255,255,255,0.08)', transition: 'background 0.4s', minWidth: 4, marginBottom: 14 }} />}
                   </Fragment>
                 );
               })}
             </div>
           </div>
 
+          {/* Notes */}
           <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Заметки</div>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Детали, местоположение группы..." rows={2} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, resize: 'none', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'DM Sans, sans-serif', boxSizing: 'border-box' }} />
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>📝 Заметки</div>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Координаты группы, детали местности, описание туриста..." rows={2} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, resize: 'none', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'DM Sans, sans-serif', boxSizing: 'border-box' }} />
           </div>
 
+          {/* Action buttons */}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onClose} style={{ flex: 1, padding: '11px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text3)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Свернуть</button>
-            {canClose && <button onClick={handleFinish} style={{ flex: 2, padding: '11px', borderRadius: 10, background: '#06D6A0', border: 'none', color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>✅ Закрыть дело</button>}
+            {action && (
+              <button onClick={handleNext} style={{
+                flex: 2, padding: '13px', borderRadius: 10, background: action.color,
+                border: 'none', color: 'white', fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                animation: step === 'new' ? 'pulse 1.2s infinite' : 'none',
+                transition: 'background 0.2s',
+              }}>
+                {action.label}
+              </button>
+            )}
           </div>
         </div>
       </div>

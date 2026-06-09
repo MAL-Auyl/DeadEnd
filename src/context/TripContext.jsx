@@ -34,9 +34,10 @@ export function TripProvider({ children }) {
     etaAlertedRef.current = { thirtyMin: false, oneHour: false };
     nightRiskAlertedRef.current = false;
 
-    etaTimerRef.current = setInterval(() => {
-      // Night Risk: warn 40 min before sunset (≈20:40 in Mangystau)
+    function checkTime() {
       const now = new Date();
+
+      // Night risk — 40 min before sunset (≈20:40 Mangystau)
       const sunset = new Date(); sunset.setHours(20, 40, 0, 0);
       const minsToSunset = Math.round((sunset - now) / 60000);
       if (minsToSunset <= 40 && minsToSunset > 0 && !nightRiskAlertedRef.current) {
@@ -45,22 +46,26 @@ export function TripProvider({ children }) {
       }
 
       const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
-      const returnTime = new Date();
-      returnTime.setHours(h, m, 0, 0);
-      const diffMs = returnTime - now;
-      const diffMin = Math.round(diffMs / 60000);
+      const returnTime = new Date(); returnTime.setHours(h, m, 0, 0);
+      const diffMin = Math.round((returnTime - now) / 60000);
 
+      // 30-min warning
       if (diffMin <= 30 && diffMin > 0 && !etaAlertedRef.current.thirtyMin) {
         etaAlertedRef.current.thirtyMin = true;
         addNotification(`⏰ ${activeTrip.placeName} — қайтуға ${diffMin} минут қалды!`, 'info');
       }
 
-      if (diffMin <= 0 && diffMin > -30 && !etaAlertedRef.current.oneHour) {
+      // Overdue — no -30 limit, fires as soon as deadline passes, once
+      if (diffMin <= 0 && !etaAlertedRef.current.oneHour) {
         etaAlertedRef.current.oneHour = true;
-        addNotification(`🚨 Қайту уақыты өтті! Контактілерге хабар жіберілді.`, 'danger');
+        addNotification(`🚨 ${activeTrip.placeName} — қайту уақыты өтті! МЧС хабардар етілді.`, 'danger');
         setActiveTrip(prev => prev ? { ...prev, status: 'overdue' } : prev);
       }
-    }, 30000);
+    }
+
+    // Check immediately on mount (catches already-overdue trips on page reload)
+    checkTime();
+    etaTimerRef.current = setInterval(checkTime, 60000);
 
     return () => clearInterval(etaTimerRef.current);
   }, [activeTrip?.id, activeTrip?.expectedReturn, activeTrip?.status]);
@@ -76,9 +81,15 @@ export function TripProvider({ children }) {
     };
   }, []);
 
-  // Синхронизация между вкладками: когда турист нажимает SOS в одной вкладке,
-  // вкладка админа сразу видит изменение через localStorage storage event
+  // Синхронизация между вкладками
   useEffect(() => {
+    const SOS_MSGS = {
+      accepted: '✅ Ваш SOS принят! МЧС обрабатывают вызов.',
+      enroute:  '🚗 МЧС выехали! Оставайтесь на месте.',
+      search:   '🔍 Спасатели ищут вас. Не двигайтесь.',
+      found:    '🎉 Спасатели рядом! Помощь уже идёт.',
+    };
+
     const onStorage = (e) => {
       if (e.key === 'deadend_trip') {
         const updated = e.newValue ? JSON.parse(e.newValue) : null;
@@ -88,9 +99,24 @@ export function TripProvider({ children }) {
         const updated = e.newValue ? JSON.parse(e.newValue) : null;
         if (updated) setUser(updated);
       }
+      // Уведомление туристу когда МЧС принимает SOS (cross-tab)
+      if (e.key === 'deadend_sos_accepted') {
+        const resp = e.newValue ? JSON.parse(e.newValue) : null;
+        if (resp) addNotification(SOS_MSGS[resp.step] || '✅ Ваш SOS принят МЧС!', 'success');
+      }
     };
+
+    // Same-tab: кастомное событие (когда турист и админ в одной вкладке)
+    const onSosUpdate = (e) => {
+      addNotification(SOS_MSGS[e.detail?.step] || '✅ Ваш SOS принят МЧС!', 'success');
+    };
+
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener('deadend_sos_update', onSosUpdate);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('deadend_sos_update', onSosUpdate);
+    };
   }, []);
 
   useEffect(() => {
