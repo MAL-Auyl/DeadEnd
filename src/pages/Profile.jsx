@@ -2,184 +2,140 @@ import { useState, useRef, useEffect } from 'react';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 
-import mapLotr from '../assets/map-lotr.webp';
-
-const MORDOR_KM = 1800;
-// x/y = % of map image (800×785px)
-const WAYPOINTS = [
-  { km: 0,    label: 'Шир',          x: 17, y: 73 },
-  { km: 450,  label: 'Бри',          x: 23, y: 60 },
-  { km: 750,  label: 'Ривенделл',    x: 30, y: 47 },
-  { km: 1050, label: 'Мория',        x: 47, y: 43 },
-  { km: 1150, label: 'Лóриэн',       x: 57, y: 53 },
-  { km: 1650, label: 'Минас Тирит',  x: 41, y: 25 },
-  { km: 1800, label: 'Роковая гора', x: 68, y: 19 },
+const UNIVERSES = [
+  {
+    tag: 'Властелин колец',
+    facts: [
+      { km: 0,    text: 'Фродо ещё в Шире. Кольцо спит.' },
+      { km: 285,  text: 'Столько Фродо прошёл до Бри — первого трактира вне Шира.' },
+      { km: 750,  text: 'Фродо добрался до Ривенделла. Братство только собирается.' },
+      { km: 1050, text: 'Мория позади. Гэндальф пал. Путь не остановить.' },
+      { km: 1150, text: 'Лóриэн. Галадриэль предложила Кольцо — и отказалась.' },
+      { km: 1650, text: 'Минас Тирит. Война Кольца у порога.' },
+      { km: 1800, text: 'Кольцо уничтожено. Фродо прошёл ровно столько же.' },
+    ],
+  },
+  {
+    tag: 'Игра Престолов',
+    facts: [
+      { km: 0,    text: 'Ты в Винтерфелле. Зима близко.' },
+      { km: 400,  text: 'Столько Джон Сноу прошёл из Винтерфелла до Стены.' },
+      { km: 900,  text: 'Примерно столько Арья Старк брела в одиночку через Вестерос.' },
+      { km: 1500, text: 'Путь из Винтерфелла до Королевской Гавани. Нед Старк ехал три недели.' },
+      { km: 2000, text: 'Дейенерис пересекла бы Узкое море дважды.' },
+    ],
+  },
+  {
+    tag: 'Атака Титанов',
+    facts: [
+      { km: 0,    text: 'Ты внутри стены Сина. Здесь безопасно.' },
+      { km: 100,  text: 'Столько от Шиганшины до Трозта. Первое появление Колоссального.' },
+      { km: 500,  text: 'Половина окружности стены Марии. Разведкорпус знает каждый метр.' },
+      { km: 960,  text: 'Ровно столько — полная окружность стены Марии. Эрен бы оценил.' },
+      { km: 1500, text: 'Как путь от Парадиса до Маре через море. Дорога «Грохота».' },
+    ],
+  },
+  {
+    tag: 'Наруто',
+    facts: [
+      { km: 0,    text: 'Ты в Деревне Листа. До первого задания — рукой подать.' },
+      { km: 300,  text: 'Столько от Деревни Листа до Деревни Песка. Гааре — привет.' },
+      { km: 700,  text: 'Наруто столько пробежал за время тренировок с Дзирайей.' },
+      { km: 1200, text: 'Путь Наруто за Саске после предательства — он не останавливался.' },
+      { km: 1800, text: 'Если бы Наруто бежал без остановок — добежал бы до Страны Облаков.' },
+    ],
+  },
+  {
+    tag: 'Аватар',
+    facts: [
+      { km: 0,    text: 'Аанг только проснулся во льдах. Огненная Нация ещё не знает.' },
+      { km: 450,  text: 'Аанг пролетел на Аппе от Южного полюса до Огненной Нации.' },
+      { km: 900,  text: 'Половина пути до Ба Синг Се. Аппа устал бы.' },
+      { km: 1400, text: 'Столько Аанг преодолел, чтобы освоить все четыре стихии.' },
+    ],
+  },
+  {
+    tag: 'Ведьмак',
+    facts: [
+      { km: 0,    text: 'Геральт только покинул Каэр Морхен. Дорога длинная.' },
+      { km: 350,  text: 'От Каэр Морхена до Новиграда — примерно столько.' },
+      { km: 750,  text: 'Столько Геральт прошёл в поисках Цири по Континенту.' },
+      { km: 1300, text: 'Геральт и Цири вместе — от Новиграда до края карты.' },
+    ],
+  },
 ];
 
-// smooth cubic-bezier path through all waypoints (viewBox 0 0 100 100)
-const ROUTE_PATH = [
-  'M 17,73',
-  'C 19,68 21,64 23,60',
-  'C 25,55 27,51 30,47',
-  'C 37,45 42,44 47,43',
-  'C 52,47 55,51 57,53',
-  'C 53,44 47,34 41,25',
-  'C 51,22 60,20 68,19',
-].join(' ');
-
-function getCurrentWaypoint(km) {
-  for (let i = WAYPOINTS.length - 1; i >= 0; i--) {
-    if (km >= WAYPOINTS[i].km) return WAYPOINTS[i];
+function getUniverseFact(facts, km) {
+  let match = facts[0];
+  for (const f of facts) {
+    if (km >= f.km) match = f;
+    else break;
   }
-  return WAYPOINTS[0];
+  return match;
 }
 
-function LotRProgress({ totalKm }) {
-  const km        = Math.min(totalKm || 0, MORDOR_KM);
-  const remaining = MORDOR_KM - km;
-  const current   = getCurrentWaypoint(km);
-  const pathRef   = useRef(null);
-  const [pathLen, setPathLen] = useState(0);
+function KmWidget({ totalKm }) {
+  const km = totalKm || 0;
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (pathRef.current) setPathLen(pathRef.current.getTotalLength());
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const progress    = km / MORDOR_KM;
-  const dashArray   = pathLen || 9999;
-  // before measured: hide; after: animate traveled portion
-  const dashOffset  = pathLen === 0 ? 9999 : mounted ? pathLen * (1 - progress) : pathLen;
-
   return (
-    <div style={{ marginBottom: 16, borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-      <div style={{ position: 'relative', lineHeight: 0 }}>
+    <div style={{
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-sm)',
+      padding: '20px 20px 18px',
+      marginBottom: 16,
+    }}>
+      {/* big number */}
+      <div style={{
+        fontFamily: 'Syne, sans-serif',
+        fontSize: 'clamp(32px, 10vw, 44px)', fontWeight: 900,
+        color: 'var(--text)', letterSpacing: '-0.05em', lineHeight: 1,
+        marginBottom: 4,
+      }}>
+        {km.toLocaleString()}
+        <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text3)', letterSpacing: '-0.02em', marginLeft: 6 }}>км</span>
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--text3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 20 }}>
+        пройдено в DeadEnd
+      </div>
 
-        {/* base map */}
-        <img src={mapLotr} alt="Путь Фродо" style={{ width: '100%', display: 'block' }} />
-
-        {/* SVG route overlay — same coordinate space as image */}
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-        >
-          {/* ghost path — future route, very dim */}
-          <path
-            d={ROUTE_PATH}
-            fill="none"
-            stroke="rgba(201,160,85,0.18)"
-            strokeWidth="1.4"
-            strokeDasharray="2 2"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {/* traveled path — draws in on mount */}
-          <path
-            ref={pathRef}
-            d={ROUTE_PATH}
-            fill="none"
-            stroke="#C9A055"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray={dashArray}
-            strokeDashoffset={dashOffset}
-            vectorEffect="non-scaling-stroke"
-            style={{ transition: `stroke-dashoffset 1400ms ${E}`, filter: 'drop-shadow(0 0 3px rgba(201,160,85,0.7))' }}
-          />
-
-          {/* waypoint circles — only passed ones */}
-          {WAYPOINTS.map((wp, i) => {
-            const passed    = km >= wp.km;
-            const isCurrent = current.km === wp.km;
-            return (
-              <circle
-                key={wp.km}
-                cx={wp.x} cy={wp.y} r="1.6"
-                fill={isCurrent ? '#C9A055' : passed ? '#DDB96A' : 'rgba(201,160,85,0.08)'}
-                stroke={passed ? 'rgba(11,9,7,0.85)' : 'rgba(201,160,85,0.1)'}
-                strokeWidth="0.5"
-                vectorEffect="non-scaling-stroke"
-                opacity={passed ? (mounted ? 1 : 0) : 0.25}
-                style={{ transition: `opacity 400ms ease ${i * 90}ms, fill 600ms ease` }}
-              />
-            );
-          })}
-        </svg>
-
-        {/* traveler icon — moves to current waypoint */}
-        <div style={{
-          position: 'absolute',
-          left: `${current.x}%`,
-          top:  `${current.y}%`,
-          transform: 'translate(-50%, -160%)',
-          fontSize: 17,
-          lineHeight: 1,
-          filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.95))',
-          transition: `left 900ms ${E}, top 900ms ${E}`,
-          zIndex: 5,
-          pointerEvents: 'none',
-        }}>🧙</div>
-
-        {/* labels — only passed waypoints */}
-        {WAYPOINTS.map((wp, i) => {
-          const passed    = km >= wp.km;
-          const isCurrent = current.km === wp.km;
-          if (!passed) return null;
+      {/* universe facts */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {UNIVERSES.map((u, i) => {
+          const fact = getUniverseFact(u.facts, km);
           return (
-            <div key={wp.km} style={{
-              position: 'absolute',
-              left: `${wp.x}%`,
-              top:  `${wp.y}%`,
-              transform: `translate(-50%, ${isCurrent ? '-290%' : '-240%'})`,
-              fontSize: isCurrent ? 9 : 8,
-              fontFamily: 'Syne, sans-serif',
-              fontWeight: isCurrent ? 700 : 500,
-              color: isCurrent ? '#C9A055' : 'rgba(240,232,216,0.78)',
-              whiteSpace: 'nowrap',
-              textShadow: '0 1px 5px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.8)',
-              letterSpacing: '0.04em',
-              opacity: mounted ? 1 : 0,
-              transition: `opacity 450ms ease ${i * 90}ms`,
-              zIndex: 4,
-              pointerEvents: 'none',
-            }}>
-              {wp.label}
+            <div
+              key={u.tag}
+              style={{
+                paddingTop: i === 0 ? 0 : 12,
+                paddingBottom: 12,
+                borderBottom: i < UNIVERSES.length - 1 ? '1px solid var(--border)' : 'none',
+                opacity: mounted ? 1 : 0,
+                transform: mounted ? 'none' : 'translateY(8px)',
+                transition: `opacity 400ms ${E} ${i * 70}ms, transform 400ms ${E} ${i * 70}ms`,
+              }}
+            >
+              <div style={{
+                fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: 'var(--gold)',
+                marginBottom: 5,
+              }}>
+                {u.tag}
+              </div>
+              <div style={{
+                fontSize: 13, color: 'var(--text2)', lineHeight: 1.65,
+              }}>
+                {fact.text}
+              </div>
             </div>
           );
         })}
-      </div>
-
-      {/* stats strip */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '11px 16px',
-        background: 'var(--surface)',
-        borderTop: '1px solid var(--border)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-            background: 'var(--gold)', display: 'inline-block',
-            animation: 'lotrPulse 2s infinite',
-          }} />
-          <span style={{ fontSize: 12, color: 'var(--text2)' }}>
-            у <span style={{ fontWeight: 700, color: 'var(--gold)' }}>{current.label}</span>
-          </span>
-        </div>
-        <div>
-          <span style={{
-            fontFamily: 'Syne, sans-serif', fontSize: 14, fontWeight: 800,
-            color: 'var(--text)', letterSpacing: '-0.03em',
-          }}>
-            {km.toLocaleString()} км
-          </span>
-          <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 6 }}>
-            {remaining > 0 ? `· ещё ${remaining.toLocaleString()} до Роковой горы` : '· 🌋 дошёл!'}
-          </span>
-        </div>
       </div>
     </div>
   );
@@ -320,8 +276,8 @@ export default function Profile() {
         </div>
       )}
 
-      {/* LOTR PROGRESS */}
-      <LotRProgress totalKm={user.totalKm} />
+      {/* KM WIDGET */}
+      <KmWidget totalKm={user.totalKm} />
 
       {/* EMERGENCY PIN */}
       <div className="profile-pin-card">
