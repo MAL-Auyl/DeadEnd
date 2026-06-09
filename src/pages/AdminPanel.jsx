@@ -472,8 +472,8 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
 }
 
 // ── Operation modal ───────────────────────────────────────────
-function OperationModal({ t, onClose, onCloseIncident, onAddLog }) {
-  const [step, setStep]   = useState('new');
+function OperationModal({ t, initialStep, onStepChange, sentSteps, onStepSent, onClose, onCloseIncident, onAddLog }) {
+  const [step, setStep]   = useState(initialStep || 'new');
   const [notes, setNotes] = useState('');
   const [deadline, setDeadline] = useState(() => {
     const d = new Date(); d.setHours(d.getHours() + 2);
@@ -501,10 +501,10 @@ function OperationModal({ t, onClose, onCloseIncident, onAddLog }) {
   }, [deadline]);
 
   function notifyTourist(s) {
-    // Same-tab / same-device notification
+    if (sentSteps.has(s)) return;
+    onStepSent(s);
     try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: s, time: nowTime() })); } catch {}
     window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: s } }));
-    // Cross-device via Firebase
     if (t.deviceId || t.id?.startsWith('dev_')) {
       sendSOSResponse(t.deviceId || t.id, s);
     }
@@ -532,6 +532,7 @@ function OperationModal({ t, onClose, onCloseIncident, onAddLog }) {
     if (LOG_MSGS[next]) onAddLog(opStep?.icon || '✅', LOG_MSGS[next]);
     if (['enroute', 'search', 'found'].includes(next)) notifyTourist(next);
     setStep(next);
+    onStepChange(next);
     if (next === 'closed') {
       onAddLog('🏁', `Дело закрыто: ${notes || 'Операция завершена'}`);
       onCloseIncident(t, notes || 'Операция завершена', elapsed);
@@ -927,6 +928,8 @@ export default function AdminPanel() {
   const [history, setHistory]     = useState(INITIAL_HISTORY);
   const [alertTab, setAlertTab]   = useState('sos');
   const [logs, setLogs]           = useState({});
+  const [opSteps, setOpSteps]     = useState({});
+  const opSentSteps               = useRef({});
 
   const prevStatusRef  = useRef(null);
   const liveTouristRef = useRef(null);
@@ -1029,6 +1032,8 @@ export default function AdminPanel() {
     const now = new Date();
     setHistory(prev => [{ id: 'c-' + t.id, name: t.name, time: now.toTimeString().slice(0, 5), date: now.toLocaleDateString('ru-RU'), location: t.destination, outcome, duration }, ...prev]);
     setClosedIds(prev => new Set([...prev, t.id]));
+    setOpSteps(prev => { const next = { ...prev }; delete next[t.id]; return next; });
+    delete opSentSteps.current[t.id];
     setSelected(null);
     setOperation(null);
     setAlertTab('history');
@@ -1094,6 +1099,13 @@ export default function AdminPanel() {
           {operation && (
             <OperationModal
               t={operation}
+              initialStep={opSteps[operation.id] || 'new'}
+              onStepChange={(step) => setOpSteps(prev => ({ ...prev, [operation.id]: step }))}
+              sentSteps={opSentSteps.current[operation.id] || new Set()}
+              onStepSent={(step) => {
+                if (!opSentSteps.current[operation.id]) opSentSteps.current[operation.id] = new Set();
+                opSentSteps.current[operation.id].add(step);
+              }}
               onClose={() => setOperation(null)}
               onCloseIncident={handleCloseIncident}
               onAddLog={(icon, text) => addLog(operation.id, icon, text)}
