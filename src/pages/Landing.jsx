@@ -269,6 +269,10 @@ export default function Landing() {
   useEffect(() => {
     let ctx;
     try {
+      // The scrollable container is .app-main, not window
+      const scroller = document.querySelector('.app-main') || window;
+      ScrollTrigger.defaults({ scroller });
+
       ctx = gsap.context(() => {
         // ── Hero entrance ────────────────────────────────────
         const heroEls = [
@@ -353,119 +357,148 @@ export default function Landing() {
       }
     }
 
-    return () => ctx?.revert();
+    return () => {
+      ctx?.revert();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+      ScrollTrigger.defaults({ scroller: window });
+    };
   }, []);
 
   return (
-    <div ref={rootRef} style={{ background: '#0a0a0a', color: '#fff', fontFamily: 'DM Sans, sans-serif', minHeight: '100vh' }}>
+    <div ref={rootRef} style={{ background: '#0d0d0d', color: '#fff', fontFamily: 'DM Sans, sans-serif', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* ── NAV ── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 40px', height: 64,
-        background: 'rgba(10,10,10,0.85)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        padding: '0 48px', height: 60,
+        background: 'rgba(13,13,13,0.7)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.05)',
       }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: '-0.03em' }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 20, letterSpacing: '-0.04em' }}>
           dead<span style={{ color: '#6C63FF' }}>end</span>
         </div>
 
-        <div style={{ display: 'flex', gap: 32, fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>
+        <div style={{ display: 'flex', gap: 36, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
           {[
             ['#problem', tx.nav_about],
             ['#features', tx.nav_features],
             ['#roadmap', tx.nav_future],
             ['#invest', tx.nav_invest],
           ].map(([href, label]) => (
-            <a key={href} href={href} style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }}
+            <a key={href} href={href} style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s', fontWeight: 500 }}
               onMouseEnter={e => e.target.style.color = '#fff'}
-              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.6)'}
+              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.45)'}
             >{label}</a>
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Lang switcher */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 7, overflow: 'hidden' }}>
             {LANGS.map(l => (
               <button key={l} onClick={() => setLang(l)} style={{
-                padding: '6px 12px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                background: lang === l ? 'rgba(108,99,255,0.8)' : 'transparent',
-                color: lang === l ? '#fff' : 'rgba(255,255,255,0.5)',
+                padding: '5px 11px', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                background: lang === l ? 'rgba(108,99,255,0.85)' : 'transparent',
+                color: lang === l ? '#fff' : 'rgba(255,255,255,0.38)',
                 transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.05em',
               }}>{l}</button>
             ))}
           </div>
           <button onClick={() => navigate('/')} style={{
-            padding: '8px 20px', borderRadius: 8, background: '#6C63FF',
-            border: 'none', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-          }}>{tx.nav_app}</button>
+            padding: '7px 18px', borderRadius: 7, background: '#6C63FF',
+            border: 'none', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+            transition: 'background 0.15s, transform 0.1s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = '#5a52e0'}
+            onMouseLeave={e => e.currentTarget.style.background = '#6C63FF'}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+          >{tx.nav_app}</button>
         </div>
       </nav>
 
       {/* ── HERO ── */}
       <section style={{
         position: 'relative', overflow: 'hidden',
-        minHeight: '92vh', display: 'flex', alignItems: 'center',
-        padding: '80px 40px',
+        minHeight: '92dvh', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+        padding: '80px 48px 130px',
       }}>
-        {/* Background image */}
+        {/* Background photo */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           backgroundImage: 'url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Ustyurt_Plateau.jpg/1280px-Ustyurt_Plateau.jpg)',
           backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: 'brightness(0.25)',
+          filter: 'brightness(0.2) saturate(0.75)',
         }} />
-        {/* Gradient overlay */}
+        {/* Radial vignette — no purple/red gradient */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1,
-          background: 'linear-gradient(135deg, rgba(108,99,255,0.15) 0%, transparent 50%, rgba(255,71,87,0.08) 100%)',
+          background: 'radial-gradient(ellipse at 15% 85%, rgba(108,99,255,0.1) 0%, transparent 50%), linear-gradient(to top, rgba(13,13,13,0.95) 0%, transparent 60%)',
+        }} />
+        {/* Grain overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', opacity: 0.4,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E")`,
         }} />
 
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: 760 }}>
+        <div style={{ position: 'relative', zIndex: 3, maxWidth: 860 }}>
+          {/* Editorial tag — line + text, no pill */}
           <div ref={heroTagRef} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)',
-            borderRadius: 100, padding: '6px 16px', fontSize: 13, color: '#a8a3ff',
-            fontWeight: 600, marginBottom: 28,
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+            color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase',
+            marginBottom: 22, display: 'flex', alignItems: 'center', gap: 12,
           }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#6C63FF', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+            <span style={{ width: 28, height: 1, background: '#6C63FF', display: 'inline-block', flexShrink: 0 }} />
             {tx.hero_tag}
           </div>
 
-          <h1 ref={heroH1Ref} style={{
-            fontFamily: 'Syne, sans-serif', fontSize: 'clamp(48px, 7vw, 86px)',
-            fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em',
-            margin: '0 0 24px',
+          <h1 ref={heroH1Ref} className="land-headline" style={{
+            fontFamily: 'Syne, sans-serif',
+            fontSize: 'clamp(54px, 9vw, 108px)',
+            fontWeight: 900, lineHeight: 0.95,
+            letterSpacing: '-0.04em',
+            margin: '0 0 30px',
             whiteSpace: 'pre-line',
           }}>{tx.hero_title}</h1>
 
-          <p ref={heroSubRef} style={{ fontSize: 18, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, maxWidth: 580, marginBottom: 40 }}>
-            {tx.hero_sub}
-          </p>
+          <p ref={heroSubRef} style={{
+            fontSize: 17, color: 'rgba(255,255,255,0.55)',
+            lineHeight: 1.7, maxWidth: '52ch', marginBottom: 44, fontWeight: 400,
+          }}>{tx.hero_sub}</p>
 
-          <div ref={heroBtnsRef} style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <div ref={heroBtnsRef} style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/')} style={{
-              padding: '14px 32px', borderRadius: 10, background: '#6C63FF',
-              border: 'none', color: '#fff', fontWeight: 800, fontSize: 16, cursor: 'pointer',
-              boxShadow: '0 0 32px rgba(108,99,255,0.4)',
-            }}>{tx.hero_cta}</button>
+              padding: '13px 30px', borderRadius: 8, background: '#6C63FF',
+              border: 'none', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
+              boxShadow: '0 0 28px rgba(108,99,255,0.3)',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(108,99,255,0.5)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 0 28px rgba(108,99,255,0.3)'; }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            >{tx.hero_cta}</button>
             <a href="#features" style={{
-              padding: '14px 32px', borderRadius: 10,
-              background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-              color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer', textDecoration: 'none',
-              display: 'inline-flex', alignItems: 'center',
-            }}>{tx.hero_cta2}</a>
+              padding: '13px 30px', borderRadius: 8,
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.8)', fontWeight: 600, fontSize: 15,
+              cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
+              transition: 'background 0.2s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.09)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            >{tx.hero_cta2}</a>
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div ref={statsRef} style={{
-          position: 'absolute', bottom: 40, left: 40, right: 40, zIndex: 2,
+        {/* Stats — bottom right, compact */}
+        <div ref={statsRef} className="land-stats-panel" style={{
+          position: 'absolute', bottom: 44, right: 48, zIndex: 3,
           display: 'flex', gap: 0,
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 16, overflow: 'hidden', backdropFilter: 'blur(12px)',
+          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 12, overflow: 'hidden', backdropFilter: 'blur(16px)',
         }}>
           {[
             { n: '8', l: tx.stat1 },
@@ -474,121 +507,186 @@ export default function Landing() {
             { n: '🔥', l: tx.stat4 },
           ].map((s, i) => (
             <div key={i} style={{
-              flex: 1, padding: '20px 24px', textAlign: 'center',
-              borderRight: i < 3 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+              padding: '14px 20px', textAlign: 'center', minWidth: 84,
+              borderRight: i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none',
             }}>
-              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 28, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.n}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>{s.l}</div>
+              <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 20, fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.n}</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', marginTop: 4, fontWeight: 500, letterSpacing: '0.03em' }}>{s.l}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── PROBLEM ── */}
-      <section id="problem" style={{ padding: '100px 40px', maxWidth: 1100, margin: '0 auto' }}>
-        <div className="land-section-head">
-          <div style={{ fontSize: 12, color: '#6C63FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.problem_tag}</div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 24, whiteSpace: 'pre-line' }}>{tx.problem_title}</h2>
-          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, maxWidth: 660, marginBottom: 60 }}>{tx.problem_text}</p>
-        </div>
-
-        <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-          {[
-            { title: tx.problem_c1_title, text: tx.problem_c1, color: '#F4A261' },
-            { title: tx.problem_c2_title, text: tx.problem_c2, color: '#FF4757' },
-            { title: tx.problem_c3_title, text: tx.problem_c3, color: '#6C63FF' },
-          ].map((c, i) => (
-            <div key={i} className="land-card" style={{
-              padding: '28px', borderRadius: 16,
-              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-            }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: c.color, marginBottom: 10 }}>{c.title}</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>{c.text}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section id="features" style={{ padding: '100px 40px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      <section id="problem" style={{ padding: '120px 48px', maxWidth: 1240, margin: '0 auto' }}>
+        <div className="land-problem-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'start' }}>
+          {/* Left — headline */}
           <div className="land-section-head">
-            <div style={{ fontSize: 12, color: '#06D6A0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.feat_tag}</div>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60, whiteSpace: 'pre-line' }}>{tx.feat_title}</h2>
+            <div style={{ fontSize: 11, color: '#6C63FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 20, height: 1, background: '#6C63FF', display: 'inline-block' }} />
+              {tx.problem_tag}
+            </div>
+            <h2 style={{
+              fontFamily: 'Syne, sans-serif', fontSize: 'clamp(34px, 4vw, 58px)',
+              fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em',
+              marginBottom: 24, whiteSpace: 'pre-line',
+            }}>{tx.problem_title}</h2>
+            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, maxWidth: '48ch' }}>{tx.problem_text}</p>
           </div>
 
-          <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-            {FEATURES(tx).map((f, i) => (
+          {/* Right — stacked cards, left-border accent */}
+          <div className="land-card-group" style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
+            {[
+              { title: tx.problem_c1_title, text: tx.problem_c1 },
+              { title: tx.problem_c2_title, text: tx.problem_c2 },
+              { title: tx.problem_c3_title, text: tx.problem_c3 },
+            ].map((c, i) => (
               <div key={i} className="land-card" style={{
-                padding: '28px', borderRadius: 16,
-                background: 'rgba(255,255,255,0.02)', border: `1px solid ${f.color}22`,
-                transition: 'border-color 0.2s, background 0.2s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = f.color + '55'; e.currentTarget.style.background = f.color + '08'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = f.color + '22'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
-              >
-                <div style={{ fontSize: 32, marginBottom: 14 }}>{f.icon}</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: f.color, marginBottom: 8 }}>{f.title}</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>{f.desc}</div>
+                padding: '20px 22px',
+                background: 'rgba(255,255,255,0.025)',
+                borderLeft: '2px solid rgba(108,99,255,0.5)',
+                borderTop: '1px solid rgba(255,255,255,0.05)',
+                borderRight: '1px solid rgba(255,255,255,0.04)',
+                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                borderRadius: '0 10px 10px 0',
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 5 }}>{c.title}</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.48)', lineHeight: 1.65 }}>{c.text}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── TECH ── */}
-      <section style={{ padding: '100px 40px', maxWidth: 1100, margin: '0 auto' }}>
-        <div className="land-section-head">
-          <div style={{ fontSize: 12, color: '#F4A261', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.tech_tag}</div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 16, whiteSpace: 'pre-line' }}>{tx.tech_title}</h2>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 48 }}>{tx.tech_text}</p>
-        </div>
+      {/* ── FEATURES ── */}
+      <section id="features" style={{ padding: '120px 48px', background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div className="land-section-head" style={{ marginBottom: 52 }}>
+            <div style={{ fontSize: 11, color: '#6C63FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 20, height: 1, background: '#6C63FF', display: 'inline-block' }} />
+              {tx.feat_tag}
+            </div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', whiteSpace: 'pre-line' }}>{tx.feat_title}</h2>
+          </div>
 
-        <div className="land-tech-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+          {/* BENTO GRID — asymmetric, not 3 equal columns */}
+          <div className="land-card-group land-bento-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: 'auto auto', gap: 10 }}>
+            {FEATURES(tx).map((f, i) => {
+              const isWide = i === 0;
+              const isTall = i === 1;
+              return (
+                <div key={i} className="land-card" style={{
+                  gridColumn: isWide ? '1 / 3' : undefined,
+                  gridRow: isTall ? '1 / 3' : undefined,
+                  padding: isWide ? '36px 40px' : '28px',
+                  borderRadius: 14,
+                  background: isTall ? 'rgba(108,99,255,0.07)' : 'rgba(255,255,255,0.025)',
+                  border: isTall ? '1px solid rgba(108,99,255,0.2)' : '1px solid rgba(255,255,255,0.055)',
+                  display: 'flex', flexDirection: 'column', gap: isWide ? 14 : 10,
+                  transition: 'border-color 0.2s, background 0.2s',
+                  cursor: 'default',
+                }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = 'rgba(108,99,255,0.38)';
+                    e.currentTarget.style.background = isTall ? 'rgba(108,99,255,0.11)' : 'rgba(255,255,255,0.04)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = isTall ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.055)';
+                    e.currentTarget.style.background = isTall ? 'rgba(108,99,255,0.07)' : 'rgba(255,255,255,0.025)';
+                  }}
+                >
+                  <div style={{ fontSize: isWide ? 36 : 26 }}>{f.icon}</div>
+                  <div>
+                    <div style={{ fontSize: isWide ? 17 : 14, fontWeight: 700, color: '#fff', marginBottom: 5, letterSpacing: '-0.01em' }}>{f.title}</div>
+                    <div style={{ fontSize: isWide ? 14 : 13, color: 'rgba(255,255,255,0.48)', lineHeight: 1.7 }}>{f.desc}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TECH ── */}
+      <section style={{ padding: '120px 0' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '0 48px' }}>
+          <div className="land-section-head" style={{ marginBottom: 44 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 20, height: 1, background: 'rgba(255,255,255,0.3)', display: 'inline-block' }} />
+              {tx.tech_tag}
+            </div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, whiteSpace: 'pre-line', marginBottom: 10 }}>{tx.tech_title}</h2>
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', maxWidth: '48ch' }}>{tx.tech_text}</p>
+          </div>
+        </div>
+        {/* Horizontal scroll — no wrapping pills */}
+        <div className="land-tech-pills" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '2px 48px 16px', scrollbarWidth: 'none' }}>
           {TECH.map((t, i) => (
             <div key={i} className="land-tech-pill" style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              padding: '12px 20px', borderRadius: 100,
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-            }}>
-              <span style={{ fontSize: 20 }}>{t.icon}</span>
+              padding: '11px 18px', borderRadius: 10, flexShrink: 0,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+              transition: 'border-color 0.2s, background 0.2s', cursor: 'default',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(108,99,255,0.4)'; e.currentTarget.style.background = 'rgba(108,99,255,0.07)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+            >
+              <span style={{ fontSize: 18 }}>{t.icon}</span>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{t.name}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{t.desc}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>{t.name}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{t.desc}</div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── ROADMAP ── */}
-      <section id="roadmap" style={{ padding: '100px 40px', background: 'rgba(108,99,255,0.04)', borderTop: '1px solid rgba(108,99,255,0.12)', borderBottom: '1px solid rgba(108,99,255,0.12)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div className="land-section-head">
-            <div style={{ fontSize: 12, color: '#a8a3ff', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.road_tag}</div>
-            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 54px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60 }}>{tx.road_title}</h2>
+      {/* ── ROADMAP — vertical timeline ── */}
+      <section id="roadmap" style={{ padding: '120px 48px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div className="land-section-head" style={{ marginBottom: 64 }}>
+            <div style={{ fontSize: 11, color: '#6C63FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 20, height: 1, background: '#6C63FF', display: 'inline-block' }} />
+              {tx.road_tag}
+            </div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{tx.road_title}</h2>
           </div>
 
-          <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20 }}>
+          <div className="land-card-group" style={{ position: 'relative' }}>
+            {/* Connecting line */}
+            <div style={{ position: 'absolute', left: 19, top: 19, bottom: 24, width: 1, background: 'rgba(255,255,255,0.06)' }} />
+
             {[
-              { q: tx.road_q1, title: tx.road_q1_title, items: tx.road_q1_items, color: '#6C63FF', done: false },
-              { q: tx.road_q2, title: tx.road_q2_title, items: tx.road_q2_items, color: '#06D6A0', done: false },
-              { q: tx.road_q3, title: tx.road_q3_title, items: tx.road_q3_items, color: '#F4A261', done: false },
-              { q: tx.road_q4, title: tx.road_q4_title, items: tx.road_q4_items, color: '#FF4757', done: false },
+              { q: tx.road_q1, title: tx.road_q1_title, items: tx.road_q1_items, now: true },
+              { q: tx.road_q2, title: tx.road_q2_title, items: tx.road_q2_items, now: false },
+              { q: tx.road_q3, title: tx.road_q3_title, items: tx.road_q3_items, now: false },
+              { q: tx.road_q4, title: tx.road_q4_title, items: tx.road_q4_items, now: false },
             ].map((phase, i) => (
-              <div key={i} className="land-card" style={{
-                padding: '28px', borderRadius: 16,
-                background: i === 0 ? `${phase.color}12` : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${phase.color}${i === 0 ? '44' : '22'}`,
-              }}>
-                <div style={{ fontSize: 11, color: phase.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{phase.q}</div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 16, fontFamily: 'Syne, sans-serif' }}>{phase.title}</div>
-                {phase.items.map((item, j) => (
-                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: phase.color, flexShrink: 0, opacity: i === 0 ? 1 : 0.5 }} />
-                    <span style={{ fontSize: 13, color: i === 0 ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.45)' }}>{item}</span>
+              <div key={i} className="land-card" style={{ display: 'flex', gap: 26, paddingBottom: 40 }}>
+                {/* Dot */}
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%', flexShrink: 0, zIndex: 1,
+                  background: phase.now ? '#6C63FF' : '#0d0d0d',
+                  border: phase.now ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: phase.now ? 14 : 12, color: phase.now ? '#fff' : 'rgba(255,255,255,0.25)' }}>
+                    {phase.now ? '▶' : i + 1}
+                  </span>
+                </div>
+                {/* Content */}
+                <div style={{ paddingTop: 7, flex: 1 }}>
+                  <div style={{ fontSize: 11, color: phase.now ? '#6C63FF' : 'rgba(255,255,255,0.25)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 5 }}>{phase.q}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: phase.now ? '#fff' : 'rgba(255,255,255,0.45)', fontFamily: 'Syne, sans-serif', letterSpacing: '-0.02em', marginBottom: 12 }}>{phase.title}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px 20px' }}>
+                    {phase.items.map((item, j) => (
+                      <span key={j} style={{ fontSize: 13, color: phase.now ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.28)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 3, height: 3, borderRadius: '50%', background: phase.now ? '#6C63FF' : 'rgba(255,255,255,0.2)', display: 'inline-block', flexShrink: 0 }} />
+                        {item}
+                      </span>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             ))}
           </div>
@@ -596,88 +694,106 @@ export default function Landing() {
       </section>
 
       {/* ── INVEST ── */}
-      <section id="invest" style={{ padding: '100px 40px', maxWidth: 1100, margin: '0 auto' }}>
-        <div className="land-section-head">
-          <div style={{ fontSize: 12, color: '#FFD700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>{tx.invest_tag}</div>
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 50px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 60, whiteSpace: 'pre-line' }}>{tx.invest_title}</h2>
-        </div>
-
-        <div className="land-card-group" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 20, marginBottom: 64 }}>
-          {[
-            { title: tx.b1_title, text: tx.b1 },
-            { title: tx.b2_title, text: tx.b2 },
-            { title: tx.b3_title, text: tx.b3 },
-            { title: tx.b4_title, text: tx.b4 },
-          ].map((b, i) => (
-            <div key={i} className="land-card" style={{
-              padding: '28px', borderRadius: 16,
-              background: 'rgba(255,215,0,0.04)', border: '1px solid rgba(255,215,0,0.12)',
-            }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#FFD700', marginBottom: 10 }}>{b.title}</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>{b.text}</div>
+      <section id="invest" style={{ padding: '120px 48px', background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+          <div className="land-section-head" style={{ marginBottom: 60 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,215,0,0.65)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 20, height: 1, background: 'rgba(255,215,0,0.65)', display: 'inline-block' }} />
+              {tx.invest_tag}
             </div>
-          ))}
-        </div>
+            <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 50px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', whiteSpace: 'pre-line' }}>{tx.invest_title}</h2>
+          </div>
 
-        {/* Market stats */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 48 }}>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 28 }}>{tx.market_title}</div>
-          <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+          {/* No card borders — use spacing + dividers */}
+          <div className="land-card-group land-invest-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 72px', marginBottom: 80 }}>
             {[
-              { val: 500, suffix: 'K+', label: tx.market_1 },
-              { val: 40,  prefix: '+', suffix: '%', label: tx.market_2 },
-              { val: 2,   suffix: 'M+', label: tx.market_3 },
-            ].map((s, i) => (
-              <div key={i}>
-                <div
-                  className="land-counter"
-                  data-val={s.val}
-                  data-suffix={s.suffix || ''}
-                  data-prefix={s.prefix || ''}
-                  style={{ fontFamily: 'Syne, sans-serif', fontSize: 42, fontWeight: 900, color: '#fff', lineHeight: 1 }}
-                >
-                  {(s.prefix || '') + s.val + (s.suffix || '')}
-                </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 6, maxWidth: 180 }}>{s.label}</div>
+              { title: tx.b1_title, text: tx.b1 },
+              { title: tx.b2_title, text: tx.b2 },
+              { title: tx.b3_title, text: tx.b3 },
+              { title: tx.b4_title, text: tx.b4 },
+            ].map((b, i) => (
+              <div key={i} className="land-card" style={{ padding: '26px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'rgba(255,215,0,0.8)', marginBottom: 7 }}>{b.title}</div>
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.48)', lineHeight: 1.75 }}>{b.text}</div>
               </div>
             ))}
+          </div>
+
+          {/* Market stats — large editorial type */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 52 }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.28)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 40 }}>{tx.market_title}</div>
+            <div style={{ display: 'flex', gap: 72, flexWrap: 'wrap' }}>
+              {[
+                { val: 500, suffix: 'K+', label: tx.market_1 },
+                { val: 40, prefix: '+', suffix: '%', label: tx.market_2 },
+                { val: 2, suffix: 'M+', label: tx.market_3 },
+              ].map((s, i) => (
+                <div key={i}>
+                  <div
+                    className="land-counter"
+                    data-val={s.val}
+                    data-suffix={s.suffix || ''}
+                    data-prefix={s.prefix || ''}
+                    style={{
+                      fontFamily: 'Syne, sans-serif', fontSize: 'clamp(44px, 5vw, 68px)',
+                      fontWeight: 900, color: '#fff', lineHeight: 1,
+                      letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >{(s.prefix || '') + s.val + (s.suffix || '')}</div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.38)', marginTop: 8, maxWidth: 180, lineHeight: 1.5 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section style={{
-        padding: '100px 40px', textAlign: 'center',
-        background: 'linear-gradient(135deg, rgba(108,99,255,0.15) 0%, rgba(255,71,87,0.08) 100%)',
-        borderTop: '1px solid rgba(108,99,255,0.2)',
-      }}>
-        <div className="land-cta-inner">
-          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(28px, 4vw, 54px)', fontWeight: 900, marginBottom: 20 }}>{tx.cta_title}</h2>
-          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.55)', marginBottom: 40, maxWidth: 520, margin: '0 auto 40px' }}>{tx.cta_sub}</p>
+      {/* ── CTA ── photo background, not gradient */}
+      <section style={{ position: 'relative', overflow: 'hidden', padding: '140px 48px', textAlign: 'center' }}>
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Ustyurt_Plateau.jpg/1280px-Ustyurt_Plateau.jpg)',
+          backgroundSize: 'cover', backgroundPosition: 'center 40%',
+          filter: 'brightness(0.13) saturate(0.6)',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 100%, rgba(108,99,255,0.18) 0%, rgba(13,13,13,0.55) 65%)' }} />
+        <div className="land-cta-inner" style={{ position: 'relative', zIndex: 1 }}>
+          <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: 'clamp(30px, 5vw, 62px)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 20 }}>{tx.cta_title}</h2>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.48)', maxWidth: '46ch', margin: '0 auto 44px', lineHeight: 1.7 }}>{tx.cta_sub}</p>
           <button onClick={() => navigate('/')} style={{
-            padding: '16px 40px', borderRadius: 12, background: '#6C63FF',
-            border: 'none', color: '#fff', fontWeight: 800, fontSize: 18, cursor: 'pointer',
-            boxShadow: '0 0 48px rgba(108,99,255,0.5)',
-          }}>{tx.cta_btn}</button>
+            padding: '14px 36px', borderRadius: 8, background: '#6C63FF',
+            border: 'none', color: '#fff', fontWeight: 700, fontSize: 16,
+            cursor: 'pointer', boxShadow: '0 0 48px rgba(108,99,255,0.4)',
+            transition: 'transform 0.15s, box-shadow 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 48px rgba(108,99,255,0.55)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 0 48px rgba(108,99,255,0.4)'; }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+          >{tx.cta_btn}</button>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
       <footer style={{
-        padding: '32px 40px', textAlign: 'center',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        fontSize: 13, color: 'rgba(255,255,255,0.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+        padding: '26px 48px',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 12,
       }}>
-        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 18 }}>
+        <div style={{ fontFamily: 'Syne, sans-serif', fontWeight: 800, fontSize: 17, letterSpacing: '-0.03em' }}>
           dead<span style={{ color: '#6C63FF' }}>end</span>
         </div>
-        <div>{tx.footer}</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.22)' }}>{tx.footer}</div>
         <button onClick={() => navigate('/')} style={{
-          background: 'none', border: '1px solid rgba(255,255,255,0.1)',
-          color: 'rgba(255,255,255,0.5)', padding: '8px 18px', borderRadius: 8,
-          cursor: 'pointer', fontSize: 13, fontWeight: 600,
-        }}>{tx.nav_app} →</button>
+          background: 'none', border: '1px solid rgba(255,255,255,0.08)',
+          color: 'rgba(255,255,255,0.38)', padding: '6px 15px', borderRadius: 7,
+          cursor: 'pointer', fontSize: 12, fontWeight: 600,
+          transition: 'border-color 0.2s, color 0.2s',
+        }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.38)'; }}
+        >{tx.nav_app} →</button>
       </footer>
     </div>
   );

@@ -55,6 +55,30 @@ html, body, #root {
   flex: 1;
   overflow-y: auto;
   background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+/* ── LANDING ── */
+.land-tech-pills::-webkit-scrollbar { display: none; }
+
+.land-headline { text-wrap: balance; }
+
+.land-section-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .land-problem-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+  .land-bento-grid   { grid-template-columns: 1fr !important; }
+  .land-bento-grid > * { grid-column: auto !important; grid-row: auto !important; }
+  .land-invest-grid  { grid-template-columns: 1fr !important; }
+  .land-stats-panel  { display: none !important; }
 }
 
 /* ── TOP NAVIGATION ── */
