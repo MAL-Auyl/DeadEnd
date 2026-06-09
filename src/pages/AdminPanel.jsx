@@ -1034,6 +1034,10 @@ export default function AdminPanel() {
     setClosedIds(prev => new Set([...prev, t.id]));
     setOpSteps(prev => { const next = { ...prev }; delete next[t.id]; return next; });
     delete opSentSteps.current[t.id];
+    // Notify tourist that SOS operation is resolved — clears SOS status on their device
+    if (t.deviceId || t.id?.startsWith('dev_')) sendSOSResponse(t.deviceId || t.id, 'resolved');
+    try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'resolved', time: now.toTimeString().slice(0, 5) })); } catch {}
+    window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'resolved' } }));
     setSelected(null);
     setOperation(null);
     setAlertTab('history');

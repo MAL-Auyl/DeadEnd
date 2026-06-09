@@ -99,11 +99,15 @@ export function TripProvider({ children }) {
       enroute:  '🚗 МЧС выехали! Оставайтесь на месте.',
       search:   '🔍 Спасатели ищут вас. Не двигайтесь.',
       found:    '🎉 Спасатели рядом! Помощь уже идёт.',
+      resolved: '✅ Операция МЧС закрыта. Вы в безопасности.',
     };
     const unsub = listenSOSResponse(DEVICE_ID, (resp) => {
       if (resp.step && resp.step !== lastSosResponseStep.current) {
         lastSosResponseStep.current = resp.step;
         addNotification(SOS_MSGS[resp.step] || '✅ МЧС ответил на ваш SOS!', 'success');
+        if (resp.step === 'resolved') {
+          setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
+        }
       }
     });
     return unsub;
@@ -116,6 +120,7 @@ export function TripProvider({ children }) {
       enroute:  '🚗 МЧС выехали! Оставайтесь на месте.',
       search:   '🔍 Спасатели ищут вас. Не двигайтесь.',
       found:    '🎉 Спасатели рядом! Помощь уже идёт.',
+      resolved: '✅ Операция МЧС закрыта. Вы в безопасности.',
     };
 
     const onStorage = (e) => {
@@ -127,16 +132,19 @@ export function TripProvider({ children }) {
         const updated = e.newValue ? JSON.parse(e.newValue) : null;
         if (updated) setUser(updated);
       }
-      // Уведомление туристу когда МЧС принимает SOS (cross-tab)
       if (e.key === 'deadend_sos_accepted') {
         const resp = e.newValue ? JSON.parse(e.newValue) : null;
-        if (resp) addNotification(SOS_MSGS[resp.step] || '✅ Ваш SOS принят МЧС!', 'success');
+        if (resp) {
+          addNotification(SOS_MSGS[resp.step] || '✅ Ваш SOS принят МЧС!', 'success');
+          if (resp.step === 'resolved') setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
+        }
       }
     };
 
-    // Same-tab: кастомное событие (когда турист и админ в одной вкладке)
     const onSosUpdate = (e) => {
-      addNotification(SOS_MSGS[e.detail?.step] || '✅ Ваш SOS принят МЧС!', 'success');
+      const step = e.detail?.step;
+      addNotification(SOS_MSGS[step] || '✅ Ваш SOS принят МЧС!', 'success');
+      if (step === 'resolved') setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
     };
 
     window.addEventListener('storage', onStorage);
