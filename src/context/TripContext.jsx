@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
+import { syncTourist, updateTourist, removeTourist, listenSOSResponse } from '../lib/sync.js';
 
 const TripContext = createContext(null);
 
@@ -9,6 +10,14 @@ function safeGet(key, fallback) {
 }
 function safeSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 function safeRemove(key) { try { localStorage.removeItem(key); } catch {} }
+
+// persistent device id for Firebase keying
+function getDeviceId() {
+  let id = localStorage.getItem('deadend_device_id');
+  if (!id) { id = 'dev_' + Math.random().toString(36).slice(2, 9); localStorage.setItem('deadend_device_id', id); }
+  return id;
+}
+const DEVICE_ID = getDeviceId();
 
 export function TripProvider({ children }) {
   const [user, setUser] = useState(() => safeGet('deadend_user', MOCK_USER));
@@ -26,6 +35,8 @@ export function TripProvider({ children }) {
   const etaTimerRef = useRef(null);
   const etaAlertedRef = useRef({ thirtyMin: false, oneHour: false });
   const nightRiskAlertedRef = useRef(false);
+  const gpsFirebaseTimer = useRef(null);
+  const lastSosResponseStep = useRef(null);
 
   useEffect(() => {
     if (etaTimerRef.current) clearInterval(etaTimerRef.current);
@@ -79,6 +90,23 @@ export function TripProvider({ children }) {
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
     };
+  }, []);
+
+  // Listen for MChS SOS response via Firebase
+  useEffect(() => {
+    const SOS_MSGS = {
+      accepted: '✅ МЧС принял ваш SOS! Обрабатывают вызов.',
+      enroute:  '🚗 МЧС выехали! Оставайтесь на месте.',
+      search:   '🔍 Спасатели ищут вас. Не двигайтесь.',
+      found:    '🎉 Спасатели рядом! Помощь уже идёт.',
+    };
+    const unsub = listenSOSResponse(DEVICE_ID, (resp) => {
+      if (resp.step && resp.step !== lastSosResponseStep.current) {
+        lastSosResponseStep.current = resp.step;
+        addNotification(SOS_MSGS[resp.step] || '✅ МЧС ответил на ваш SOS!', 'success');
+      }
+    });
+    return unsub;
   }, []);
 
   // Синхронизация между вкладками
@@ -136,6 +164,13 @@ export function TripProvider({ children }) {
         if (!navigator.onLine) {
           pendingSync.current.push({ type: 'coords', coords, time: Date.now() });
           safeSet('deadend_pending', pendingSync.current);
+        }
+        // Debounced GPS push to Firebase (max once per 15s)
+        if (!gpsFirebaseTimer.current) {
+          gpsFirebaseTimer.current = setTimeout(() => {
+            gpsFirebaseTimer.current = null;
+            updateTourist(DEVICE_ID, { coords, lastSignal: new Date().toTimeString().slice(0, 5) });
+          }, 15000);
         }
         checkCheckpointProximity(coords);
       },
@@ -234,6 +269,7 @@ export function TripProvider({ children }) {
       clothing: config.clothing || '',
       contacts: config.contacts || user.contacts || [],
       vehicle: config.vehicle || '',
+      plate: config.plate || '',
       groupType: config.groupType || 'solo',
       groupMembers: config.groupMembers || [],
       checkpoints: (place.checkpoints || []).map(cp => ({ ...cp, status: 'pending', arrivedAt: null })),
@@ -242,6 +278,28 @@ export function TripProvider({ children }) {
       sosCount: 0,
     };
     setActiveTrip(trip);
+
+    // Sync to Firebase so AdminPanel sees this tourist in real-time
+    syncTourist(DEVICE_ID, {
+      deviceId: DEVICE_ID,
+      id: DEVICE_ID,
+      name: `${user.firstName} ${user.lastName}`.trim() || 'Tourist',
+      photo: user.photo || `https://i.pravatar.cc/150?u=${DEVICE_ID}`,
+      phone: user.phone || '',
+      destination: place.name,
+      status: 'active',
+      startTime: new Date().toTimeString().slice(0, 5),
+      expectedReturn: config.returnTime || '18:00',
+      lastSignal: new Date().toTimeString().slice(0, 5),
+      clothing: config.clothing || '',
+      vehicle: config.vehicle || '',
+      plate: config.plate || '',
+      coords: currentCoords || place.coords || { lat: 43.65, lng: 51.17 },
+      checkpointsDone: 0,
+      checkpointsTotal: (place.checkpoints || []).length,
+      emergencyContact: (config.contacts || [])[0] || { name: '—', phone: '—' },
+    });
+
     addNotification('Сапар басталды! Контактілерге хабар жіберілді. ✅', 'success');
     return trip;
   }
@@ -260,6 +318,7 @@ export function TripProvider({ children }) {
         return { ...prev, tripsCompleted: count };
       });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
+      removeTourist(DEVICE_ID);
       setActiveTrip(null);
       setCurrentCoords(null);
     }
@@ -284,6 +343,15 @@ export function TripProvider({ children }) {
       if (!prev) return prev;
       return { ...prev, status: 'sos', sosTime: new Date().toISOString(), sosCoords, sosCount: (prev.sosCount || 0) + 1 };
     });
+
+    // Firebase: mark tourist as SOS instantly
+    updateTourist(DEVICE_ID, {
+      status: 'sos',
+      sosTime: new Date().toISOString(),
+      lastSignal: new Date().toTimeString().slice(0, 5),
+      coords: sosCoords,
+    });
+
     addNotification('🆘 SOS жіберілді! МЧС хабардар етілді.', 'danger');
     setTimeout(() => { sosLock.current = false; }, 30000);
   }

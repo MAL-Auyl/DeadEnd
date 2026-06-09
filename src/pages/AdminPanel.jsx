@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { MOCK_ACTIVE_TOURISTS, PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
+import { listenTourists, sendSOSResponse } from '../lib/sync.js';
+import { FIREBASE_ENABLED } from '../lib/firebase.js';
 
 // ── Constants ─────────────────────────────────────────────────
 const INITIAL_HISTORY = [
@@ -408,6 +410,7 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
                 // Немедленно уведомить туриста что SOS принят
                 try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'accepted', time: new Date().toTimeString().slice(0, 5) })); } catch {}
                 window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'accepted' } }));
+                if (t.deviceId || t.id?.startsWith('dev_')) sendSOSResponse(t.deviceId || t.id, 'accepted');
               }} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 background: isSOS ? '#FF4757' : 'rgba(244,162,97,0.12)',
@@ -498,8 +501,13 @@ function OperationModal({ t, onClose, onCloseIncident, onAddLog }) {
   }, [deadline]);
 
   function notifyTourist(s) {
+    // Same-tab / same-device notification
     try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: s, time: nowTime() })); } catch {}
     window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: s } }));
+    // Cross-device via Firebase
+    if (t.deviceId || t.id?.startsWith('dev_')) {
+      sendSOSResponse(t.deviceId || t.id, s);
+    }
   }
 
   // step → { label, next, color }
@@ -922,6 +930,7 @@ export default function AdminPanel() {
 
   const prevStatusRef  = useRef(null);
   const liveTouristRef = useRef(null);
+  const [firebaseTourists, setFirebaseTourists] = useState([]);
 
   const liveTourist = activeTrip ? {
     id: 'live-' + activeTrip.id,
@@ -955,6 +964,22 @@ export default function AdminPanel() {
     setLogs(initial);
   }, []);
 
+  // Subscribe to real tourists from Firebase
+  useEffect(() => {
+    const unsub = listenTourists((tourists) => {
+      setFirebaseTourists(tourists);
+      // Auto-open SOS card when a new Firebase tourist triggers SOS
+      tourists.forEach(t => {
+        if (t.status === 'sos' && !selected) {
+          setSelected(t);
+          setFilter('sos');
+          addLog(t.id, '🆘', 'SOS получен (Firebase)');
+        }
+      });
+    });
+    return unsub;
+  }, []);
+
   // Auto-open card on SOS
   useEffect(() => {
     const prev = prevStatusRef.current;
@@ -976,7 +1001,13 @@ export default function AdminPanel() {
     }));
   };
 
-  const allTourists = liveTourist ? [liveTourist, ...MOCK_ACTIVE_TOURISTS] : MOCK_ACTIVE_TOURISTS;
+  // Firebase tourists take priority; keep mock ones not already covered by Firebase
+  const firebaseIds = new Set(firebaseTourists.map(t => t.id));
+  const mockFallback = MOCK_ACTIVE_TOURISTS.filter(t => !firebaseIds.has(t.id));
+  const baseTourists = firebaseTourists.length > 0
+    ? [...firebaseTourists, ...mockFallback]
+    : (liveTourist ? [liveTourist, ...MOCK_ACTIVE_TOURISTS] : MOCK_ACTIVE_TOURISTS);
+  const allTourists = baseTourists;
   const visible = allTourists.filter(t => !closedIds.has(t.id)).filter(t => filter === null || t.status === filter);
 
   const counts = {

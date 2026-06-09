@@ -27,10 +27,36 @@ export default function Profile() {
       <p className="page-sub">Your data is shared with MChS if you send SOS</p>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
-        <img src={form.photo || user.photo} alt="" style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--purple)', marginBottom: 12 }} />
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <img
+            src={form.photo || user.photo}
+            alt=""
+            style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--gold)' }}
+          />
+          <label htmlFor="avatar-upload" style={{
+            position: 'absolute', bottom: 0, right: 0,
+            width: 28, height: 28, borderRadius: '50%',
+            background: 'var(--gold)', border: '2px solid var(--bg)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: 14,
+          }} title="Change photo">📷</label>
+          <input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = ev => set('photo', ev.target.result);
+              reader.readAsDataURL(file);
+            }}
+          />
+        </div>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{user.firstName} {user.lastName}</div>
-        <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>{user.email}</div>
-        <span style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600 }}>📸 Photo required — MChS uses it to find you</span>
+        <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 4 }}>{user.email}</div>
+        <span style={{ fontSize: 11, color: 'var(--text3)' }}>Нажми 📷 чтобы сменить фото</span>
       </div>
 
       {/* Explorer Badge */}
