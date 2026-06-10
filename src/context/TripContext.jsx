@@ -170,7 +170,7 @@ export function TripProvider({ children }) {
       }
       if (e.key === 'deadend_sos_accepted') {
         const resp = e.newValue ? JSON.parse(e.newValue) : null;
-        if (resp) {
+        if (resp && resp.deviceId === DEVICE_ID) {
           addNotification(SOS_MSGS[resp.step] || '✅ Ваш SOS принят МЧС!', 'success');
           if (resp.step === 'resolved') setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
         }
@@ -178,6 +178,7 @@ export function TripProvider({ children }) {
     };
 
     const onSosUpdate = (e) => {
+      if (e.detail?.deviceId !== DEVICE_ID) return;
       const step = e.detail?.step;
       addNotification(SOS_MSGS[step] || '✅ Ваш SOS принят МЧС!', 'success');
       if (step === 'resolved') setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);

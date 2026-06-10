@@ -402,8 +402,9 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
               <button onClick={() => {
                 onCreateOperation(t);
                 onAddLog('🚨', 'Создана операция');
-                try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'accepted', time: nowTime() })); } catch {}
-                window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'accepted' } }));
+                const targetId = t.deviceId || t.id;
+                try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'accepted', time: nowTime(), deviceId: targetId })); } catch {}
+                window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'accepted', deviceId: targetId } }));
                 if (t.deviceId || t.id?.startsWith('dev_')) sendSOSResponse(t.deviceId || t.id, 'accepted');
               }} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -485,8 +486,9 @@ function OperationModal({ t, initialStep, onStepChange, sentSteps, onStepSent, o
   function notifyTourist(s) {
     if (sentSteps.has(s)) return;
     onStepSent(s);
-    try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: s, time: nowTime() })); } catch {}
-    window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: s } }));
+    const targetId = t.deviceId || t.id;
+    try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: s, time: nowTime(), deviceId: targetId })); } catch {}
+    window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: s, deviceId: targetId } }));
     if (t.deviceId || t.id?.startsWith('dev_')) sendSOSResponse(t.deviceId || t.id, s);
   }
 
@@ -1038,9 +1040,10 @@ export default function AdminPanel() {
     setClosedIds(prev => new Set([...prev, t.id]));
     setOpSteps(prev => { const next = { ...prev }; delete next[t.id]; return next; });
     delete opSentSteps.current[t.id];
+    const targetId = t.deviceId || t.id;
     if (t.deviceId || t.id?.startsWith('dev_')) sendSOSResponse(t.deviceId || t.id, 'resolved');
-    try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'resolved', time: now.toTimeString().slice(0, 5) })); } catch {}
-    window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'resolved' } }));
+    try { localStorage.setItem('deadend_sos_accepted', JSON.stringify({ step: 'resolved', time: now.toTimeString().slice(0, 5), deviceId: targetId })); } catch {}
+    window.dispatchEvent(new CustomEvent('deadend_sos_update', { detail: { step: 'resolved', deviceId: targetId } }));
     setSelected(null); setOperation(null); setAlertTab('history');
   };
 
