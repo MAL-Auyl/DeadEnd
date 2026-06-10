@@ -362,8 +362,20 @@ export default function Profile() {
                 className="form-input"
                 style={{ flex: 1 }}
               />
+              <button
+                type="button"
+                onClick={() => { const cs = form.contacts.filter((_, j) => j !== i); set('contacts', cs); }}
+                className="btn"
+                style={{ padding: '0 14px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)' }}
+              >×</button>
             </div>
           ))}
+          <button
+            type="button"
+            onClick={() => set('contacts', [...form.contacts, { name: '', phone: '' }])}
+            className="btn"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)' }}
+          >{t.prof_add_contact}</button>
         </div>
       </div>
 
