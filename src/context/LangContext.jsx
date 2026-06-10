@@ -203,6 +203,14 @@ const UI = {
     back:          '← Back',
     save:          'Save',
     cancel:        'Cancel',
+
+    // AI Chat
+    chat_title:       'DeadEnd AI',
+    chat_subtitle:    'Ask about routes & safety',
+    chat_placeholder: 'Ask about a route...',
+    chat_welcome:     "Hi! I'm the DeadEnd assistant. Ask me about routes in Mangystau, distances, difficulty, or what to pack — I can recommend a trip for you.",
+    chat_send:        'Send',
+    chat_error:       'Something went wrong. Try again.',
   },
 
   ru: {
@@ -402,6 +410,14 @@ const UI = {
     back:          '← Назад',
     save:          'Сохранить',
     cancel:        'Отмена',
+
+    // AI Chat
+    chat_title:       'DeadEnd AI',
+    chat_subtitle:    'Вопросы о маршрутах и безопасности',
+    chat_placeholder: 'Спросите про маршрут...',
+    chat_welcome:     'Привет! Я ассистент DeadEnd. Спросите про маршруты по Мангистау, расстояния, сложность или что взять с собой — подберу поездку под вас.',
+    chat_send:        'Отправить',
+    chat_error:       'Что-то пошло не так. Попробуйте ещё раз.',
   },
 
   kz: {
@@ -597,6 +613,14 @@ const UI = {
     back:          '← Артқа',
     save:          'Сақтау',
     cancel:        'Болдырмау',
+
+    // AI Chat
+    chat_title:       'DeadEnd AI',
+    chat_subtitle:    'Маршрут пен қауіпсіздік туралы сұрақтар',
+    chat_placeholder: 'Маршрут туралы сұраңыз...',
+    chat_welcome:     'Сәлем! Мен DeadEnd көмекшісімін. Маңғыстау маршруттары, қашықтық, қиындық немесе не алу керектігі туралы сұраңыз — сізге сапар таңдап беремін.',
+    chat_send:        'Жіберу',
+    chat_error:       'Бірдеңе дұрыс болмады. Қайталап көріңіз.',
   },
 };
 

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { TripProvider, useTrip } from './context/TripContext';
 import { LangProvider, useLang } from './context/LangContext';
+import ChatWidget from './components/ChatWidget';
 import './index.css';
 
 const Home        = lazy(() => import('./pages/Home'));
@@ -136,6 +137,7 @@ function Layout() {
           </Routes>
         </Suspense>
       </main>
+      <ChatWidget />
     </div>
   );
 }
