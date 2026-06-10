@@ -42,6 +42,13 @@ export function listenSOSResponse(deviceId, callback) {
   return () => off(r);
 }
 
+// Clears a tourist's SOS response so a stale step doesn't replay on next page load
+export function clearSOSResponse(deviceId) {
+  if (!FIREBASE_ENABLED) return;
+  const db = getDB(); if (!db) return;
+  remove(ref(db, `${SESSION}/sos_responses/${deviceId}`));
+}
+
 // ── AdminPanel ← Firebase ─────────────────────────────────────
 
 export function listenTourists(callback) {

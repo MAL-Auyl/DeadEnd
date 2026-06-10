@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
-import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse } from '../lib/sync.js';
+import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse } from '../lib/sync.js';
 
 const TripContext = createContext(null);
 
@@ -42,6 +42,8 @@ export function TripProvider({ children }) {
   const currentCoordsRef = useRef(null);
   const gpsFirebaseTimer = useRef(null);
   const lastSosResponseStep = useRef(null);
+  const activeTripRef = useRef(activeTrip);
+  useEffect(() => { activeTripRef.current = activeTrip; }, [activeTrip]);
 
   useEffect(() => {
     if (etaTimerRef.current) clearInterval(etaTimerRef.current);
@@ -140,11 +142,16 @@ export function TripProvider({ children }) {
     const unsub = listenSOSResponse(DEVICE_ID, (resp) => {
       if (resp.step && resp.step !== lastSosResponseStep.current) {
         lastSosResponseStep.current = resp.step;
-        addNotification(SOS_MSGS[resp.step] || '✅ МЧС ответил на ваш SOS!', 'success');
-        if (resp.step === 'resolved') {
-          setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
+        // Skip showing a notification for a leftover response from a past trip
+        if (activeTripRef.current) {
+          addNotification(SOS_MSGS[resp.step] || '✅ МЧС ответил на ваш SOS!', 'success');
+          if (resp.step === 'resolved') {
+            setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
+          }
         }
       }
+      // Consume it so it doesn't replay as a stale notification on next page load
+      clearSOSResponse(DEVICE_ID);
     });
     return unsub;
   }, []);
