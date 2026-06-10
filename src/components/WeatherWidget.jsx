@@ -1,4 +1,5 @@
 import { useWeather, weatherIcon, getMamaTips } from '../hooks/useWeather';
+import { useLang } from '../context/LangContext';
 
 const TIP_COLORS = {
   warning: { bg: 'rgba(244,162,97,0.08)', border: 'rgba(244,162,97,0.3)', color: '#F4A261' },
@@ -8,19 +9,20 @@ const TIP_COLORS = {
 
 export default function WeatherWidget({ coords, placeName }) {
   const { weather, loading } = useWeather(coords);
+  const { t, lang } = useLang();
 
   if (loading) {
     return (
       <div style={{ padding: '16px 18px', borderRadius: 14, background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ fontSize: 20, opacity: 0.4 }}>🌤️</div>
-        <div style={{ fontSize: 12, color: 'var(--text3)' }}>Ауа-райы жүктелуде...</div>
+        <div style={{ fontSize: 12, color: 'var(--text3)' }}>{t.wx_loading}</div>
       </div>
     );
   }
 
   if (!weather) return null;
 
-  const tips = getMamaTips(weather);
+  const tips = getMamaTips(weather, lang);
   const { current, today, tomorrow } = weather;
 
   return (
@@ -38,9 +40,9 @@ export default function WeatherWidget({ coords, placeName }) {
         </div>
         <div style={{ display: 'flex', gap: 16, textAlign: 'center' }}>
           {[
-            { label: 'Жел', val: `${current.wind} м/с`, icon: '💨' },
-            { label: 'Ылғал', val: `${current.humidity}%`, icon: '💧' },
-            { label: 'Жаңбыр', val: `${today.rainChance}%`, icon: '🌧️' },
+            { label: t.wx_wind, val: `${current.wind} м/с`, icon: '💨' },
+            { label: t.wx_humidity, val: `${current.humidity}%`, icon: '💧' },
+            { label: t.wx_rain, val: `${today.rainChance}%`, icon: '🌧️' },
           ].map(item => (
             <div key={item.label} style={{ fontSize: 11, color: 'var(--text3)' }}>
               <div style={{ fontSize: 14, marginBottom: 2 }}>{item.icon}</div>
@@ -54,8 +56,8 @@ export default function WeatherWidget({ coords, placeName }) {
       {/* Today / Tomorrow */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
         {[
-          { label: 'Бүгін', d: today },
-          { label: 'Ертең', d: tomorrow },
+          { label: t.wx_today, d: today },
+          { label: t.wx_tomorrow, d: tomorrow },
         ].map(({ label, d }, i) => (
           <div key={label} style={{ flex: 1, padding: '10px 16px', background: 'var(--surface)', borderRight: i === 0 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 20 }}>{weatherIcon(d.code)}</span>
@@ -74,7 +76,7 @@ export default function WeatherWidget({ coords, placeName }) {
 
       {/* Mama tips */}
       <div style={{ padding: '12px 14px', background: 'var(--bg)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>💜 Mama says</div>
+        <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>{t.wx_mama_says}</div>
         {tips.map((tip, i) => {
           const c = TIP_COLORS[tip.type];
           return (

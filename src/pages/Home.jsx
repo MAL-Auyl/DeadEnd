@@ -6,6 +6,11 @@ import { useWeather, weatherIcon } from '../hooks/useWeather';
 
 const AKTAU = { lat: 43.65, lng: 51.17 };
 
+function loc(obj, field, lang) {
+  const key = lang === 'kz' ? field + 'Kz' : lang === 'ru' ? field + 'Ru' : field;
+  return obj[key] ?? obj[field];
+}
+
 function WeatherPill() {
   const { t } = useLang();
   const { weather } = useWeather(AKTAU);
@@ -106,9 +111,9 @@ export default function Home() {
         <div className="home-featured-content">
           <div className="home-featured-eyebrow">{t.home_featured}</div>
           <h2 className="home-featured-title">
-            {lang === 'kz' ? (featured.nameKz || featured.name) : featured.name}
+            {loc(featured, 'name', lang)}
           </h2>
-          <p className="home-featured-desc">{featured.description}</p>
+          <p className="home-featured-desc">{loc(featured, 'description', lang)}</p>
           <div className="home-featured-stats">
             <span>{featured.distance} {t.km}</span>
             <span className="home-featured-dot" />
@@ -148,10 +153,10 @@ export default function Home() {
               <div className="home-dest-badge">{place.region}</div>
               <div className="home-dest-body">
                 <div className="home-dest-name">
-                  {lang === 'kz' ? (place.nameKz || place.name) : place.name}
+                  {loc(place, 'name', lang)}
                 </div>
                 <div className="home-dest-sub">
-                  {place.description?.split('.')[0]}.
+                  {loc(place, 'description', lang)?.split('.')[0]}.
                 </div>
                 <div className="home-dest-meta">
                   <span className="home-dest-rating">★ {place.rating}</span>

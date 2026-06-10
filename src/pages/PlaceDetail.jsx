@@ -7,10 +7,16 @@ import LiveAlerts from '../components/LiveAlerts';
 import WeatherWidget from '../components/WeatherWidget';
 import MapView from '../components/MapView';
 
+// ── Localized field helper ─────────────────────────────────────
+function loc(obj, field, lang) {
+  const key = lang === 'kz' ? field + 'Kz' : lang === 'ru' ? field + 'Ru' : field;
+  return obj[key] ?? obj[field];
+}
+
 // ── Quick Start Drawer ────────────────────────────────────────
 function QuickStartDrawer({ place, onClose }) {
   const { user, startTrip } = useTrip();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
   const [returnTime, setReturnTime] = useState('18:00');
   const [vehicle, setVehicle] = useState(place.vehicles[0]);
@@ -32,7 +38,7 @@ function QuickStartDrawer({ place, onClose }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 22, fontWeight: 900, fontFamily: 'Syne, sans-serif', color: 'var(--text)', marginBottom: 4 }}>{t.pd_ready}</div>
-            <div style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {place.name} · {place.distance} {t.km} · {place.duration}</div>
+            <div style={{ fontSize: 13, color: 'var(--text3)' }}>📍 {loc(place, 'name', lang)} · {place.distance} {t.km} · {place.duration}</div>
           </div>
           <button onClick={onClose} style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text3)', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>✕</button>
         </div>
@@ -66,7 +72,7 @@ function QuickStartDrawer({ place, onClose }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
             {place.warnings.slice(0, 3).map((w, i) => (
               <span key={i} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 20, background: 'rgba(244,162,97,0.08)', color: '#F4A261', border: '1px solid rgba(244,162,97,0.2)' }}>
-                {w.icon} {w.title}
+                {w.icon} {loc(w, 'title', lang)}
               </span>
             ))}
           </div>
@@ -207,7 +213,9 @@ export default function PlaceDetail() {
 
   if (!place) return <div className="page"><div style={{ color: 'var(--text2)' }}>Place not found</div></div>;
 
-  const placeName = lang === 'kz' ? (place.nameKz || place.name) : place.name;
+  const placeName = loc(place, 'name', lang);
+  const placeDesc = loc(place, 'description', lang);
+  const placeGear = loc(place, 'gear', lang);
   const hashtags = `#${place.id} #Мангыстау #Kazakhstan #Adventure #Travel #Explore`;
 
   function scrollTo(sectionId) {
@@ -218,7 +226,7 @@ export default function PlaceDetail() {
     <div style={{ maxWidth: 600, margin: '0 auto', background: 'var(--bg)', minHeight: '100vh', paddingBottom: 100 }}>
 
       {/* ── PHOTO SLIDER ── */}
-      <PhotoSlider images={place.images} name={place.name} />
+      <PhotoSlider images={place.images} name={placeName} />
 
       {/* ── POST HEADER ── */}
       <div style={{ padding: '14px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -279,9 +287,9 @@ export default function PlaceDetail() {
       <div style={{ padding: '0 16px 16px' }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginRight: 6 }}>{placeName}</span>
         <span style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6 }}>
-          {expandDesc ? place.description : place.description.slice(0, 100) + (place.description.length > 100 ? '...' : '')}
+          {expandDesc ? placeDesc : placeDesc.slice(0, 100) + (placeDesc.length > 100 ? '...' : '')}
         </span>
-        {place.description.length > 100 && (
+        {placeDesc.length > 100 && (
           <button onClick={() => setExpandDesc(e => !e)} style={{
             background: 'none', border: 'none', color: 'var(--text3)',
             cursor: 'pointer', fontSize: 13, padding: 0, marginLeft: 4,
@@ -320,7 +328,7 @@ export default function PlaceDetail() {
 
       {/* ── WEATHER ── */}
       <Section id="weather" icon="🌤️" title={t.pd_weather_now}>
-        <WeatherWidget coords={place.coords} placeName={place.name} />
+        <WeatherWidget coords={place.coords} placeName={placeName} />
       </Section>
 
       {/* ── WARNINGS ── */}
@@ -335,8 +343,8 @@ export default function PlaceDetail() {
             }}>
               <span style={{ fontSize: 22, flexShrink: 0 }}>{w.icon}</span>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>{w.title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.5 }}>{w.desc}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 3 }}>{loc(w, 'title', lang)}</div>
+                <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.5 }}>{loc(w, 'desc', lang)}</div>
               </div>
             </div>
           ))}
@@ -361,7 +369,7 @@ export default function PlaceDetail() {
               borderRadius: 12,
             }}>
               <span style={{ fontSize: 22, flexShrink: 0 }}>{m.icon}</span>
-              <span style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{m.tip}</span>
+              <span style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{loc(m, 'tip', lang)}</span>
             </div>
           ))}
         </div>
@@ -370,7 +378,7 @@ export default function PlaceDetail() {
       {/* ── GEAR ── */}
       <Section id="gear" icon="🎒" title={t.pd_gear_title}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {place.gear.map((g, i) => (
+          {placeGear.map((g, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 12px',
@@ -406,7 +414,7 @@ export default function PlaceDetail() {
                 {i === 0 ? '🏁' : i === place.checkpoints.length - 1 ? '⛳' : i + 1}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{cp.name}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{loc(cp, 'name', lang)}</div>
                 <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{cp.km} {t.pd_from_start}</div>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import { LIVE_ALERTS } from '../data/alerts';
+import { useLang } from '../context/LangContext';
 
 const typeStyle = {
   danger: { bg: 'rgba(255,71,87,0.08)', border: 'rgba(255,71,87,0.3)', dot: '#FF4757' },
@@ -7,19 +8,26 @@ const typeStyle = {
 };
 
 export default function LiveAlerts({ placeId, limit = 10 }) {
+  const { t, lang } = useLang();
   const alerts = LIVE_ALERTS.filter(a => !placeId || a.placeId === placeId).slice(0, limit);
 
   if (!alerts.length) return null;
 
+  function loc(a, field) {
+    if (lang === 'kz') return a[field + 'Kz'] || a[field];
+    if (lang === 'ru') return a[field + 'Ru'] || a[field];
+    return a[field];
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <div className="section-label" style={{ margin: 0 }}>🔴 Live alerts</div>
+        <div className="section-label" style={{ margin: 0 }}>{t.live_alerts}</div>
         <span style={{
           fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
           background: 'rgba(255,71,87,0.15)', color: '#FF4757', letterSpacing: '0.06em',
           animation: 'pulse 2s infinite',
-        }}>LIVE</span>
+        }}>{t.live_badge}</span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -34,15 +42,15 @@ export default function LiveAlerts({ placeId, limit = 10 }) {
               <div style={{ fontSize: 22, flexShrink: 0 }}>{a.icon}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{a.title}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{loc(a, 'title')}</span>
                   {a.verified && (
-                    <span style={{ fontSize: 10, color: '#06D6A0', fontWeight: 600 }}>✓ verified</span>
+                    <span style={{ fontSize: 10, color: '#06D6A0', fontWeight: 600 }}>{t.live_verified}</span>
                   )}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5, marginBottom: 8 }}>{a.message}</div>
+                <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5, marginBottom: 8 }}>{loc(a, 'message')}</div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text3)' }}>
-                  <span>👤 {a.source}</span>
-                  <span>🕐 {a.time}</span>
+                  <span>👤 {loc(a, 'source')}</span>
+                  <span>🕐 {loc(a, 'time')}</span>
                 </div>
               </div>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.dot, flexShrink: 0, marginTop: 4 }} />
