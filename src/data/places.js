@@ -433,7 +433,8 @@ export const MOCK_USER = {
   height: 182,
   weight: 78,
   country: 'USA',
-  allergies: 'None',
+  allergies: 'Penicillin',
+  specialMarks: 'Tattoo on left forearm (compass)',
   photo: 'https://i.pravatar.cc/150?img=11',
   contacts: [
     { name: 'Richard', phone: '+7 775 345 1213', relation: 'Friend' },

@@ -160,9 +160,15 @@ function SectionLabel({ children, accent }) {
   );
 }
 
+const ALLERGY_SUGGESTIONS = {
+  en: ['Penicillin', 'Peanuts', 'Tree nuts', 'Pollen', 'Bee stings', 'Lactose', 'Gluten', 'Shellfish', 'Latex', 'Aspirin'],
+  ru: ['Пенициллин', 'Арахис', 'Орехи', 'Пыльца', 'Укусы пчёл/ос', 'Лактоза', 'Глютен', 'Морепродукты', 'Латекс', 'Аспирин'],
+  kz: ['Пенициллин', 'Жержаңғақ', 'Жаңғақтар', 'Тозаң', 'Ара/жегі шағуы', 'Лактоза', 'Глютен', 'Теңіз өнімдері', 'Латекс', 'Аспирин'],
+};
+
 export default function Profile() {
   const { user, updateUser, addNotification, logoutUser } = useTrip();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
   const [form, setForm] = useState(user);
 
@@ -316,6 +322,50 @@ export default function Profile() {
                 {['Kazakhstan','USA','Russia','Germany','UK','France','Other'].map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
+            <div className="form-group">
+              <label className="form-label">{t.prof_height}</label>
+              <input
+                type="number"
+                value={form.height ?? ''}
+                onChange={e => set('height', e.target.value === '' ? null : Number(e.target.value))}
+                placeholder="182"
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">{t.prof_weight}</label>
+              <input
+                type="number"
+                value={form.weight ?? ''}
+                onChange={e => set('weight', e.target.value === '' ? null : Number(e.target.value))}
+                placeholder="78"
+                className="form-input"
+              />
+            </div>
+          </div>
+
+          <div className="form-group" style={{ marginTop: 12 }}>
+            <label className="form-label">{t.prof_allergies}</label>
+            <input
+              list="allergy-suggestions"
+              value={form.allergies || ''}
+              onChange={e => set('allergies', e.target.value)}
+              placeholder={t.prof_allergies_ph}
+              className="form-input"
+            />
+            <datalist id="allergy-suggestions">
+              {(ALLERGY_SUGGESTIONS[lang] || ALLERGY_SUGGESTIONS.en).map(a => <option key={a} value={a} />)}
+            </datalist>
+          </div>
+
+          <div className="form-group" style={{ marginTop: 12 }}>
+            <label className="form-label">{t.prof_marks}</label>
+            <input
+              value={form.specialMarks || ''}
+              onChange={e => set('specialMarks', e.target.value)}
+              placeholder={t.prof_marks_ph}
+              className="form-input"
+            />
           </div>
         </div>
       </div>

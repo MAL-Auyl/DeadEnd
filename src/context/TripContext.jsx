@@ -350,6 +350,7 @@ export function TripProvider({ children }) {
       country: 'Kazakhstan',
       phone: '',
       allergies: '',
+      specialMarks: '',
       photo: `https://i.pravatar.cc/150?u=${encodeURIComponent(normEmail)}`,
       contacts: [],
       pin: String(Math.floor(100000 + Math.random() * 900000)),
@@ -448,6 +449,11 @@ export function TripProvider({ children }) {
       checkpointsDone: 0,
       checkpointsTotal: (place.checkpoints || []).length,
       emergencyContact: (config.contacts || [])[0] || { name: '—', phone: '—' },
+      bloodType: user.bloodType || '',
+      height: user.height || null,
+      weight: user.weight || null,
+      allergies: user.allergies || '',
+      specialMarks: user.specialMarks || '',
     });
 
     addNotification('Сапар басталды! Контактілерге хабар жіберілді. ✅', 'success');

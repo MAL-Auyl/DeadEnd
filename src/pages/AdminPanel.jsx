@@ -372,6 +372,9 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
 
           <div style={{ marginBottom: 16 }}>
             <Row label="Группа крови"     value={t.bloodType}   red />
+            <Row label="Аллергии"         value={t.allergies}   red />
+            <Row label="Особые приметы"   value={t.specialMarks} />
+            <Row label="Рост / вес"       value={t.height || t.weight ? `${t.height || '—'} см / ${t.weight || '—'} кг` : null} />
             <Row label="Автомобиль"       value={t.vehicle} />
             <Row label="Госномер"         value={t.plate} />
             <Row label="Маршрут"          value={t.destination} />
@@ -920,6 +923,10 @@ export default function AdminPanel() {
     vehicle: activeTrip.vehicle || '—',
     plate: '—',
     bloodType: user.bloodType,
+    height: user.height,
+    weight: user.weight,
+    allergies: user.allergies,
+    specialMarks: user.specialMarks,
     emergencyContact: user.contacts?.[0]
       ? { name: user.contacts[0].name, phone: user.contacts[0].phone, relation: user.contacts[0].relation }
       : null,
