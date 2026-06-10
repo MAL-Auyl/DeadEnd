@@ -64,9 +64,6 @@ function TopNav() {
         <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
           {t.nav_profile}
         </NavLink>
-        <NavLink to="/pin" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-          {t.nav_emergency}
-        </NavLink>
         <NavLink to="/mchs" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
           {t.nav_mchs}
         </NavLink>
