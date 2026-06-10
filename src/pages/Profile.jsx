@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 
@@ -160,8 +161,9 @@ function SectionLabel({ children, accent }) {
 }
 
 export default function Profile() {
-  const { user, updateUser, addNotification } = useTrip();
+  const { user, updateUser, addNotification, logoutUser } = useTrip();
   const { t } = useLang();
+  const navigate = useNavigate();
   const [form, setForm] = useState(user);
 
   function set(key, val) { setForm(prev => ({ ...prev, [key]: val })); }
@@ -370,6 +372,12 @@ export default function Profile() {
         className="btn btn-primary btn-lg btn-full"
         style={{ marginTop: 8 }}
       >{t.prof_save}</button>
+
+      <button
+        onClick={() => { logoutUser(); navigate('/login'); }}
+        className="btn btn-full"
+        style={{ marginTop: 12, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)' }}
+      >{t.nav_logout}</button>
     </div>
   );
 }

@@ -1,50 +1,54 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 
-export default function AdminLogin() {
-  const [form, setForm] = useState({ login: '', password: '' });
-  const [error, setError] = useState('');
-  const { login } = useTrip();
+export default function Login() {
+  const { isAuthenticated, loginUser } = useTrip();
   const { t } = useLang();
   const navigate = useNavigate();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (login(form)) {
-      navigate('/mchs');
+    const result = loginUser(form);
+    if (result.success) {
+      navigate('/');
     } else {
-      setError(t.adm_wrong);
+      setError(t.auth_err_invalid);
       setForm(p => ({ ...p, password: '' }));
     }
   }
 
   return (
     <div className="page" style={{ maxWidth: 400 }}>
-      <h1 className="page-title">{t.adm_title}</h1>
-      <p className="page-sub">{t.adm_sub}</p>
+      <h1 className="page-title">{t.auth_login_title}</h1>
+      <p className="page-sub">{t.auth_login_sub}</p>
 
       <div style={{
-        background: 'rgba(255,71,87,0.06)', border: '1px solid rgba(255,71,87,0.2)',
+        background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.2)',
         borderRadius: 'var(--radius)', padding: '14px 18px', marginBottom: 28,
         fontSize: 13, color: 'var(--text2)',
       }}>
-        🛡️ Demo: login <b>admin</b> / password <b>mchs2024</b>
+        🔑 {t.auth_demo_hint}
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="form-group" style={{ marginBottom: 16 }}>
-          <label className="form-label">{t.adm_login}</label>
+          <label className="form-label">{t.auth_email}</label>
           <input
+            type="email"
             className="form-input"
-            value={form.login}
-            onChange={e => setForm(p => ({ ...p, login: e.target.value }))}
+            value={form.email}
+            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
             autoComplete="username"
           />
         </div>
         <div className="form-group" style={{ marginBottom: 16 }}>
-          <label className="form-label">{t.adm_pass}</label>
+          <label className="form-label">{t.auth_password}</label>
           <input
             type="password"
             className="form-input"
@@ -61,12 +65,19 @@ export default function AdminLogin() {
         <button
           type="submit"
           className="btn btn-primary btn-full btn-lg"
-          disabled={!form.login || !form.password}
-          style={{ opacity: (!form.login || !form.password) ? 0.5 : 1 }}
+          disabled={!form.email || !form.password}
+          style={{ opacity: (!form.email || !form.password) ? 0.5 : 1, marginBottom: 20 }}
         >
-          {t.adm_btn}
+          {t.auth_login_btn}
         </button>
       </form>
+
+      <p style={{ fontSize: 13, color: 'var(--text2)', textAlign: 'center' }}>
+        {t.auth_no_account}{' '}
+        <Link to="/register" style={{ color: 'var(--purple)', fontWeight: 600 }}>
+          {t.auth_signup_link}
+        </Link>
+      </p>
     </div>
   );
 }

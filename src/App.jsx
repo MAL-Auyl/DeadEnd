@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { TripProvider, useTrip } from './context/TripContext';
 import { LangProvider, useLang } from './context/LangContext';
 import './index.css';
@@ -11,6 +11,9 @@ const Tracking    = lazy(() => import('./pages/Tracking'));
 const Profile     = lazy(() => import('./pages/Profile'));
 const AdminPanel  = lazy(() => import('./pages/AdminPanel'));
 const PinLogin    = lazy(() => import('./pages/PinLogin'));
+const Login       = lazy(() => import('./pages/Login'));
+const Register    = lazy(() => import('./pages/Register'));
+const AdminLogin  = lazy(() => import('./pages/AdminLogin'));
 const NotFound    = lazy(() => import('./pages/NotFound'));
 const Landing     = lazy(() => import('./pages/Landing'));
 const AboutUs     = lazy(() => import('./pages/AboutUs'));
@@ -88,18 +91,30 @@ function TopNav() {
             }}>{l}</button>
           ))}
         </div>
-        <img
-          src={user.photo}
-          alt=""
-          className="nav-avatar"
-          onClick={() => navigate('/profile')}
-        />
+        {user && (
+          <img
+            src={user.photo}
+            alt=""
+            className="nav-avatar"
+            onClick={() => navigate('/profile')}
+          />
+        )}
       </div>
     </nav>
   );
 }
 
+// Routes reachable without being logged in (emergency SOS access + auth pages)
+const PUBLIC_PATHS = ['/login', '/register', '/pin', '/admin-login'];
+
 function Layout() {
+  const { isAuthenticated } = useTrip();
+  const location = useLocation();
+
+  if (!isAuthenticated && !PUBLIC_PATHS.includes(location.pathname)) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="app-layout">
       <TopNav />
@@ -113,6 +128,9 @@ function Layout() {
             <Route path="/tracking"  element={<Tracking />} />
             <Route path="/profile"   element={<Profile />} />
             <Route path="/pin"       element={<PinLogin />} />
+            <Route path="/login"     element={<Login />} />
+            <Route path="/register"  element={<Register />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/about-old" element={<Landing />} />
             <Route path="*"          element={<NotFound />} />
           </Routes>
@@ -123,21 +141,36 @@ function Layout() {
 }
 
 function MChSApp() {
+  const { isAdmin, logout } = useTrip();
   const navigate = useNavigate();
+
+  if (!isAdmin) return <Navigate to="/admin-login" replace />;
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)', position: 'relative' }}>
       <Notifications />
-      <button
-        onClick={() => navigate('/')}
-        style={{
-          position: 'absolute', top: 14, right: 16, zIndex: 200,
-          background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-          color: 'rgba(255,255,255,0.5)', borderRadius: 8,
-          padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-        }}
-      >
-        ← App
-      </button>
+      <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 200, display: 'flex', gap: 8 }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.5)', borderRadius: 8,
+            padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          ← App
+        </button>
+        <button
+          onClick={() => { logout(); navigate('/admin-login'); }}
+          style={{
+            background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)',
+            color: 'var(--red)', borderRadius: 8,
+            padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          Выйти
+        </button>
+      </div>
       <Suspense fallback={<PageLoader />}>
         <AdminPanel />
       </Suspense>

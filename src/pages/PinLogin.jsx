@@ -11,7 +11,7 @@ export default function PinLogin() {
   const [attempts, setAttempts] = useState(0);
   const [blocked, setBlocked] = useState(false);
   const [blockTimer, setBlockTimer] = useState(0);
-  const { user, activeTrip, stopTrip, triggerSOS } = useTrip();
+  const { accounts, activeTrip, stopTrip, triggerSOS } = useTrip();
   const timerRef = useRef(null);
 
   function startBlockTimer() {
@@ -35,9 +35,10 @@ export default function PinLogin() {
     if (blocked) return;
     if (pin.length !== 6) { setError('PIN 6 цифр болуы керек'); return; }
 
-    if (pin === user.pin) {
+    const account = accounts.find(a => String(a.pin) === pin);
+    if (account) {
       setFound({
-        name: user.firstName + ' ' + user.lastName,
+        name: account.firstName + ' ' + account.lastName,
         trip: activeTrip?.placeName || 'Белгісіз маршрут',
         returnTime: activeTrip?.expectedReturn || '—',
       });
@@ -130,7 +131,7 @@ export default function PinLogin() {
       </button>
 
       <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', marginBottom: 24 }}>
-        Demo PIN: <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{user.pin}</span>
+        Demo PIN: <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{accounts[0]?.pin}</span>
       </div>
 
       {found && (

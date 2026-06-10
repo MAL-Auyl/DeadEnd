@@ -22,9 +22,33 @@ function getDeviceId() {
 }
 const DEVICE_ID = getDeviceId();
 
+// Local "accounts" store — MVP auth, no backend.
+function getAccounts() {
+  const accounts = safeGet('deadend_accounts', null);
+  if (accounts && accounts.length) return accounts;
+  // Migrate any pre-existing single-user profile into the first account.
+  const existingUser = safeGet('deadend_user', null);
+  const seedAccount = existingUser ? { ...MOCK_USER, ...existingUser } : MOCK_USER;
+  const seeded = [seedAccount];
+  safeSet('deadend_accounts', seeded);
+  return seeded;
+}
+
 export function TripProvider({ children }) {
-  const [user, setUser] = useState(() => ({ ...MOCK_USER, ...safeGet('deadend_user', {}) }));
+  const [accounts, setAccounts] = useState(() => getAccounts());
+  const [user, setUser] = useState(() => {
+    const accs = getAccounts();
+    let sessionId = safeGet('deadend_session', null);
+    if (!sessionId && safeGet('deadend_user', null)) {
+      // Migrate: existing single-user session stays logged in.
+      sessionId = accs[0].id;
+      safeSet('deadend_session', sessionId);
+    }
+    if (!sessionId) return null;
+    return accs.find(a => a.id === sessionId) || null;
+  });
   const [activeTrip, setActiveTrip] = useState(() => safeGet('deadend_trip', null));
+  const [isAdmin, setIsAdmin] = useState(() => safeGet('deadend_admin_session', false));
   const [notifications, setNotifications] = useState([]);
   const [currentCoords, setCurrentCoords] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -297,25 +321,77 @@ export function TripProvider({ children }) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
-  useEffect(() => { safeSet('deadend_user', user); }, [user]);
+  useEffect(() => {
+    if (user) safeSet('deadend_user', user);
+    else safeRemove('deadend_user');
+  }, [user]);
+  useEffect(() => { safeSet('deadend_accounts', accounts); }, [accounts]);
   useEffect(() => {
     if (activeTrip) safeSet('deadend_trip', activeTrip);
     else safeRemove('deadend_trip');
   }, [activeTrip]);
+
+  function registerUser({ firstName, lastName, email, password }) {
+    const normEmail = email.trim().toLowerCase();
+    if (accounts.some(a => a.email.trim().toLowerCase() === normEmail)) {
+      return { success: false, error: 'exists' };
+    }
+    const newAccount = {
+      id: 'user-' + Date.now(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      password,
+      gender: '',
+      dob: '',
+      bloodType: 'O+',
+      height: null,
+      weight: null,
+      country: 'Kazakhstan',
+      phone: '',
+      allergies: '',
+      photo: `https://i.pravatar.cc/150?u=${encodeURIComponent(normEmail)}`,
+      contacts: [],
+      pin: String(Math.floor(100000 + Math.random() * 900000)),
+      role: 'tourist',
+      tripsCompleted: 0,
+      totalKm: 0,
+    };
+    setAccounts(prev => [...prev, newAccount]);
+    safeSet('deadend_session', newAccount.id);
+    setUser(newAccount);
+    return { success: true };
+  }
+
+  function loginUser({ email, password }) {
+    const normEmail = email.trim().toLowerCase();
+    const found = accounts.find(a => a.email.trim().toLowerCase() === normEmail && a.password === password);
+    if (!found) return { success: false, error: 'invalid' };
+    safeSet('deadend_session', found.id);
+    setUser(found);
+    return { success: true };
+  }
+
+  function logoutUser() {
+    safeRemove('deadend_session');
+    setUser(null);
+  }
 
   function login(credentials) {
     if (
       credentials.login === ADMIN_CREDENTIALS.login &&
       credentials.password === ADMIN_CREDENTIALS.password
     ) {
-      setUser(prev => ({ ...prev, role: 'admin' }));
+      safeSet('deadend_admin_session', true);
+      setIsAdmin(true);
       return true;
     }
     return false;
   }
 
   function logout() {
-    setUser(prev => ({ ...prev, role: 'tourist' }));
+    safeRemove('deadend_admin_session');
+    setIsAdmin(false);
   }
 
   function startTrip(place, config) {
@@ -472,11 +548,19 @@ export function TripProvider({ children }) {
     });
   }
 
-  function updateUser(updates) { setUser(prev => ({ ...prev, ...updates })); }
+  function updateUser(updates) {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...updates };
+      setAccounts(accs => accs.map(a => a.id === updated.id ? updated : a));
+      return updated;
+    });
+  }
 
   return (
     <TripContext.Provider value={{
-      user, updateUser, login, logout,
+      user, updateUser, login, logout, isAdmin,
+      accounts, isAuthenticated: !!user, registerUser, loginUser, logoutUser,
       activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
       notifications, addNotification,
       currentCoords, isOnline,

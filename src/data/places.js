@@ -425,6 +425,7 @@ export const MOCK_USER = {
   firstName: 'James',
   lastName: 'Anderson',
   email: 'james@gmail.com',
+  password: 'demo1234',
   phone: '+1 555 234 5678',
   gender: 'Male',
   dob: '1990-05-14',
