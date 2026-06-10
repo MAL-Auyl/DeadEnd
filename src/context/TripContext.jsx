@@ -41,6 +41,7 @@ export function TripProvider({ children }) {
   const autoSosFiredRef = useRef(false);
   const currentCoordsRef = useRef(null);
   const gpsFirebaseTimer = useRef(null);
+  const lastGpsCoordsRef = useRef(null);
   const lastSosResponseStep = useRef(null);
   const activeTripRef = useRef(activeTrip);
   useEffect(() => { activeTripRef.current = activeTrip; }, [activeTrip]);
@@ -225,6 +226,15 @@ export function TripProvider({ children }) {
             updateTourist(DEVICE_ID, { coords, lastSignal: new Date().toTimeString().slice(0, 5) });
           }, 15000);
         }
+        // Accumulate real traveled distance from GPS deltas (filter out noise/jumps)
+        const last = lastGpsCoordsRef.current;
+        if (last) {
+          const delta = getDistanceKm(last.lat, last.lng, coords.lat, coords.lng);
+          if (delta > 0.01 && delta < 5) {
+            setActiveTrip(prev => prev ? { ...prev, traveledKm: (prev.traveledKm || 0) + delta } : prev);
+          }
+        }
+        lastGpsCoordsRef.current = coords;
         checkCheckpointProximity(coords);
       },
       (err) => { console.warn('GPS error:', err.code); },
@@ -336,7 +346,9 @@ export function TripProvider({ children }) {
       pin: user.pin,
       sosCount: 0,
       placeDistance: place.distance || 0,
+      traveledKm: 0,
     };
+    lastGpsCoordsRef.current = null;
     setActiveTrip(trip);
 
     // Sync to Firebase so AdminPanel sees this tourist in real-time
@@ -370,6 +382,7 @@ export function TripProvider({ children }) {
     if (stopLock.current) return;
     stopLock.current = true;
     if (activeTrip) {
+      const traveledKm = Math.round((activeTrip.traveledKm || 0) * 10) / 10;
       setUser(prev => {
         const count = (prev.tripsCompleted || 0) + 1;
         const badges = { 5: '🥉 Bronze Explorer', 10: '🥈 Silver Explorer', 20: '🥇 Gold Explorer' };
@@ -379,7 +392,7 @@ export function TripProvider({ children }) {
         return {
           ...prev,
           tripsCompleted: count,
-          totalKm: (prev.totalKm || 0) + (activeTrip.placeDistance || 0),
+          totalKm: (prev.totalKm || 0) + traveledKm,
         };
       });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
@@ -388,7 +401,8 @@ export function TripProvider({ children }) {
         placeName: activeTrip.placeName,
         groupType: activeTrip.groupType || 'solo',
         vehicle: activeTrip.vehicle || '',
-        distance: activeTrip.placeDistance || 0,
+        distance: traveledKm,
+        plannedDistance: activeTrip.placeDistance || 0,
         startTime: activeTrip.startTime,
         endTime: new Date().toISOString(),
         hadSOS: (activeTrip.sosCount || 0) > 0 || activeTrip.status === 'sos',

@@ -183,7 +183,7 @@ export default function Tracking() {
     setCompletionData({
       placeName:  activeTrip.placeName,
       duration,
-      distance:   place?.distance ?? '—',
+      distance:   Math.round((activeTrip.traveledKm || 0) * 10) / 10,
       doneCps:    cps.filter(c => c.status === 'done').length,
       totalCps:   cps.length,
       badge:      BADGES[nextCount] || null,
