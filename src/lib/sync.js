@@ -1,4 +1,4 @@
-import { ref, set, update, remove, onValue, off } from 'firebase/database';
+import { ref, set, update, remove, push, onValue, off } from 'firebase/database';
 import { getDB, FIREBASE_ENABLED } from './firebase.js';
 
 const SESSION = 'hackathon_demo';
@@ -52,6 +52,28 @@ export function listenTourists(callback) {
     const raw = snap.val();
     const tourists = raw ? Object.values(raw).filter(t => t && t.name && t.id) : [];
     callback(tourists);
+  });
+  return () => off(r);
+}
+
+// ── Trip history (for Akimat analytics) ──────────────────────
+
+// Called when a trip ends — keeps a permanent record for stats,
+// since `tourists/{deviceId}` is removed once the trip is over.
+export function archiveTrip(deviceId, data) {
+  if (!FIREBASE_ENABLED) return;
+  const db = getDB(); if (!db) return;
+  push(ref(db, `${SESSION}/trips_history`), { deviceId, ...data });
+}
+
+export function listenTripsHistory(callback) {
+  if (!FIREBASE_ENABLED) return () => {};
+  const db = getDB(); if (!db) return () => {};
+  const r = ref(db, `${SESSION}/trips_history`);
+  onValue(r, snap => {
+    const raw = snap.val();
+    const trips = raw ? Object.values(raw) : [];
+    callback(trips);
   });
   return () => off(r);
 }

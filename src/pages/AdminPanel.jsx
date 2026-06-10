@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { MOCK_ACTIVE_TOURISTS, PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
-import { listenTourists, sendSOSResponse } from '../lib/sync.js';
+import { listenTourists, listenTripsHistory, sendSOSResponse } from '../lib/sync.js';
 import { FIREBASE_ENABLED } from '../lib/firebase.js';
 
 // ── Constants ─────────────────────────────────────────────────
@@ -728,26 +728,53 @@ const TOURIST_TYPES = [
   { label: 'Иностранцы',  value: 134, pct: 16, color: '#d97706' },
 ];
 
-function AkimatStats() {
-  const maxVisits = ROUTE_STATS[0].visits;
+function AkimatStats({ liveStats }) {
+  const { total: liveTotal = 0, sos: liveSos = 0, routeCounts: liveRouteCounts = {}, connected = false } = liveStats || {};
+
+  // Blend the live (real, Firebase-backed) counters into the season baseline
+  const mergedRoutes = (() => {
+    const map = new Map(ROUTE_STATS.map(r => [r.name, { ...r }]));
+    Object.entries(liveRouteCounts).forEach(([name, count]) => {
+      if (map.has(name)) map.get(name).visits += count;
+      else map.set(name, { name, visits: count, sos: 0 });
+    });
+    return [...map.values()].sort((a, b) => b.visits - a.visits);
+  })();
+
+  const maxVisits = mergedRoutes[0]?.visits || 1;
   const maxMonth  = Math.max(...MONTHS.map(m => m.v));
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: C.bg }}>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Мангыстауская область · Июнь 2026</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Мангыстауская область · Июнь 2026</div>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
+            padding: '2px 8px', borderRadius: 999,
+            color: connected ? C.green : C.text3,
+            background: connected ? C.greenBg : C.bg,
+            border: `1px solid ${connected ? C.greenBorder : C.border}`,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? C.green : C.text3 }} />
+            {connected ? 'Live из Firebase' : 'Демо-режим (Firebase не подключен)'}
+          </span>
+        </div>
         <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Syne, sans-serif', color: C.text1 }}>Отчёт туристической активности</div>
         <div style={{ fontSize: 12, color: C.text3, marginTop: 4 }}>Данные актуальны на {new Date().toLocaleDateString('ru-RU')} · Для Акимата Мангыстауской области</div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
         {[
-          { val: MONTHLY_STATS.total.toLocaleString(), label: 'Туристов за месяц', color: C.blue },
+          { val: (MONTHLY_STATS.total + liveTotal).toLocaleString(), label: 'Туристов за месяц', color: C.blue, live: liveTotal },
           { val: MONTHLY_STATS.foreign,                label: 'Иностранцев',       color: C.green },
           { val: MONTHLY_STATS.avgDay,                 label: 'В среднем в день',  color: C.amber },
-          { val: MONTHLY_STATS.sos,                    label: 'SOS за месяц',      color: C.red },
+          { val: MONTHLY_STATS.sos + liveSos,          label: 'SOS за месяц',      color: C.red, live: liveSos },
         ].map(k => (
           <div key={k.label} style={{ padding: '18px 20px', borderRadius: 12, background: C.surface, border: `1px solid ${C.border}`, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 30, fontWeight: 800, color: k.color, fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>{k.val}</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ fontSize: 30, fontWeight: 800, color: k.color, fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>{k.val}</div>
+              {!!k.live && <div style={{ fontSize: 11, fontWeight: 700, color: C.green }}>+{k.live} live</div>}
+            </div>
             <div style={{ fontSize: 11, color: C.text3, marginTop: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{k.label}</div>
           </div>
         ))}
@@ -794,7 +821,7 @@ function AkimatStats() {
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', marginBottom: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.text1, marginBottom: 16 }}>Популярные маршруты</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {ROUTE_STATS.map((r, i) => (
+          {mergedRoutes.map((r, i) => (
             <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 22, fontSize: 12, fontWeight: 700, color: i < 3 ? C.blue : C.text3, textAlign: 'center', flexShrink: 0 }}>{i + 1}</div>
               <div style={{ fontSize: 13, fontWeight: 500, color: C.text1, minWidth: 130, flexShrink: 0 }}>{r.name}</div>
@@ -873,6 +900,7 @@ export default function AdminPanel() {
   const prevStatusRef             = useRef(null);
   const liveTouristRef            = useRef(null);
   const [firebaseTourists, setFirebaseTourists] = useState([]);
+  const [tripsHistory, setTripsHistory] = useState([]);
   const [tick, setTick]           = useState(0);         // 30s ticker → re-evaluate statuses
   const [adminAlerts, setAdminAlerts] = useState([]);    // overdue transition toasts
   const notifiedOverdueRef        = useRef(new Set());
@@ -918,6 +946,11 @@ export default function AdminPanel() {
   }, []);
 
   useEffect(() => {
+    const unsub = listenTripsHistory(setTripsHistory);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
     const prev = prevStatusRef.current;
     const curr = activeTrip?.status;
     if (curr === 'sos' && prev !== 'sos' && liveTouristRef.current) {
@@ -947,6 +980,20 @@ export default function AdminPanel() {
 
   // Apply real-time status: active → overdue when expectedReturn has passed
   const allTourists = applyEffectiveStatuses(baseTourists);
+
+  // Real per-trip records archived to Firebase — feeds the Akimat dashboard
+  const liveRouteCounts = {};
+  let liveSosCount = 0;
+  tripsHistory.forEach(t => {
+    if (t.placeName) liveRouteCounts[t.placeName] = (liveRouteCounts[t.placeName] || 0) + 1;
+    if (t.hadSOS) liveSosCount++;
+  });
+  const liveStats = {
+    total: tripsHistory.length,
+    sos: liveSosCount,
+    routeCounts: liveRouteCounts,
+    connected: FIREBASE_ENABLED,
+  };
 
   // Detect new overdue transitions on each tick and fire admin notifications
   useEffect(() => {
@@ -1114,7 +1161,7 @@ export default function AdminPanel() {
           </>
         ) : (
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
-            <AkimatStats />
+            <AkimatStats liveStats={liveStats} />
           </div>
         )}
       </div>

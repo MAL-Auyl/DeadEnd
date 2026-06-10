@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
-import { syncTourist, updateTourist, removeTourist, listenSOSResponse } from '../lib/sync.js';
+import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse } from '../lib/sync.js';
 
 const TripContext = createContext(null);
 
@@ -375,6 +375,18 @@ export function TripProvider({ children }) {
         };
       });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
+      archiveTrip(DEVICE_ID, {
+        placeId: activeTrip.placeId,
+        placeName: activeTrip.placeName,
+        groupType: activeTrip.groupType || 'solo',
+        vehicle: activeTrip.vehicle || '',
+        distance: activeTrip.placeDistance || 0,
+        startTime: activeTrip.startTime,
+        endTime: new Date().toISOString(),
+        hadSOS: (activeTrip.sosCount || 0) > 0 || activeTrip.status === 'sos',
+        autoSOS: !!activeTrip.autoSOS,
+        finalStatus: activeTrip.status,
+      });
       removeTourist(DEVICE_ID);
       setActiveTrip(null);
       setCurrentCoords(null);
