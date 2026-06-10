@@ -4,6 +4,9 @@ import { syncTourist, updateTourist, removeTourist, listenSOSResponse } from '..
 
 const TripContext = createContext(null);
 
+// Minutes after the deadline passes (status → 'overdue') before an automatic SOS fires
+export const SOS_GRACE_MINUTES = 15;
+
 function safeGet(key, fallback) {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
   catch { return fallback; }
@@ -35,51 +38,84 @@ export function TripProvider({ children }) {
   const etaTimerRef = useRef(null);
   const etaAlertedRef = useRef({ thirtyMin: false, oneHour: false });
   const nightRiskAlertedRef = useRef(false);
+  const autoSosFiredRef = useRef(false);
+  const currentCoordsRef = useRef(null);
   const gpsFirebaseTimer = useRef(null);
   const lastSosResponseStep = useRef(null);
 
   useEffect(() => {
     if (etaTimerRef.current) clearInterval(etaTimerRef.current);
-    if (!activeTrip || activeTrip.status !== 'active' || !activeTrip.expectedReturn) return;
+    const isTrackable = activeTrip && (activeTrip.status === 'active' || activeTrip.status === 'overdue');
+    if (!isTrackable || !activeTrip.expectedReturn) return;
 
     etaAlertedRef.current = { thirtyMin: false, oneHour: false };
     nightRiskAlertedRef.current = false;
+    autoSosFiredRef.current = false;
+
+    function getDeadline() {
+      if (activeTrip.expectedReturnAt) return new Date(activeTrip.expectedReturnAt);
+      const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
+      const d = new Date(); d.setHours(h, m, 0, 0);
+      return d;
+    }
 
     function checkTime() {
       const now = new Date();
 
-      // Night risk — 40 min before sunset (≈20:40 Mangystau)
-      const sunset = new Date(); sunset.setHours(20, 40, 0, 0);
-      const minsToSunset = Math.round((sunset - now) / 60000);
-      if (minsToSunset <= 40 && minsToSunset > 0 && !nightRiskAlertedRef.current) {
-        nightRiskAlertedRef.current = true;
-        addNotification(`🌙 Ескерту! ${minsToSunset} минуттан кейін қараңғы түседі. Температура +9°C-ге дейін төмендейді.`, 'info');
+      if (activeTrip.status === 'active') {
+        // Night risk — 40 min before sunset (≈20:40 Mangystau)
+        const sunset = new Date(); sunset.setHours(20, 40, 0, 0);
+        const minsToSunset = Math.round((sunset - now) / 60000);
+        if (minsToSunset <= 40 && minsToSunset > 0 && !nightRiskAlertedRef.current) {
+          nightRiskAlertedRef.current = true;
+          addNotification(`🌙 Ескерту! ${minsToSunset} минуттан кейін қараңғы түседі. Температура +9°C-ге дейін төмендейді.`, 'info');
+        }
+
+        const diffMin = Math.round((getDeadline() - now) / 60000);
+
+        // 30-min warning
+        if (diffMin <= 30 && diffMin > 0 && !etaAlertedRef.current.thirtyMin) {
+          etaAlertedRef.current.thirtyMin = true;
+          addNotification(`⏰ ${activeTrip.placeName} — қайтуға ${diffMin} минут қалды!`, 'info');
+        }
+
+        // Deadline passed — go overdue, starts the auto-SOS grace period
+        if (diffMin <= 0 && !etaAlertedRef.current.oneHour) {
+          etaAlertedRef.current.oneHour = true;
+          addNotification(`🚨 ${activeTrip.placeName} — қайту уақыты өтті! "Қайттым" батырмасын баспасаңыз, ${SOS_GRACE_MINUTES} минуттан кейін SOS автоматты жіберіледі.`, 'danger');
+          setActiveTrip(prev => prev && prev.status === 'active' ? { ...prev, status: 'overdue', overdueAt: new Date().toISOString() } : prev);
+        }
+        return;
       }
 
-      const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
-      const returnTime = new Date(); returnTime.setHours(h, m, 0, 0);
-      const diffMin = Math.round((returnTime - now) / 60000);
-
-      // 30-min warning
-      if (diffMin <= 30 && diffMin > 0 && !etaAlertedRef.current.thirtyMin) {
-        etaAlertedRef.current.thirtyMin = true;
-        addNotification(`⏰ ${activeTrip.placeName} — қайтуға ${diffMin} минут қалды!`, 'info');
-      }
-
-      // Overdue — no -30 limit, fires as soon as deadline passes, once
-      if (diffMin <= 0 && !etaAlertedRef.current.oneHour) {
-        etaAlertedRef.current.oneHour = true;
-        addNotification(`🚨 ${activeTrip.placeName} — қайту уақыты өтті! МЧС хабардар етілді.`, 'danger');
-        setActiveTrip(prev => prev ? { ...prev, status: 'overdue' } : prev);
+      // status === 'overdue' — no check-in within the grace period → auto-SOS
+      if (autoSosFiredRef.current || !activeTrip.overdueAt) return;
+      const overdueAt = new Date(activeTrip.overdueAt);
+      const graceMin = (now - overdueAt) / 60000;
+      if (graceMin >= SOS_GRACE_MINUTES) {
+        autoSosFiredRef.current = true;
+        const sosCoords = currentCoordsRef.current || { lat: 43.65, lng: 51.17 };
+        const sosTime = new Date().toISOString();
+        addNotification('🆘 Уақыт бітті, жауап болмады — SOS автоматты түрде жіберілді!', 'danger');
+        updateTourist(DEVICE_ID, {
+          status: 'sos',
+          sosTime,
+          lastSignal: new Date().toTimeString().slice(0, 5),
+          coords: sosCoords,
+          autoSOS: true,
+        });
+        setActiveTrip(prev => prev && prev.status === 'overdue'
+          ? { ...prev, status: 'sos', sosTime, sosCoords, sosCount: (prev.sosCount || 0) + 1, autoSOS: true }
+          : prev);
       }
     }
 
-    // Check immediately on mount (catches already-overdue trips on page reload)
+    // Check immediately on mount (catches already-overdue/-late trips on page reload)
     checkTime();
     etaTimerRef.current = setInterval(checkTime, 60000);
 
     return () => clearInterval(etaTimerRef.current);
-  }, [activeTrip?.id, activeTrip?.expectedReturn, activeTrip?.status]);
+  }, [activeTrip?.id, activeTrip?.expectedReturn, activeTrip?.expectedReturnAt, activeTrip?.status, activeTrip?.overdueAt]);
 
   useEffect(() => {
     const goOnline = () => { setIsOnline(true); syncPendingData(); };
@@ -168,6 +204,7 @@ export function TripProvider({ children }) {
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+        currentCoordsRef.current = coords;
         setCurrentCoords(coords);
         if (!navigator.onLine) {
           pendingSync.current.push({ type: 'coords', coords, time: Date.now() });
@@ -268,12 +305,18 @@ export function TripProvider({ children }) {
     startLock.current = true;
     setTimeout(() => { startLock.current = false; }, 3000);
 
+    const returnDate = config.returnDate || new Date().toISOString().slice(0, 10);
+    const returnTime = config.returnTime || '18:00';
+    const expectedReturnAt = new Date(`${returnDate}T${returnTime}:00`).toISOString();
+
     const trip = {
       id: Date.now(),
       placeId: place.id,
       placeName: place.name,
       startTime: new Date().toISOString(),
-      expectedReturn: config.returnTime || '18:00',
+      expectedReturn: returnTime,
+      expectedReturnDate: returnDate,
+      expectedReturnAt,
       clothing: config.clothing || '',
       contacts: config.contacts || user.contacts || [],
       vehicle: config.vehicle || '',
@@ -298,7 +341,9 @@ export function TripProvider({ children }) {
       destination: place.name,
       status: 'active',
       startTime: new Date().toTimeString().slice(0, 5),
-      expectedReturn: config.returnTime || '18:00',
+      expectedReturn: returnTime,
+      expectedReturnDate: returnDate,
+      expectedReturnAt,
       lastSignal: new Date().toTimeString().slice(0, 5),
       clothing: config.clothing || '',
       vehicle: config.vehicle || '',

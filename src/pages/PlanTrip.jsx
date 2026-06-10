@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PLACES } from '../data/places';
-import { useTrip } from '../context/TripContext';
+import { useTrip, SOS_GRACE_MINUTES } from '../context/TripContext';
 import MapView from '../components/MapView';
 import WeatherWidget from '../components/WeatherWidget';
 
@@ -14,6 +14,7 @@ export default function PlanTrip() {
   const [clothing, setClothing] = useState('');
   const [vehicle, setVehicle] = useState(place?.vehicles[0] || '');
   const [plate, setPlate] = useState('');
+  const [returnDate, setReturnDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [returnTime, setReturnTime] = useState('18:00');
   const [groupType, setGroupType] = useState('solo');
   const [contacts, setContacts] = useState(user.contacts);
@@ -25,7 +26,7 @@ export default function PlanTrip() {
   if (!place) return <div className="page">Place not found</div>;
 
   function handleStart() {
-    startTrip(place, { clothing, vehicle, plate, returnTime, groupType, contacts });
+    startTrip(place, { clothing, vehicle, plate, returnDate, returnTime, groupType, contacts });
     navigate('/tracking');
   }
 
@@ -63,10 +64,22 @@ export default function PlanTrip() {
           </div>
         </div>
 
-        {/* Return time */}
+        {/* Return date & time */}
         <div className="form-group">
-          <label className="form-label">⏰ Expected return time</label>
-          <input type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)} className="form-input" />
+          <label className="form-label">⏰ Expected return</label>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <input
+              type="date" value={returnDate} min={new Date().toISOString().slice(0, 10)}
+              onChange={e => setReturnDate(e.target.value)} className="form-input" style={{ flex: 1 }}
+            />
+            <input
+              type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)}
+              className="form-input" style={{ flex: 1 }}
+            />
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 6 }}>
+            If you don't check in by this deadline, an SOS is sent automatically {SOS_GRACE_MINUTES} min later.
+          </div>
         </div>
 
         {/* Clothing */}

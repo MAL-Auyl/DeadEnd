@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTrip } from '../context/TripContext';
+import { useTrip, SOS_GRACE_MINUTES } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import { PLACES, VIBES } from '../data/places';
 import MapView from '../components/MapView';
@@ -132,12 +132,23 @@ export default function Tracking() {
   // Current time + overdue calculation
   const clockStr = now.toTimeString().slice(0, 5);
   const isOverdue = activeTrip.status === 'overdue' || activeTrip.status === 'sos';
-  const overdueMinutes = (() => {
-    if (!activeTrip.expectedReturn) return 0;
+  const deadline = (() => {
+    if (activeTrip.expectedReturnAt) return new Date(activeTrip.expectedReturnAt);
+    if (!activeTrip.expectedReturn) return null;
     const [h, m] = activeTrip.expectedReturn.split(':').map(Number);
-    const ret = new Date(); ret.setHours(h, m, 0, 0);
-    const diff = Math.round((now - ret) / 60000);
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    return d;
+  })();
+  const overdueMinutes = (() => {
+    if (!deadline) return 0;
+    const diff = Math.round((now - deadline) / 60000);
     return diff > 0 ? diff : 0;
+  })();
+  // Minutes left before an unanswered deadline auto-escalates to SOS
+  const graceRemaining = (() => {
+    if (activeTrip.status !== 'overdue' || !activeTrip.overdueAt) return null;
+    const elapsedMin = (now - new Date(activeTrip.overdueAt)) / 60000;
+    return Math.max(0, Math.ceil(SOS_GRACE_MINUTES - elapsedMin));
   })();
 
   function handleSOS() {
@@ -218,6 +229,11 @@ export default function Tracking() {
             <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>
               {t.tr_overdue_by} <strong style={{ color: '#F4A261' }}>{overdueMinutes} {t.tr_min}</strong> · {t.tr_overdue_was} {activeTrip.expectedReturn}
             </div>
+            {graceRemaining !== null && (
+              <div style={{ fontSize: 13, color: '#FF4757', fontWeight: 700, marginTop: 4 }}>
+                🆘 {t.tr_auto_sos_in} {graceRemaining} {t.tr_min}
+              </div>
+            )}
           </div>
           <button onClick={() => setShowStopConfirm(true)} style={{
             background: '#06D6A0', color: 'white', border: 'none',
