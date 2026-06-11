@@ -57,11 +57,19 @@ export async function saveUserProfile(uid, profile) {
   await set(ref(db, `users/${uid}`), profile);
 }
 
+// Realtime Database drops empty arrays/objects and `null` values on write,
+// so they come back missing on read — fill them back in with defaults.
+const PROFILE_DEFAULTS = {
+  gender: '', dob: '', bloodType: 'O+', height: null, weight: null,
+  country: 'Kazakhstan', phone: '', allergies: '', specialMarks: '',
+  contacts: [], role: 'tourist', tripsCompleted: 0, totalKm: 0,
+};
+
 export async function loadUserProfile(uid) {
   if (!FIREBASE_ENABLED) return null;
   const db = getDB(); if (!db) return null;
   const snap = await get(ref(db, `users/${uid}`));
-  return snap.exists() ? snap.val() : null;
+  return snap.exists() ? { ...PROFILE_DEFAULTS, ...snap.val() } : null;
 }
 
 export async function updateUserProfile(uid, fields) {
