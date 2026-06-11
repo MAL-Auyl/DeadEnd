@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { PLACES } from '../data/places';
 import { useTrip, SOS_GRACE_MINUTES } from '../context/TripContext';
@@ -14,7 +14,7 @@ function loc(obj, field, lang) {
 export default function PlanTrip() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, startTrip } = useTrip();
+  const { user, startTrip, isAuthenticated } = useTrip();
   const { t, lang } = useLang();
   const place = PLACES.find(p => p.id === id);
 
@@ -24,12 +24,13 @@ export default function PlanTrip() {
   const [returnDate, setReturnDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [returnTime, setReturnTime] = useState('18:00');
   const [groupType, setGroupType] = useState('solo');
-  const [contacts, setContacts] = useState(user.contacts);
+  const [contacts, setContacts] = useState(user?.contacts || []);
 
   const NON_MOTOR = ['🚶 On foot', '🤙 Hitchhiking'];
   const allVehicles = [...NON_MOTOR, ...(place?.vehicles || []), 'Other'];
   const isMotorized = !NON_MOTOR.includes(vehicle);
 
+  if (!isAuthenticated) return <Navigate to="/register" replace />;
   if (!place) return <div className="page">{t.place_not_found}</div>;
 
   const placeName = loc(place, 'name', lang);

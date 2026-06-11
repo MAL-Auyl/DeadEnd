@@ -258,7 +258,7 @@ export default function PlaceDetail() {
           </div>
         </div>
         <button
-          onClick={() => isAuthenticated ? setShowQuickStart(true) : navigate('/login')}
+          onClick={() => isAuthenticated ? setShowQuickStart(true) : navigate('/register')}
           style={{
             background: 'var(--purple)', color: 'white', border: 'none',
             borderRadius: 8, padding: '7px 16px', fontSize: 13,
@@ -450,10 +450,10 @@ export default function PlaceDetail() {
         maxWidth: 600, margin: '0 auto',
       }}>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setShowQuickStart(true)} className="btn btn-primary btn-lg btn-full" style={{ fontSize: 16, fontWeight: 800 }}>
+          <button onClick={() => isAuthenticated ? setShowQuickStart(true) : navigate('/register')} className="btn btn-primary btn-lg btn-full" style={{ fontSize: 16, fontWeight: 800 }}>
             {t.pd_start_btn}
           </button>
-          <button onClick={() => navigate(`/plan/${place.id}`)} className="btn btn-ghost btn-lg" style={{ flexShrink: 0, padding: '16px 18px', fontSize: 14 }} title="Детальные настройки">
+          <button onClick={() => isAuthenticated ? navigate(`/plan/${place.id}`) : navigate('/register')} className="btn btn-ghost btn-lg" style={{ flexShrink: 0, padding: '16px 18px', fontSize: 14 }} title="Детальные настройки">
             ⚙️
           </button>
         </div>
