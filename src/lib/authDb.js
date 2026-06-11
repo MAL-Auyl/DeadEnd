@@ -48,6 +48,11 @@ export async function firebaseGoogleSignIn() {
   } catch (e) {
     if (e.code === 'auth/configuration-not-found') return { success: false, error: 'config' };
     if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return { success: false, error: 'cancelled' };
+    // Email already has a password-based account — Google sign-in for the
+    // same address is rejected by Firebase ("one account per email").
+    if (e.code === 'auth/account-exists-with-different-credential') {
+      return { success: false, error: 'account-exists', email: e.customData?.email };
+    }
     return { success: false, error: 'invalid' };
   }
 }

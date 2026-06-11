@@ -25,6 +25,9 @@ export default function Register() {
     setGoogleLoading(false);
     if (result.success) {
       navigate('/');
+    } else if (result.error === 'account-exists') {
+      if (result.email) set('email', result.email);
+      setError(t.auth_err_account_exists);
     } else if (result.error !== 'cancelled') {
       setError(t.auth_err_config);
     }
