@@ -396,7 +396,7 @@ export default function PlaceDetail() {
       {/* ── ROUTE MAP + CHECKPOINTS ── */}
       <Section id="route" icon="🗺️" title={`${t.pd_hl_route} · ${place.checkpoints.length} ${t.pd_pts}`}>
         <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 16, border: '1px solid var(--border)' }}>
-          <MapView place={place} height={200} />
+          <MapView place={place} height={200} lang={lang} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {place.checkpoints.map((cp, i) => (

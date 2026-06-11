@@ -54,6 +54,12 @@ export const PLACES = [
       { id: 'cp3', name: 'Shetpe', nameKz: 'Шетпе', nameRu: 'Шетпе', coords: { lat: 43.18, lng: 52.12 }, km: 190 },
       { id: 'cp4', name: 'Bozzhyra', nameKz: 'Бозжыра', nameRu: 'Бозжыра', coords: { lat: 43.8, lng: 53.2 }, km: 285 },
     ],
+    routePoints: [
+      { id: 'rp1', type: 'animal', coords: { lat: 43.35, lng: 52.7 }, km: 100, title: 'Livestock crossing', titleKz: 'Мал өтетін жер', titleRu: 'Переход скота', desc: 'Camels and sheep often cross the road here. Slow down.', descKz: 'Мұнда көбіне түйе мен қой жолды кесіп өтеді. Жылдамдықты азайтыңыз.', descRu: 'Здесь часто переходят дорогу верблюды и овцы. Снизьте скорость.' },
+      { id: 'rp2', type: 'water', coords: { lat: 43.20, lng: 52.20 }, km: 195, title: 'Spring near Shetpe', titleKz: 'Шетпе маңындағы бұлақ', titleRu: 'Родник у Шетпе', desc: 'Last reliable water source before the plateau. Fill up here.', descKz: 'Платодан бұрынғы соңғы сенімді су көзі. Осында толтырыңыз.', descRu: 'Последний надёжный источник воды перед плато. Наберите воду здесь.' },
+      { id: 'rp3', type: 'road', coords: { lat: 43.57, lng: 52.80 }, km: 250, title: 'Rough gravel section', titleKz: 'Шағыл жол телімі', titleRu: 'Участок плохой дороги', desc: 'Washboard gravel for ~15 km. Reduce speed to avoid tire damage.', descKz: '~15 км шағыл жол. Шинаны зақымдамау үшін жылдамдықты азайтыңыз.', descRu: 'Стиральная доска ~15 км. Снизьте скорость, чтобы не повредить шины.' },
+      { id: 'rp4', type: 'photo', coords: { lat: 43.78, lng: 53.18 }, km: 280, title: 'Plateau edge viewpoint', titleKz: 'Плато жиегіндегі көрініс', titleRu: 'Смотровая площадка на краю плато', desc: 'Best panoramic shot of the ridge — stop here for photos.', descKz: 'Қырқаттың ең жақсы панорамалық суреті — фото түсіруге тоқтаңыз.', descRu: 'Лучший панорамный кадр гряды — остановитесь здесь для фото.' },
+    ],
     warnings: [
       { type: 'signal', icon: '📡', title: 'No signal — last 50 km', titleKz: 'Байланыс жоқ — соңғы 50 км', titleRu: 'Нет сигнала — последние 50 км', desc: 'Download offline map before leaving. MCHs radio: 143.075 MHz', descKz: 'Жолға шықпай офлайн картаны жүктеңіз. МЧС радио: 143.075 МГц', descRu: 'Скачайте офлайн-карту перед выездом. Радио МЧС: 143.075 МГц' },
       { type: 'wind', icon: '💨', title: 'Strong wind on plateau', titleKz: 'Платода күшті жел', titleRu: 'Сильный ветер на плато', desc: 'Wind speed up to 25 m/s. Reduce speed, avoid open edges', descKz: 'Желдің жылдамдығы 25 м/с дейін. Жылдамдықты азайтыңыз', descRu: 'Скорость ветра до 25 м/с. Снизьте скорость, избегайте открытых краёв' },
@@ -98,6 +104,10 @@ export const PLACES = [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
       { id: 'cp2', name: 'Karynzharyk', nameKz: 'Қарынжарық', nameRu: 'Карынжарык', coords: { lat: 43.5, lng: 52.0 }, km: 140 },
     ],
+    routePoints: [
+      { id: 'rp1', type: 'animal', coords: { lat: 43.564, lng: 51.643 }, km: 80, title: 'Pasture crossing', titleKz: 'Жайылым өткелі', titleRu: 'Пастбищный переход', desc: 'Sheep herds cross frequently. Watch your speed.', descKz: 'Қой үйірлері жиі өтеді. Жылдамдықты бақылаңыз.', descRu: 'Здесь часто проходят отары овец. Следите за скоростью.' },
+      { id: 'rp2', type: 'photo', coords: { lat: 43.49, lng: 52.0 }, km: 138, title: 'Canyon overlook', titleKz: 'Каньон көрінісі', titleRu: 'Смотровая на каньон', desc: 'Iconic red-and-white layered cliffs — perfect for photos.', descKz: 'Қызыл-ақ қабатты жарлар — фотоға өте жақсы.', descRu: 'Культовые красно-белые слоистые скалы — идеально для фото.' },
+    ],
     warnings: [
       { type: 'heat', icon: '☀️', title: 'Very hot in summer', titleKz: 'Жазда өте ыстық', titleRu: 'Очень жарко летом', desc: 'Up to +42°C. Start your hike early morning or evening', descKz: '+42°C дейін. Таңертең ерте немесе кешке жүріңіз', descRu: 'До +42°C. Начинайте поход рано утром или вечером' },
       { type: 'animal', icon: '🐄', title: 'Livestock near road', titleKz: 'Жол жанында мал', titleRu: 'Скот возле дороги', desc: 'Slow down in pasture zones', descKz: 'Жайылым аймақтарында баяулаңыз', descRu: 'Снижайте скорость в зонах пастбищ' },
@@ -134,6 +144,9 @@ export const PLACES = [
     checkpoints: [
       { id: 'cp1', name: 'Aktau', nameKz: 'Ақтау', nameRu: 'Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
       { id: 'cp2', name: 'Beach', nameKz: 'Жағажай', nameRu: 'Пляж', coords: { lat: 43.6, lng: 51.1 }, km: 15 },
+    ],
+    routePoints: [
+      { id: 'rp1', type: 'photo', coords: { lat: 43.6, lng: 51.09 }, km: 15, title: 'Sunset photo spot', titleKz: 'Күн батысын суретке түсіру орны', titleRu: 'Точка для фото на закате', desc: 'Calm shoreline with great sunset views over the Caspian.', descKz: 'Каспий үстіндегі күн батысы көрінетін тыныш жағалау.', descRu: 'Спокойный берег с видом на закат над Каспием.' },
     ],
     warnings: [
       { type: 'wind', icon: '💨', title: 'Wind waves in summer', titleKz: 'Жазда жел толқыны', titleRu: 'Ветровые волны летом', desc: 'Strong winds can create dangerous waves. Check weather before swimming.', descKz: 'Күшті жел қауіпті толқын тудыруы мүмкін. Жүзбей тұрып ауа райын тексеріңіз.', descRu: 'Сильный ветер может создавать опасные волны. Проверяйте погоду перед купанием.' },
@@ -173,6 +186,11 @@ export const PLACES = [
       { id: 'cp2', name: 'Shetpe village', nameKz: 'Шетпе ауылы', nameRu: 'Село Шетпе', coords: { lat: 43.18, lng: 52.12 }, km: 170 },
       { id: 'cp3', name: 'Sherkala', nameKz: 'Шеркала', nameRu: 'Шеркала', coords: { lat: 43.4, lng: 52.5 }, km: 220 },
     ],
+    routePoints: [
+      { id: 'rp1', type: 'water', coords: { lat: 43.20, lng: 52.15 }, km: 172, title: 'Spring near Shetpe', titleKz: 'Шетпе маңындағы бұлақ', titleRu: 'Родник у Шетпе', desc: 'Small spring by the village — last water before the mountain.', descKz: 'Ауыл жанындағы кішкентай бұлақ — таудан бұрынғы соңғы су.', descRu: 'Небольшой родник у села — последняя вода перед горой.' },
+      { id: 'rp2', type: 'animal', coords: { lat: 43.19, lng: 52.10 }, km: 165, title: 'Livestock on highway', titleKz: 'Трассадағы мал', titleRu: 'Скот на трассе', desc: 'Cattle often graze near the road here. Slow down.', descKz: 'Мұнда мал жиі жайылады. Жылдамдықты азайтыңыз.', descRu: 'Здесь часто пасётся скот у дороги. Снизьте скорость.' },
+      { id: 'rp3', type: 'photo', coords: { lat: 43.41, lng: 52.49 }, km: 218, title: 'Sherkala viewpoint', titleKz: 'Шеркала көрінісі', titleRu: 'Смотровая на Шеркалу', desc: "Best angle of the 'sleeping lion' silhouette.", descKz: '«Ұйықтап жатқан арыстан» силуэтінің ең жақсы бұрышы.', descRu: 'Лучший ракурс силуэта «спящего льва».' },
+    ],
     warnings: [
       { type: 'signal', icon: '📡', title: 'Weak signal', titleKz: 'Нашар сигнал', titleRu: 'Слабый сигнал', desc: 'Signal is weak in the valley. Download offline map.', descKz: 'Аңғарда сигнал нашар. Офлайн картаны жүктеңіз.', descRu: 'В долине слабый сигнал. Скачайте офлайн-карту.' },
       { type: 'animal', icon: '🐄', title: 'Livestock on highway', titleKz: 'Жолда мал', titleRu: 'Скот на трассе', desc: 'Slow down near Shetpe village', descKz: 'Шетпе ауылы жанында баяулаңыз', descRu: 'Снижайте скорость возле села Шетпе' },
@@ -209,6 +227,11 @@ export const PLACES = [
       { id: 'cp2', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 150 },
       { id: 'cp3', name: 'Descent point', nameKz: 'Түсу нүктесі', nameRu: 'Точка спуска', coords: { lat: 43.12, lng: 52.9 }, km: 295 },
       { id: 'cp4', name: 'Karynzharyk bottom', nameKz: 'Қарынжарық түбі', nameRu: 'Дно Карынжарык', coords: { lat: 43.08, lng: 52.97 }, km: 310 },
+    ],
+    routePoints: [
+      { id: 'rp1', type: 'animal', coords: { lat: 43.34, lng: 52.83 }, km: 145, title: 'Livestock crossing', titleKz: 'Мал өтетін жер', titleRu: 'Переход скота', desc: 'Herds cross near Zhanaozen pastures.', descKz: 'Жаңаөзен жайылымдары жанында үйірлер өтеді.', descRu: 'Возле пастбищ Жанаозена переходят стада.' },
+      { id: 'rp2', type: 'road', coords: { lat: 43.12, lng: 52.9 }, km: 290, title: 'Steep descent — 4x4 only', titleKz: 'Тік түсу — тек 4x4', titleRu: 'Крутой спуск — только 4x4', desc: 'Loose gravel switchbacks. Check brakes before descending.', descKz: 'Борпылдақ шағыл серпантин. Түспес бұрын тежегішті тексеріңіз.', descRu: 'Сыпучий гравийный серпантин. Проверьте тормоза перед спуском.' },
+      { id: 'rp3', type: 'photo', coords: { lat: 43.10, lng: 52.93 }, km: 295, title: 'Rim panorama', titleKz: 'Жиектегі панорама', titleRu: 'Панорама с края', desc: 'Sunrise view over the depression — unforgettable.', descKz: 'Ойпат үстіндегі таңғы көрініс — ұмытылмас.', descRu: 'Вид на впадину на рассвете — незабываемо.' },
     ],
     warnings: [
       { type: 'signal', icon: '📡', title: 'Zero signal at bottom', titleKz: 'Түбінде сигнал жоқ', titleRu: 'На дне нет сигнала', desc: 'No mobile signal in the depression. MChS radio only: 143.075 MHz', descKz: 'Ойпатта мобильді байланыс жоқ. Тек МЧС радио: 143.075 МГц', descRu: 'Во впадине нет мобильной связи. Только радио МЧС: 143.075 МГц' },
@@ -251,6 +274,10 @@ export const PLACES = [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
       { id: 'cp2', name: 'Fort Shevchenko', nameKz: 'Форт-Шевченко', nameRu: 'Форт-Шевченко', coords: { lat: 44.51, lng: 50.26 }, km: 140 },
       { id: 'cp3', name: 'Zhygylgan cliffs', nameKz: 'Жыгылған жарлары', nameRu: 'Скалы Жыгылган', coords: { lat: 44.62, lng: 50.46 }, km: 165 },
+    ],
+    routePoints: [
+      { id: 'rp1', type: 'road', coords: { lat: 44.576, lng: 50.38 }, km: 155, title: 'Rough gravel stretch', titleKz: 'Шағыл жол телімі', titleRu: 'Плохой участок дороги', desc: 'Bumpy gravel road for the last stretch. Drive carefully.', descKz: 'Соңғы бөлікте дөңбек шағыл жол. Абайлап жүргізіңіз.', descRu: 'Последний отрезок — ухабистая гравийная дорога. Будьте осторожны.' },
+      { id: 'rp2', type: 'photo', coords: { lat: 44.61, lng: 50.45 }, km: 163, title: 'Cliff edge viewpoint', titleKz: 'Жар жиегіндегі көрініс', titleRu: 'Смотровая на краю обрыва', desc: 'Dramatic cliffs glowing orange at sunrise — stay back from the edge.', descKz: 'Таңда қызғылт сары жарқыраған жарлар — жиектен алыс тұрыңыз.', descRu: 'Скалы светятся оранжевым на рассвете — держитесь подальше от края.' },
     ],
     warnings: [
       { type: 'cliff', icon: '⚠️', title: 'Unstable cliff edges', titleKz: 'Тұрақсыз жар жиектері', titleRu: 'Неустойчивые края обрыва', desc: 'Do NOT approach closer than 3 m to cliff edges. Rock can crumble without warning.', descKz: 'Жар жиегіне 3 метрден жақын барма. Тас ескертусіз опырылуы мүмкін.', descRu: 'НЕ подходите ближе 3 м к краю обрыва. Порода может обрушиться без предупреждения.' },
@@ -295,6 +322,10 @@ export const PLACES = [
       { id: 'cp2', name: 'Fort Shevchenko', nameKz: 'Форт-Шевченко', nameRu: 'Форт-Шевченко', coords: { lat: 44.51, lng: 50.26 }, km: 140 },
       { id: 'cp3', name: 'Shakpak-Ata', nameKz: 'Шақпақ-ата', nameRu: 'Шакпак-Ата', coords: { lat: 44.28, lng: 50.53 }, km: 155 },
     ],
+    routePoints: [
+      { id: 'rp1', type: 'road', coords: { lat: 44.434, lng: 50.349 }, km: 145, title: 'Gravel track', titleKz: 'Шағыл жол', titleRu: 'Гравийная дорога', desc: 'Unpaved track for the last 20 km. Drive slowly.', descKz: 'Соңғы 20 км — асфальтсыз жол. Баяу жүргізіңіз.', descRu: 'Последние 20 км — грунтовая дорога. Езжайте медленно.' },
+      { id: 'rp2', type: 'photo', coords: { lat: 44.285, lng: 50.525 }, km: 154, title: 'Mosque facade view', titleKz: 'Мешіт қасбеті көрінісі', titleRu: 'Вид на фасад мечети', desc: 'Great spot to photograph the carved cliff entrance.', descKz: 'Қашалған жартас кіреберісін суретке түсіруге жақсы орын.', descRu: 'Хорошее место, чтобы сфотографировать резной вход в скале.' },
+    ],
     warnings: [
       { type: 'signal', icon: '📡', title: 'No signal', titleKz: 'Сигнал жоқ', titleRu: 'Нет сигнала', desc: 'No mobile signal. Download offline navigation before leaving.', descKz: 'Мобильді байланыс жоқ. Кетпей тұрып офлайн навигацияны жүктеңіз.', descRu: 'Нет мобильной связи. Скачайте офлайн-навигацию перед выездом.' },
       { type: 'road', icon: '🪨', title: 'Gravel track last 20 km', titleKz: 'Соңғы 20 км — шағыл жол', titleRu: 'Последние 20 км — гравийная дорога', desc: 'Unpaved road. Ground clearance minimum 20 cm required.', descKz: 'Жол асфальтсыз. Ең аз 20 см жол клиренсі керек.', descRu: 'Грунтовая дорога. Требуется клиренс не менее 20 см.' },
@@ -330,6 +361,11 @@ export const PLACES = [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
       { id: 'cp2', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 150 },
       { id: 'cp3', name: 'Sarytas canyon', nameKz: 'Сарыташ каньоны', nameRu: 'Каньон Сарыташ', coords: { lat: 43.7, lng: 52.8 }, km: 270 },
+    ],
+    routePoints: [
+      { id: 'rp1', type: 'animal', coords: { lat: 43.337, lng: 52.84 }, km: 145, title: 'Livestock crossing', titleKz: 'Мал өтетін жер', titleRu: 'Переход скота', desc: 'Pastures near Zhanaozen — watch for animals on the road.', descKz: 'Жаңаөзен маңындағы жайылымдар — жолдағы малға назар аударыңыз.', descRu: 'Пастбища возле Жанаозена — следите за животными на дороге.' },
+      { id: 'rp2', type: 'road', coords: { lat: 43.637, lng: 52.8085 }, km: 250, title: 'No road — steppe tracks', titleKz: 'Жол жоқ — дала ізі', titleRu: 'Дороги нет — степные следы', desc: 'Last 30 km is unmarked steppe. Follow GPS track closely.', descKz: 'Соңғы 30 км — белгісіз дала. GPS трегін мұқият ұстаныңыз.', descRu: 'Последние 30 км — степь без разметки. Точно следуйте GPS-треку.' },
+      { id: 'rp3', type: 'photo', coords: { lat: 43.69, lng: 52.79 }, km: 268, title: 'Red canyon glow', titleKz: 'Қызыл каньон жарқырауы', titleRu: 'Сияние красного каньона', desc: 'Golden hour turns the canyon walls fiery red.', descKz: 'Алтын сағатта каньон қабырғалары отты қызылға боялады.', descRu: 'В золотой час стены каньона становятся огненно-красными.' },
     ],
     warnings: [
       { type: 'signal', icon: '📡', title: 'No signal last 80 km', titleKz: 'Соңғы 80 км сигнал жоқ', titleRu: 'Нет сигнала последние 80 км', desc: 'Complete dead zone. Download map and share GPS before leaving Zhanaozen.', descKz: 'Толық өлі аймақ. Жаңаөзеннен кетпей карта жүктеп, GPS бөлісіңіз.', descRu: 'Полная мёртвая зона. Скачайте карту и отправьте GPS-координаты перед выездом из Жанаозена.' },
@@ -372,6 +408,9 @@ export const PLACES = [
       { id: 'cp2', name: 'Fort Shevchenko', nameKz: 'Форт-Шевченко', nameRu: 'Форт-Шевченко', coords: { lat: 44.51, lng: 50.26 }, km: 115 },
       { id: 'cp3', name: 'Cape Tupkaragan', nameKz: 'Тупқараған мүйісі', nameRu: 'Мыс Тупкараган', coords: { lat: 44.42, lng: 50.18 }, km: 130 },
     ],
+    routePoints: [
+      { id: 'rp1', type: 'photo', coords: { lat: 44.425, lng: 50.185 }, km: 128, title: 'Seabird cliffs', titleKz: 'Теңіз құстары жарлары', titleRu: 'Скалы с морскими птицами', desc: 'White cliffs with nesting seabirds and ocean views.', descKz: 'Ұя салған теңіз құстары мен мұхит көрінісі бар ақ жарлар.', descRu: 'Белые скалы с гнездящимися морскими птицами и видом на океан.' },
+    ],
     warnings: [
       { type: 'cliff', icon: '⚠️', title: 'Dangerous cliff edges', titleKz: 'Қауіпті жар жиектері', titleRu: 'Опасные края обрывов', desc: 'Sheer 30 m drops to the sea. One slip is fatal. Never approach edge alone.', descKz: 'Теңізге 30 метрлік тік жар. Бір сырғу өліммен аяқталады. Жалғыз жиекке бармаңыз.', descRu: 'Отвесные обрывы 30 м к морю. Одно падение смертельно. Никогда не подходите к краю в одиночку.' },
       { type: 'wind', icon: '💨', title: 'Very strong crosswinds', titleKz: 'Өте күшті бүйір жел', titleRu: 'Очень сильный боковой ветер', desc: 'Wind from the sea can reach 25 m/s on the cape. Do not stand near edges in strong wind.', descKz: 'Теңізден соққан жел мүйісте 25 м/с дейін жетуі мүмкін.', descRu: 'Ветер с моря на мысе может достигать 25 м/с. Не стойте у края при сильном ветре.' },
@@ -411,6 +450,11 @@ export const PLACES = [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
       { id: 'cp2', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 150 },
       { id: 'cp3', name: 'Torysh valley', nameKz: 'Торыш аңғары', nameRu: 'Долина Торыш', coords: { lat: 43.22, lng: 53.47 }, km: 250 },
+    ],
+    routePoints: [
+      { id: 'rp1', type: 'animal', coords: { lat: 43.334, lng: 52.838 }, km: 145, title: 'Livestock crossing', titleKz: 'Мал өтетін жер', titleRu: 'Переход скота', desc: 'Herds graze near Zhanaozen — slow down.', descKz: 'Жаңаөзен маңында үйірлер жайылады — жылдамдықты азайтыңыз.', descRu: 'У Жанаозена пасутся стада — снизьте скорость.' },
+      { id: 'rp2', type: 'road', coords: { lat: 43.242, lng: 53.346 }, km: 230, title: 'Steppe tracks only', titleKz: 'Тек дала ізі', titleRu: 'Только степные следы', desc: 'No marked road — easy to get lost without GPS.', descKz: 'Белгіленген жол жоқ — GPS-сіз адасу оңай.', descRu: 'Дороги нет — легко заблудиться без GPS.' },
+      { id: 'rp3', type: 'photo', coords: { lat: 43.225, lng: 53.46 }, km: 248, title: 'Stone balls at sunrise', titleKz: 'Таңертеңгі тас шарлар', titleRu: 'Каменные шары на рассвете', desc: 'Long shadows make the stone spheres look surreal.', descKz: 'Ұзын көлеңкелер тас шарларды керемет етеді.', descRu: 'Длинные тени делают каменные шары сюрреалистичными.' },
     ],
     warnings: [
       { type: 'signal', icon: '📡', title: 'No signal', titleKz: 'Сигнал жоқ', titleRu: 'Нет сигнала', desc: 'Zero mobile signal. Share your GPS location before leaving Zhanaozen.', descKz: 'Мобильді сигнал жоқ. Жаңаөзеннен кетпей GPS орнын бөліс.', descRu: 'Мобильной связи нет совсем. Отправьте GPS-координаты перед выездом из Жанаозена.' },

@@ -1,6 +1,18 @@
 import { useEffect, useRef } from 'react';
 
-export default function MapView({ place, activeTrip, height = 260 }) {
+const ROUTE_POINT_STYLES = {
+  photo: { emoji: '📸', bg: '#C9A055' },
+  water: { emoji: '💧', bg: '#4CAF7D' },
+  road: { emoji: '⚠️', bg: '#E89A3A' },
+  animal: { emoji: '🐄', bg: '#E05252' },
+};
+
+function loc(obj, field, lang) {
+  const key = lang === 'kz' ? field + 'Kz' : lang === 'ru' ? field + 'Ru' : field;
+  return obj[key] || obj[field];
+}
+
+export default function MapView({ place, activeTrip, height = 260, lang = 'en' }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
 
@@ -54,6 +66,22 @@ export default function MapView({ place, activeTrip, height = 260 }) {
           L.polyline(pts, { color: '#6C63FF', weight: 3, opacity: 0.8, dashArray: '8 4' }).addTo(map);
           map.fitBounds(pts, { padding: [32, 32] });
         }
+
+        if (place.routePoints?.length) {
+          place.routePoints.forEach(rp => {
+            const style = ROUTE_POINT_STYLES[rp.type] || ROUTE_POINT_STYLES.photo;
+            const icon = L.divIcon({
+              html: `<div style="background:${style.bg};width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:13px;line-height:1">${style.emoji}</span></div>`,
+              iconSize: [26, 26], iconAnchor: [13, 26], className: '',
+            });
+            const title = loc(rp, 'title', lang);
+            const desc = loc(rp, 'desc', lang);
+            const km = rp.km != null ? ` · ${rp.km} km` : '';
+            L.marker([rp.coords.lat, rp.coords.lng], { icon })
+              .addTo(map)
+              .bindPopup(`<b>${style.emoji} ${title}</b>${km}${desc ? `<br>${desc}` : ''}`);
+          });
+        }
       }
 
       if (activeTrip) {
@@ -77,7 +105,7 @@ export default function MapView({ place, activeTrip, height = 260 }) {
         mapInstance.current = null;
       }
     };
-  }, [place?.id]);
+  }, [place?.id, lang]);
 
   return (
     <div style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)' }}>

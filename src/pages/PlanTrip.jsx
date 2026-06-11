@@ -52,7 +52,7 @@ export default function PlanTrip() {
 
       {/* Map */}
       <div style={{ marginBottom: 28 }}>
-        <MapView place={place} height={200} />
+        <MapView place={place} height={200} lang={lang} />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

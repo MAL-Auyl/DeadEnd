@@ -92,7 +92,7 @@ function CompletionScreen({ data, onHome }) {
 export default function Tracking() {
   const navigate = useNavigate();
   const { activeTrip, stopTrip, triggerSOS, updateCheckpoint, user, isOnline, connectionType } = useTrip();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
@@ -260,7 +260,7 @@ export default function Tracking() {
 
       {/* Map */}
       <div style={{ marginBottom: 24 }}>
-        <MapView place={place} activeTrip={activeTrip} height={220} />
+        <MapView place={place} activeTrip={activeTrip} height={220} lang={lang} />
       </div>
 
       {/* Stats */}
