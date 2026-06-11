@@ -29,17 +29,12 @@ import sarytas7 from '../assets/photos/sarytas/7.webp';
 import shakpakAta4 from '../assets/photos/shakpak-ata/4.webp';
 import shakpakAta5 from '../assets/photos/shakpak-ata/5.webp';
 import ayraqty4 from '../assets/photos/ayraqty/4.webp';
-import boktyBeach1 from '../assets/photos/caspian-beach/1.jpg';
-import boktyBeach2 from '../assets/photos/caspian-beach/2.jpg';
-import boktyBeach3 from '../assets/photos/caspian-beach/3.jpg';
-import boktyBeach4 from '../assets/photos/caspian-beach/4.jpg';
-import boktyBeach5 from '../assets/photos/caspian-beach/5.jpg';
-import boktyBeach6 from '../assets/photos/caspian-beach/6.jpg';
-import boktyBeach7 from '../assets/photos/caspian-beach/7.jpg';
-import boktyBeach8 from '../assets/photos/caspian-beach/8.jpg';
-import boktyBeach9 from '../assets/photos/caspian-beach/9.jpg';
-import boktyBeach10 from '../assets/photos/caspian-beach/10.jpg';
-import boktyBeach11 from '../assets/photos/caspian-beach/11.jpg';
+import bokty1 from '../assets/photos/caspian-beach/1.jpg';
+import bokty2 from '../assets/photos/caspian-beach/2.jpg';
+import bokty3 from '../assets/photos/caspian-beach/3.jpg';
+import bokty4 from '../assets/photos/caspian-beach/4.jpg';
+import bokty5 from '../assets/photos/caspian-beach/5.jpg';
+import bokty6 from '../assets/photos/caspian-beach/6.jpg';
 
 export const PLACES = [
   {
@@ -138,37 +133,42 @@ export const PLACES = [
     name: 'Bokty',
     nameKz: 'Бокты',
     nameRu: 'Бокты',
-    region: 'Caspian Sea, Mangystau',
-    distance: 15,
-    duration: '20 min',
+    region: 'Karakiyan district, Mangystau',
+    distance: 320,
+    duration: '4 hr 23 min',
     rating: 4.6,
     reviews: 512,
-    category: ['popular', 'beach', 'sea'],
-    image: boktyBeach1,
-    images: [boktyBeach1, boktyBeach2, boktyBeach3, boktyBeach4, boktyBeach5, boktyBeach6, boktyBeach7, boktyBeach8, boktyBeach9, boktyBeach10, boktyBeach11],
-    description: 'Beautiful sandy beaches on the Caspian Sea coast near Aktau. Crystal clear water, gentle waves.',
-    descriptionKz: 'Ақтау жанындағы Каспий теңізі жағалауындағы əдемі құм жағажайлар. Мөлдір су, жайлы толқындар.',
-    descriptionRu: 'Красивые песчаные пляжи на побережье Каспийского моря рядом с Актау. Кристально чистая вода, спокойные волны.',
-    coords: { lat: 43.6, lng: 51.1 },
+    category: ['popular', 'mountain'],
+    image: bokty1,
+    images: [bokty1, bokty2, bokty3, bokty4, bokty5, bokty6],
+    description: 'A flat-topped 165 m butte on the eastern slope of Azhyrykty, 34 km east-northeast of Senek village, inside the Mangystau State Historical-Cultural Reserve. "Bokty" means "pie" in Kazakh — a striking remnant of an ancient seabed.',
+    descriptionKz: 'Бокты — Сенек ауылынан шығыс-солтүстік-шығысқа қарай 34 шақырым жердегі, Ажырықтының шығыс беткейіндегі тау. Мангистау мемлекеттік тарихи-мәдени қорығының құрамына кіреді. Қазақ тілінен «Бокты» — «пирог» дегенді білдіреді. Бұл — ежелгі теңіз түбінде пайда болған, биіктігі 165 м жалпақ басты останец.',
+    descriptionRu: 'Бокты — гора на восточном склоне Ажырыкты, в 34 км к востоку-северо-востоку от села Сенек. Входит в Мангистауский государственный историко-культурный заповедник. В переводе с казахского «Бокты» означает «пирог». Гора представляет собой останец с плоской вершиной высотой 165 м, образовавшийся на дне древнего моря.',
+    coords: { lat: 43.4219, lng: 53.7992 },
     checkpoints: [
-      { id: 'cp1', name: 'Aktau', nameKz: 'Ақтау', nameRu: 'Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
-      { id: 'cp2', name: 'Mangystau village', nameKz: 'Маңғыстау кенті', nameRu: 'пос. Мангистау', coords: { lat: 43.62, lng: 51.14 }, km: 8 },
-      { id: 'cp3', name: 'Bokty beach', nameKz: 'Бокты жағажайы', nameRu: 'Пляж Бокты', coords: { lat: 43.6, lng: 51.1 }, km: 15 },
+      { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
+      { id: 'cp2', name: 'Shetpe village', nameKz: 'Шетпе ауылы', nameRu: 'Село Шетпе', coords: { lat: 43.18, lng: 52.12 }, km: 170 },
+      { id: 'cp3', name: 'Senek village', nameKz: 'Сенек ауылы', nameRu: 'Село Сенек', coords: { lat: 43.30, lng: 53.41 }, km: 290 },
+      { id: 'cp4', name: 'Bokty', nameKz: 'Бокты', nameRu: 'Бокты', coords: { lat: 43.4219, lng: 53.7992 }, km: 320 },
     ],
     routePoints: [
-      { id: 'rp1', type: 'photo', coords: { lat: 43.6, lng: 51.09 }, km: 15, title: 'Sunset photo spot', titleKz: 'Күн батысын суретке түсіру орны', titleRu: 'Точка для фото на закате', desc: 'Calm shoreline with great sunset views over the Caspian.', descKz: 'Каспий үстіндегі күн батысы көрінетін тыныш жағалау.', descRu: 'Спокойный берег с видом на закат над Каспием.' },
+      { id: 'rp1', type: 'road', coords: { lat: 43.30, lng: 53.41 }, km: 290, title: 'Last fuel in Senek', titleKz: 'Сенектегі соңғы жанармай', titleRu: 'Последняя заправка в Сенеке', desc: 'No gas stations beyond this point. Fill up the tank.', descKz: 'Бұдан әрі жанармай құю станциясы жоқ. Бакты толтырыңыз.', descRu: 'Дальше заправок нет. Заправьте полный бак.' },
+      { id: 'rp2', type: 'photo', coords: { lat: 43.42, lng: 53.79 }, km: 318, title: 'Bokty viewpoint', titleKz: 'Бокты көрінісі', titleRu: 'Смотровая на Бокты', desc: 'The flat-topped butte rising from the plain — best at golden hour.', descKz: 'Жазықтан көтерілген жалпақ басты останец — алтын сағатта ерекше әсем.', descRu: 'Плосковершинный останец посреди равнины — особенно красив в золотой час.' },
     ],
     warnings: [
-      { type: 'wind', icon: '💨', title: 'Wind waves in summer', titleKz: 'Жазда жел толқыны', titleRu: 'Ветровые волны летом', desc: 'Strong winds can create dangerous waves. Check weather before swimming.', descKz: 'Күшті жел қауіпті толқын тудыруы мүмкін. Жүзбей тұрып ауа райын тексеріңіз.', descRu: 'Сильный ветер может создавать опасные волны. Проверяйте погоду перед купанием.' },
+      { type: 'signal', icon: '📡', title: 'No signal near Bokty', titleKz: 'Бокты маңында сигнал жоқ', titleRu: 'Нет сигнала у Бокты', desc: 'Mobile signal disappears past Senek. Download offline maps in advance.', descKz: 'Сенектен әрі мобильді байланыс жоғалады. Алдын ала офлайн карта жүктеп алыңыз.', descRu: 'После Сенека мобильная связь пропадает. Заранее скачайте офлайн-карты.' },
+      { type: 'road', icon: '🪨', title: '4x4 only past Senek', titleKz: 'Сенектен әрі тек 4x4', titleRu: 'После Сенека только 4x4', desc: 'The last stretch is unpaved gravel and sand. Regular cars cannot pass.', descKz: 'Соңғы бөлік шағыл-құм жол. Қарапайым көлік өте алмайды.', descRu: 'Последний участок — грунтовая и песчаная дорога. Обычная машина не проедет.' },
+      { type: 'heat', icon: '☀️', title: 'No shade on the plateau', titleKz: 'Платода көлеңке жоқ', titleRu: 'На плато нет тени', desc: 'Open terrain with no shelter from sun or wind. Plan your visit for early morning or evening.', descKz: 'Ашық жазықта күннен де, желден де паналайтын жер жоқ. Таңертең немесе кешке барыңыз.', descRu: 'Открытая местность без укрытия от солнца и ветра. Планируйте поездку на утро или вечер.' },
     ],
     mamaSays: [
-      { icon: '🧴', tip: 'The Caspian sun is very strong. Use SPF 50+ cream and reapply every 2 hours.', tipKz: 'Каспий күні өте күшті. SPF 50+ крем жақ, 2 сағат сайын жаңарт.', tipRu: 'Каспийское солнце очень сильное. Используй крем SPF 50+ и обновляй каждые 2 часа.' },
-      { icon: '💧', tip: 'Drink water even if you don\'t feel thirsty. You dehydrate fast at the beach.', tipKz: 'Шөлдемесең де су іш. Жағажайда дегидратация тез болады.', tipRu: 'Пей воду, даже если не хочется. На пляже обезвоживание наступает быстро.' },
+      { icon: '💧', tip: 'It is a long, remote drive — take at least 4 liters of water per person.', tipKz: 'Жол алыс әрі шалғай — әр адамға кемінде 4 литр су ал.', tipRu: 'Дорога долгая и безлюдная — возьми минимум 4 литра воды на человека.' },
+      { icon: '⛽', tip: 'Fill the tank in Senek. There is nothing after that for a long way.', tipKz: 'Сенекте бакты толтыр. Одан кейін ұзақ жерге дейін ештеңе жоқ.', tipRu: 'Заправь полный бак в Сенеке. После него долго ничего не будет.' },
+      { icon: '📸', tip: 'The flat top of Bokty glows gold at sunset. Worth waiting for.', tipKz: 'Бокты тауының жалпақ басы күн батқанда алтын түске боялады. Күтуге тұрарлық.', tipRu: 'Плоская вершина Бокты на закате окрашивается в золотой цвет. Стоит подождать.' },
     ],
-    vehicles: ['Any car'],
-    gear: ['Sunscreen SPF 50+', 'Water', 'Beach umbrella', 'Towel'],
-    gearKz: ['SPF 50+ күн кремі', 'Су', 'Жағажай зонты', 'Сүлгі'],
-    gearRu: ['Солнцезащитный крем SPF 50+', 'Вода', 'Пляжный зонт', 'Полотенце'],
+    vehicles: ['Toyota Land Cruiser', 'Mitsubishi Pajero', 'Land Rover Defender'],
+    gear: ['Water: 4 liters per person', 'Full tank of fuel', 'Sun hat', 'Sun cream', 'Offline map'],
+    gearKz: ['Су: әр адамға 4 литр', 'Толы бак отын', 'Күннен қорғайтын бас киім', 'Күн кремі', 'Офлайн карта'],
+    gearRu: ['Вода: 4 литра на человека', 'Полный бак топлива', 'Панама от солнца', 'Солнцезащитный крем', 'Офлайн-карта'],
   },
   {
     id: 'sherkala',
@@ -484,7 +484,7 @@ export const PLACES = [
 ];
 
 export const VIBES = {
-  'caspian-beach': { name: 'Каспий жағажайы', mood: 'Tropical & Relaxed', color: '#06B6D4', tracks: ['Beach waves & chill beats', 'Summer sunset lounge', 'Acoustic guitar by the sea'] },
+  'caspian-beach': { name: 'Бокты тауы', mood: 'Mystical & Remote', color: '#D97706', tracks: ['Desert plateau ambient', 'Steppe wind & silence', 'Kazakh folk fusion'] },
   'ayraqty': { name: 'Қарынжарық каньоны', mood: 'Epic & Cinematic', color: '#F59E0B', tracks: ['Canyon winds orchestral', 'Desert rock adventure', 'Ancient lands soundtrack'] },
   'bozzhyra': { name: 'Бозжыра платосы', mood: 'Mystical & Deep', color: '#8B5CF6', tracks: ['Plateau silence & wind', 'Kazakh folk fusion', 'End of the world ambient'] },
   'sherkala': { name: 'Шеркала тауы', mood: 'Spiritual & Powerful', color: '#10B981', tracks: ['Sacred mountain tones', 'Steppe epic', 'Dombyra & modern'] },

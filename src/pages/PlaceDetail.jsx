@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
@@ -92,6 +92,16 @@ function PhotoSlider({ images, name }) {
 
   const goTo = (n) => setIdx((n + total) % total);
 
+  // Preload the neighboring slides so navigation feels instant
+  useEffect(() => {
+    [(idx - 1 + total) % total, (idx + 1) % total].forEach(i => {
+      if (slides[i] !== 'VIDEO') {
+        const img = new Image();
+        img.src = slides[i];
+      }
+    });
+  }, [idx]);
+
   return (
     <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: '#000', overflow: 'hidden' }}>
       {slides[idx] === 'VIDEO' ? (
@@ -116,6 +126,8 @@ function PhotoSlider({ images, name }) {
       ) : (
         <img
           src={slides[idx]} alt={name}
+          decoding="async"
+          fetchpriority={idx === 0 ? 'high' : 'auto'}
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           onError={e => { e.target.style.display = 'none'; }}
         />
