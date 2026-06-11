@@ -34,6 +34,7 @@ import ayraqty3 from '../assets/photos/ayraqty/3.jpg';
 import ayraqty4 from '../assets/photos/ayraqty/4.jpg';
 import ayraqty5 from '../assets/photos/ayraqty/5.jpg';
 import ayraqty6 from '../assets/photos/ayraqty/6.jpg';
+import ayraqty7 from '../assets/photos/ayraqty/7.jpg';
 import bokty1 from '../assets/photos/caspian-beach/1.jpg';
 import bokty2 from '../assets/photos/caspian-beach/2.jpg';
 import bokty3 from '../assets/photos/caspian-beach/3.jpg';
@@ -101,7 +102,7 @@ export const PLACES = [
     reviews: 214,
     category: ['popular', 'mountain'],
     image: ayraqty1,
-    images: [ayraqty1, ayraqty2, ayraqty3, ayraqty4, ayraqty5, ayraqty6],
+    images: [ayraqty1, ayraqty2, ayraqty3, ayraqty4, ayraqty5, ayraqty6, ayraqty7],
     description: 'Ayraqty — the "Valley of Castles": wind-carved remnant ridges that look like a fairy-tale desert city of medieval castles, spires and colonnades. The valley got its name from sketches made here by Taras Shevchenko in 1851.',
     descriptionKz: 'Айрақты — «Қамалдар алқабы». Жел мүсіндеген останец жоталар ертегідегі қамалдар, мұнаралар мен бағаналарды елестетеді. Бұл алқапқа есім 1851 жылы осында болған Тарас Шевченко салған суреттерден кейін берілген.',
     descriptionRu: 'Айракты — «Долина замков»: останцовые гряды, выточенные ветром в форме сказочного пустынного города со шпилями, башнями и колоннадами средневековых замков. Название закрепилось благодаря рисункам Тараса Шевченко, побывавшего здесь в 1851 году.',
