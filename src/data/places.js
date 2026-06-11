@@ -1,11 +1,15 @@
-import bozzhyra1 from '../assets/photos/bozzhyra/1.webp';
-import bozzhyra2 from '../assets/photos/bozzhyra/2.webp';
-import bozzhyra3 from '../assets/photos/bozzhyra/3.webp';
-import bozzhyra4 from '../assets/photos/bozzhyra/4.webp';
-import bozzhyra5 from '../assets/photos/bozzhyra/5.webp';
-import bozzhyra6 from '../assets/photos/bozzhyra/6.webp';
-import bozzhyra7 from '../assets/photos/bozzhyra/7.webp';
-import bozzhyra8 from '../assets/photos/bozzhyra/8.webp';
+import bozzhyra1 from '../assets/photos/bozzhyra/1.jpg';
+import bozzhyra2 from '../assets/photos/bozzhyra/2.jpg';
+import bozzhyra3 from '../assets/photos/bozzhyra/3.jpg';
+import bozzhyra4 from '../assets/photos/bozzhyra/4.jpg';
+import bozzhyra5 from '../assets/photos/bozzhyra/5.jpg';
+import bozzhyra6 from '../assets/photos/bozzhyra/6.jpg';
+import bozzhyra7 from '../assets/photos/bozzhyra/7.jpg';
+import bozzhyra8 from '../assets/photos/bozzhyra/8.jpg';
+import bozzhyra9 from '../assets/photos/bozzhyra/9.jpg';
+import bozzhyra10 from '../assets/photos/bozzhyra/10.jpg';
+import bozzhyra11 from '../assets/photos/bozzhyra/11.jpg';
+import bozzhyra12 from '../assets/photos/bozzhyra/12.jpg';
 import karynzharyk1 from '../assets/photos/karynzharyk/1.webp';
 import karynzharyk2 from '../assets/photos/karynzharyk/2.webp';
 import karynzharyk3 from '../assets/photos/karynzharyk/3.webp';
@@ -39,7 +43,7 @@ export const PLACES = [
     reviews: 390,
     category: ['popular', 'mountain'],
     image: bozzhyra1,
-    images: [bozzhyra1, bozzhyra2, bozzhyra3, bozzhyra4, bozzhyra5, bozzhyra6, bozzhyra7, bozzhyra8],
+    images: [bozzhyra1, bozzhyra2, bozzhyra3, bozzhyra4, bozzhyra5, bozzhyra6, bozzhyra7, bozzhyra8, bozzhyra9, bozzhyra10, bozzhyra11, bozzhyra12],
     description: 'The tract is a ridge of rock formations of different sizes and shapes. The territory was part of the possession of the Mesozoic Tethys Ocean.',
     descriptionKz: 'Тракт — әр түрлі өлшем мен пішіндегі тау жыныстары қырқасы. Аумақ мезозой Тетис мұхитының иелігінің бір бөлігі болған.',
     descriptionRu: 'Урочище представляет собой гряду скальных образований разных размеров и форм. Территория когда-то была частью мезозойского океана Тетис.',
@@ -70,9 +74,9 @@ export const PLACES = [
   },
   {
     id: 'ayraqty',
-    name: 'Ayraqty canyon',
-    nameKz: 'Айрақты каньоны',
-    nameRu: 'Каньон Айракты',
+    name: 'Karynzharyk canyon',
+    nameKz: 'Қарынжарық каньоны',
+    nameRu: 'Каньон Карынжарык',
     region: 'Mangystau',
     distance: 140,
     duration: '2 hr 10 min',
@@ -92,7 +96,7 @@ export const PLACES = [
     coords: { lat: 43.5, lng: 52.0 },
     checkpoints: [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
-      { id: 'cp2', name: 'Ayraqty', nameKz: 'Айрақты', nameRu: 'Айракты', coords: { lat: 43.5, lng: 52.0 }, km: 140 },
+      { id: 'cp2', name: 'Karynzharyk', nameKz: 'Қарынжарық', nameRu: 'Карынжарык', coords: { lat: 43.5, lng: 52.0 }, km: 140 },
     ],
     warnings: [
       { type: 'heat', icon: '☀️', title: 'Very hot in summer', titleKz: 'Жазда өте ыстық', titleRu: 'Очень жарко летом', desc: 'Up to +42°C. Start your hike early morning or evening', descKz: '+42°C дейін. Таңертең ерте немесе кешке жүріңіз', descRu: 'До +42°C. Начинайте поход рано утром или вечером' },
@@ -110,9 +114,9 @@ export const PLACES = [
   },
   {
     id: 'caspian-beach',
-    name: 'Sand beach',
-    nameKz: 'Құм жағажайы',
-    nameRu: 'Песчаный пляж',
+    name: 'Bokty',
+    nameKz: 'Бокты',
+    nameRu: 'Бокты',
     region: 'Caspian Sea, Mangystau',
     distance: 15,
     duration: '20 min',
@@ -426,7 +430,7 @@ export const PLACES = [
 
 export const VIBES = {
   'caspian-beach': { name: 'Каспий жағажайы', mood: 'Tropical & Relaxed', color: '#06B6D4', tracks: ['Beach waves & chill beats', 'Summer sunset lounge', 'Acoustic guitar by the sea'] },
-  'ayraqty': { name: 'Айрақты каньоны', mood: 'Epic & Cinematic', color: '#F59E0B', tracks: ['Canyon winds orchestral', 'Desert rock adventure', 'Ancient lands soundtrack'] },
+  'ayraqty': { name: 'Қарынжарық каньоны', mood: 'Epic & Cinematic', color: '#F59E0B', tracks: ['Canyon winds orchestral', 'Desert rock adventure', 'Ancient lands soundtrack'] },
   'bozzhyra': { name: 'Бозжыра платосы', mood: 'Mystical & Deep', color: '#8B5CF6', tracks: ['Plateau silence & wind', 'Kazakh folk fusion', 'End of the world ambient'] },
   'sherkala': { name: 'Шеркала тауы', mood: 'Spiritual & Powerful', color: '#10B981', tracks: ['Sacred mountain tones', 'Steppe epic', 'Dombyra & modern'] },
   'highway': { name: 'Жол бойы', mood: 'Road trip energy', color: '#EF4444', tracks: ['Kazakh rock & drive', 'Highway beats', 'Midnight road mix'] },
@@ -492,7 +496,7 @@ export const MOCK_ACTIVE_TOURISTS = [
     name: 'Maria Schmidt',
     photo: 'https://i.pravatar.cc/150?img=5',
     phone: '+49 176 555 0100',
-    destination: 'Ayraqty canyon',
+    destination: 'Karynzharyk canyon',
     status: 'overdue',
     startTime: '07:00',
     expectedReturn: '14:00',
@@ -512,7 +516,7 @@ export const MOCK_ACTIVE_TOURISTS = [
     name: 'Aidana Bekova',
     photo: 'https://i.pravatar.cc/150?img=9',
     phone: '+7 701 234 5678',
-    destination: 'Sand beach',
+    destination: 'Bokty',
     status: 'completed',
     startTime: '09:00',
     expectedReturn: '13:00',
