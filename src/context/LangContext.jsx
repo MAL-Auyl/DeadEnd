@@ -172,6 +172,12 @@ const UI = {
     auth_demo_hint:      'Demo account: james@gmail.com / demo1234',
     auth_or:             'or',
     auth_google_btn:     'Continue with Google',
+    auth_forgot_link:    'Forgot password?',
+    auth_forgot_title:   'Reset password',
+    auth_forgot_sub:     "Enter your email and we'll send you a link to reset your password",
+    auth_forgot_btn:     'Send reset link',
+    auth_forgot_sent:    "If an account exists for that email, we've sent a password reset link.",
+    auth_forgot_back:    'Back to sign in',
 
     // Place Detail extra
     pd_go:           'Go',
@@ -394,6 +400,12 @@ const UI = {
     auth_demo_hint:      'Демо-аккаунт: james@gmail.com / demo1234',
     auth_or:             'или',
     auth_google_btn:     'Войти через Google',
+    auth_forgot_link:    'Забыли пароль?',
+    auth_forgot_title:   'Восстановление пароля',
+    auth_forgot_sub:     'Введите email — мы отправим ссылку для сброса пароля',
+    auth_forgot_btn:     'Отправить ссылку',
+    auth_forgot_sent:    'Если аккаунт с таким email существует, мы отправили на него ссылку для сброса пароля.',
+    auth_forgot_back:    'Назад ко входу',
 
     // Place Detail extra
     pd_go:           'Поехать',
@@ -619,6 +631,12 @@ const UI = {
     auth_demo_hint:      'Демо аккаунт: james@gmail.com / demo1234',
     auth_or:             'немесе',
     auth_google_btn:     'Google арқылы кіру',
+    auth_forgot_link:    'Құпия сөзді ұмыттыңыз ба?',
+    auth_forgot_title:   'Құпия сөзді қалпына келтіру',
+    auth_forgot_sub:     'Email енгізіңіз — біз сізге құпия сөзді қалпына келтіру сілтемесін жібереміз',
+    auth_forgot_btn:     'Сілтеме жіберу',
+    auth_forgot_sent:    'Егер бұл email-мен аккаунт бар болса, оған құпия сөзді қалпына келтіру сілтемесі жіберілді.',
+    auth_forgot_back:    'Кіруге оралу',
 
     // Place Detail extra
     pd_go:           'Жолға',

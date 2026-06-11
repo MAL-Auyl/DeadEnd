@@ -5,6 +5,7 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { ref, set, get, update } from 'firebase/database';
 import { getDB, getFirebaseAuth, FIREBASE_ENABLED } from './firebase.js';
@@ -47,6 +48,22 @@ export async function firebaseGoogleSignIn() {
   } catch (e) {
     if (e.code === 'auth/configuration-not-found') return { success: false, error: 'config' };
     if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return { success: false, error: 'cancelled' };
+    return { success: false, error: 'invalid' };
+  }
+}
+
+// Sends a reset link to the given email. Always reports success when the
+// address is well-formed — never reveal whether an account exists for it.
+export async function firebaseSendPasswordReset(email) {
+  const auth = getFirebaseAuth();
+  if (!auth) return { success: false, error: 'disabled' };
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (e) {
+    if (e.code === 'auth/configuration-not-found') return { success: false, error: 'config' };
+    if (e.code === 'auth/invalid-email') return { success: false, error: 'required' };
+    if (e.code === 'auth/user-not-found') return { success: true };
     return { success: false, error: 'invalid' };
   }
 }

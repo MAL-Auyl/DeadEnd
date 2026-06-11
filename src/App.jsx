@@ -14,6 +14,7 @@ const AdminPanel  = lazy(() => import('./pages/AdminPanel'));
 const PinLogin    = lazy(() => import('./pages/PinLogin'));
 const Login       = lazy(() => import('./pages/Login'));
 const Register    = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const AdminLogin  = lazy(() => import('./pages/AdminLogin'));
 const NotFound    = lazy(() => import('./pages/NotFound'));
 const Landing     = lazy(() => import('./pages/Landing'));
@@ -113,7 +114,7 @@ function TopNav() {
 }
 
 // Routes reachable without being logged in (public browsing + emergency SOS access + auth pages)
-const PUBLIC_PATHS = ['/', '/login', '/register', '/pin', '/admin-login'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/pin', '/admin-login'];
 
 function isPublicPath(pathname) {
   return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/place/');
@@ -144,6 +145,7 @@ function Layout() {
             <Route path="/pin"       element={<PinLogin />} />
             <Route path="/login"     element={<Login />} />
             <Route path="/register"  element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/about-old" element={<Landing />} />
             <Route path="*"          element={<NotFound />} />

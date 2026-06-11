@@ -5,6 +5,7 @@ import { FIREBASE_AUTH_ENABLED } from '../lib/firebase.js';
 import { isSlowConnection, getConnectionType } from '../lib/network.js';
 import {
   firebaseRegister, firebaseLogin, firebaseGoogleSignIn, firebaseLogout, onAuthChange,
+  firebaseSendPasswordReset,
   saveUserProfile, loadUserProfile, updateUserProfile,
   savePinIndex, findUserByPin,
 } from '../lib/authDb.js';
@@ -503,6 +504,14 @@ export function TripProvider({ children }) {
     return { success: true };
   }
 
+  // Send a "reset your password" email. Only available when Firebase Auth
+  // is configured — local demo accounts have no email backend.
+  async function forgotPassword(email) {
+    const normEmail = email.trim().toLowerCase();
+    if (!FIREBASE_AUTH_ENABLED) return { success: false, error: 'config' };
+    return firebaseSendPasswordReset(normEmail);
+  }
+
   function logoutUser() {
     if (FIREBASE_AUTH_ENABLED) firebaseLogout();
     safeRemove('deadend_session');
@@ -715,7 +724,7 @@ export function TripProvider({ children }) {
   return (
     <TripContext.Provider value={{
       user, updateUser, login, logout, isAdmin,
-      accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, loginWithGoogle, logoutUser, findAccountByPin,
+      accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, loginWithGoogle, forgotPassword, logoutUser, findAccountByPin,
       googleAuthAvailable: FIREBASE_AUTH_ENABLED,
       activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
       notifications, addNotification,
