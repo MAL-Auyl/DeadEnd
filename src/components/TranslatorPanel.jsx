@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../context/LangContext';
+import { speakText, stopSpeaking } from '../lib/tts';
 
 const LANGS = [
   { code: 'kk', label: 'Қазақша', flag: '🇰🇿', bcp: 'kk-KZ' },
@@ -30,6 +31,7 @@ export default function TranslatorPanel({ compact = false }) {
   const [input, setInput] = useState('');
   const [listening, setListening] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [speakingId, setSpeakingId] = useState(null);
   const recognitionRef = useRef(null);
   const listRef = useRef(null);
 
@@ -43,15 +45,23 @@ export default function TranslatorPanel({ compact = false }) {
   }, [messages, busy]);
 
   useEffect(() => {
-    return () => recognitionRef.current?.stop();
+    return () => {
+      recognitionRef.current?.stop();
+      stopSpeaking();
+    };
   }, []);
 
-  function speak(text, langCode) {
+  function speak(text, langCode, id) {
     if (!ttsSupported || !text) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = langInfo(langCode).bcp;
-    window.speechSynthesis.speak(utter);
+    if (id != null && speakingId === id) {
+      stopSpeaking();
+      setSpeakingId(null);
+      return;
+    }
+    speakText(text, langInfo(langCode).bcp, {
+      onStart: () => setSpeakingId(id ?? null),
+      onEnd: () => setSpeakingId(prev => (prev === (id ?? null) ? null : prev)),
+    });
   }
 
   async function sendMessage(spk, rawText) {
@@ -76,7 +86,7 @@ export default function TranslatorPanel({ compact = false }) {
       const data = await res.json();
       const translated = data.translated || text;
       setMessages(prev => prev.map(m => m.id === id ? { ...m, translated } : m));
-      speak(translated, toLang);
+      speak(translated, toLang, id);
     } catch {
       setMessages(prev => prev.map(m => m.id === id ? { ...m, translated: '', error: true } : m));
     } finally {
@@ -182,14 +192,30 @@ export default function TranslatorPanel({ compact = false }) {
               </div>
               <div style={{
                 marginTop: 6, paddingTop: 6, borderTop: `1px solid ${m.from === 'A' ? 'rgba(255,255,255,0.2)' : 'var(--border)'}`,
+                display: 'flex', alignItems: 'center', gap: 6,
                 fontSize: translatedFont, fontWeight: 600, lineHeight: 1.5,
                 color: m.error ? 'var(--red)' : (m.from === 'A' ? '#fff' : 'var(--gold)'),
               }}>
-                {m.translated === null && !m.error
-                  ? t.trnsl_translating
-                  : m.error
-                    ? t.trnsl_error
-                    : <>{langInfo(m.toLang).flag} {m.translated}</>}
+                <span>
+                  {m.translated === null && !m.error
+                    ? t.trnsl_translating
+                    : m.error
+                      ? t.trnsl_error
+                      : <>{langInfo(m.toLang).flag} {m.translated}</>}
+                </span>
+                {ttsSupported && m.translated && (
+                  <button
+                    onClick={() => speak(m.translated, m.toLang, m.id)}
+                    title={speakingId === m.id ? t.chat_stop_speak : t.chat_speak}
+                    style={{
+                      background: 'transparent', border: 'none', cursor: 'pointer', padding: 0,
+                      fontSize: translatedFont, lineHeight: 1, flexShrink: 0,
+                      color: speakingId === m.id ? (m.from === 'A' ? '#fff' : 'var(--purple)') : 'inherit',
+                      opacity: speakingId === m.id ? 1 : 0.7,
+                      ...(speakingId === m.id ? { animation: 'pulse 1.2s infinite' } : {}),
+                    }}
+                  >{speakingId === m.id ? '⏹️' : '🔊'}</button>
+                )}
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../context/LangContext';
 import { useTrip } from '../context/TripContext';
 import TranslatorPanel from './TranslatorPanel';
+import { speakText, stopSpeaking } from '../lib/tts';
 
 const BCP47 = { kz: 'kk-KZ', ru: 'ru-RU', en: 'en-US' };
 
@@ -16,6 +17,7 @@ export default function ChatWidget() {
   const [error, setError] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
+  const [speakingId, setSpeakingId] = useState(null);
   const listRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -29,18 +31,26 @@ export default function ChatWidget() {
   }, [messages, open, loading]);
 
   useEffect(() => {
-    return () => recognitionRef.current?.stop();
+    return () => {
+      recognitionRef.current?.stop();
+      stopSpeaking();
+    };
   }, []);
 
-  function speak(text) {
+  function speak(text, id) {
     if (!ttsSupported || !text) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = BCP47[lang] || 'en-US';
-    window.speechSynthesis.speak(utter);
+    if (speakingId === id) {
+      stopSpeaking();
+      setSpeakingId(null);
+      return;
+    }
+    speakText(text, BCP47[lang] || 'en-US', {
+      onStart: () => setSpeakingId(id),
+      onEnd: () => setSpeakingId(prev => (prev === id ? null : prev)),
+    });
   }
 
-  async function send(overrideText) {
+  async function send(overrideText, fromVoice = false) {
     const text = (overrideText ?? input).trim();
     if (!text || loading) return;
 
@@ -80,7 +90,7 @@ export default function ChatWidget() {
           return copy;
         });
       }
-      if (voiceOn) speak(acc);
+      if (voiceOn || fromVoice) speak(acc, nextMessages.length);
     } catch {
       setError(true);
     } finally {
@@ -108,7 +118,7 @@ export default function ChatWidget() {
     recog.maxAlternatives = 1;
     recog.onresult = (e) => {
       const text = e.results[0]?.[0]?.transcript || '';
-      if (text) send(text);
+      if (text) send(text, true);
     };
     recog.onend = () => setListening(false);
     recog.onerror = () => setListening(false);
@@ -199,13 +209,14 @@ export default function ChatWidget() {
                     </div>
                     {ttsSupported && m.role === 'assistant' && m.content && !(loading && i === messages.length - 1) && (
                       <button
-                        onClick={() => speak(m.content)}
-                        title={t.chat_speak}
+                        onClick={() => speak(m.content, i)}
+                        title={speakingId === i ? t.chat_stop_speak : t.chat_speak}
                         style={{
                           alignSelf: 'flex-start', background: 'transparent', border: 'none',
-                          color: 'var(--text3)', fontSize: 13, cursor: 'pointer', padding: '0 4px',
+                          color: speakingId === i ? 'var(--purple)' : 'var(--text3)', fontSize: 13, cursor: 'pointer', padding: '0 4px',
+                          ...(speakingId === i ? { animation: 'pulse 1.2s infinite' } : {}),
                         }}
-                      >🔊</button>
+                      >{speakingId === i ? '⏹️' : '🔊'}</button>
                     )}
                   </div>
                 ))}

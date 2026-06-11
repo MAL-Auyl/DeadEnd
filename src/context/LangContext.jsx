@@ -224,6 +224,7 @@ const UI = {
     chat_voice_on:    'Voice replies on',
     chat_voice_off:   'Voice replies off',
     chat_speak:       'Listen',
+    chat_stop_speak:  'Stop',
     chat_tab_ai:        'AI Guide',
     chat_tab_translate: 'Translator',
 
@@ -459,6 +460,7 @@ const UI = {
     chat_voice_on:    'Озвучка включена',
     chat_voice_off:   'Озвучка выключена',
     chat_speak:       'Озвучить',
+    chat_stop_speak:  'Остановить',
     chat_tab_ai:        'ИИ-гид',
     chat_tab_translate: 'Переводчик',
 
@@ -690,6 +692,7 @@ const UI = {
     chat_voice_on:    'Дауыс қосулы',
     chat_voice_off:   'Дауыс өшірулі',
     chat_speak:       'Дыбыстау',
+    chat_stop_speak:  'Тоқтату',
     chat_tab_ai:        'ИИ-гид',
     chat_tab_translate: 'Аудармашы',
 
