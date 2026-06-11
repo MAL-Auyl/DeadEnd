@@ -164,6 +164,8 @@ const UI = {
     auth_err_invalid:    'Invalid email or password',
     auth_err_exists:     'An account with this email already exists',
     auth_err_required:   'Please fill in all fields',
+    auth_err_weak:       'Password must be at least 6 characters',
+    auth_err_config:     'Sign-in is not configured yet. Please try again later.',
     auth_demo_hint:      'Demo account: james@gmail.com / demo1234',
 
     // Place Detail extra
@@ -374,6 +376,8 @@ const UI = {
     auth_err_invalid:    'Неверный email или пароль',
     auth_err_exists:     'Аккаунт с таким email уже существует',
     auth_err_required:   'Заполните все поля',
+    auth_err_weak:       'Пароль должен быть не короче 6 символов',
+    auth_err_config:     'Вход временно не настроен. Попробуйте позже.',
     auth_demo_hint:      'Демо-аккаунт: james@gmail.com / demo1234',
 
     // Place Detail extra
@@ -587,6 +591,8 @@ const UI = {
     auth_err_invalid:    'Email немесе құпия сөз қате',
     auth_err_exists:     'Бұл email-мен аккаунт бұрыннан бар',
     auth_err_required:   'Барлық өрістерді толтырыңыз',
+    auth_err_weak:       'Құпия сөз кемінде 6 таңбадан тұруы керек',
+    auth_err_config:     'Кіру әлі баптаулмаған. Кейінірек қайталап көріңіз.',
     auth_demo_hint:      'Демо аккаунт: james@gmail.com / demo1234',
 
     // Place Detail extra

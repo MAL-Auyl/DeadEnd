@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTrip } from '../context/TripContext';
+import { FIREBASE_ENABLED } from '../lib/firebase.js';
 
 const MAX_ATTEMPTS = 3;
 const BLOCK_DURATION = 30; // секунд
@@ -11,7 +12,8 @@ export default function PinLogin() {
   const [attempts, setAttempts] = useState(0);
   const [blocked, setBlocked] = useState(false);
   const [blockTimer, setBlockTimer] = useState(0);
-  const { accounts, activeTrip, stopTrip, triggerSOS } = useTrip();
+  const [checking, setChecking] = useState(false);
+  const { accounts, activeTrip, stopTrip, triggerSOS, findAccountByPin } = useTrip();
   const timerRef = useRef(null);
 
   function startBlockTimer() {
@@ -31,11 +33,13 @@ export default function PinLogin() {
     }, 1000);
   }
 
-  function checkPin() {
-    if (blocked) return;
+  async function checkPin() {
+    if (blocked || checking) return;
     if (pin.length !== 6) { setError('PIN 6 цифр болуы керек'); return; }
 
-    const account = accounts.find(a => String(a.pin) === pin);
+    setChecking(true);
+    const account = await findAccountByPin(pin);
+    setChecking(false);
     if (account) {
       setFound({
         name: account.firstName + ' ' + account.lastName,
@@ -124,15 +128,17 @@ export default function PinLogin() {
       <button
         onClick={checkPin}
         className="btn btn-primary btn-full btn-lg"
-        disabled={blocked || pin.length !== 6}
-        style={{ marginBottom: 16, opacity: (blocked || pin.length !== 6) ? 0.5 : 1 }}
+        disabled={blocked || checking || pin.length !== 6}
+        style={{ marginBottom: 16, opacity: (blocked || checking || pin.length !== 6) ? 0.5 : 1 }}
       >
-        {blocked ? `🔒 Блокталған (${blockTimer}с)` : 'Маршрутты табу'}
+        {blocked ? `🔒 Блокталған (${blockTimer}с)` : checking ? '…' : 'Маршрутты табу'}
       </button>
 
-      <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', marginBottom: 24 }}>
-        Demo PIN: <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{accounts[0]?.pin}</span>
-      </div>
+      {!FIREBASE_ENABLED && accounts[0] && (
+        <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', marginBottom: 24 }}>
+          Demo PIN: <span style={{ color: 'var(--purple)', fontWeight: 700 }}>{accounts[0]?.pin}</span>
+        </div>
+      )}
 
       {found && (
         <div style={{

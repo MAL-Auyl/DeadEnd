@@ -9,14 +9,19 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const result = loginUser(form);
+    setLoading(true);
+    const result = await loginUser(form);
+    setLoading(false);
     if (result.success) {
       navigate('/');
+    } else if (result.error === 'config') {
+      setError(t.auth_err_config);
     } else {
       setError(t.auth_err_invalid);
       setForm(p => ({ ...p, password: '' }));
@@ -65,10 +70,10 @@ export default function Login() {
         <button
           type="submit"
           className="btn btn-primary btn-full btn-lg"
-          disabled={!form.email || !form.password}
-          style={{ opacity: (!form.email || !form.password) ? 0.5 : 1, marginBottom: 20 }}
+          disabled={!form.email || !form.password || loading}
+          style={{ opacity: (!form.email || !form.password || loading) ? 0.5 : 1, marginBottom: 20 }}
         >
-          {t.auth_login_btn}
+          {loading ? '…' : t.auth_login_btn}
         </button>
       </form>
 

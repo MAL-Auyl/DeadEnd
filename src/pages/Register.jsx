@@ -9,22 +9,29 @@ export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
 
   function set(key, val) { setForm(p => ({ ...p, [key]: val })); }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.firstName || !form.lastName || !form.email || !form.password) {
       setError(t.auth_err_required);
       return;
     }
-    const result = registerUser(form);
+    setLoading(true);
+    const result = await registerUser(form);
+    setLoading(false);
     if (result.success) {
       navigate('/');
     } else if (result.error === 'exists') {
       setError(t.auth_err_exists);
+    } else if (result.error === 'weak') {
+      setError(t.auth_err_weak);
+    } else if (result.error === 'config') {
+      setError(t.auth_err_config);
     } else {
       setError(t.auth_err_required);
     }
@@ -85,13 +92,13 @@ export default function Register() {
         <button
           type="submit"
           className="btn btn-primary btn-full btn-lg"
-          disabled={!form.firstName || !form.lastName || !form.email || !form.password}
+          disabled={!form.firstName || !form.lastName || !form.email || !form.password || loading}
           style={{
-            opacity: (!form.firstName || !form.lastName || !form.email || !form.password) ? 0.5 : 1,
+            opacity: (!form.firstName || !form.lastName || !form.email || !form.password || loading) ? 0.5 : 1,
             marginBottom: 20,
           }}
         >
-          {t.auth_register_btn}
+          {loading ? '…' : t.auth_register_btn}
         </button>
       </form>
 

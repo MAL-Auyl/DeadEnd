@@ -106,8 +106,10 @@ function TopNav() {
 const PUBLIC_PATHS = ['/login', '/register', '/pin', '/admin-login'];
 
 function Layout() {
-  const { isAuthenticated } = useTrip();
+  const { isAuthenticated, authLoading } = useTrip();
   const location = useLocation();
+
+  if (authLoading) return <PageLoader />;
 
   if (!isAuthenticated && !PUBLIC_PATHS.includes(location.pathname)) {
     return <Navigate to="/login" replace />;

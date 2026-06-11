@@ -1,6 +1,12 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
 import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse } from '../lib/sync.js';
+import { FIREBASE_ENABLED } from '../lib/firebase.js';
+import {
+  firebaseRegister, firebaseLogin, firebaseLogout, onAuthChange,
+  saveUserProfile, loadUserProfile, updateUserProfile,
+  savePinIndex, findUserByPin,
+} from '../lib/authDb.js';
 
 const TripContext = createContext(null);
 
@@ -35,8 +41,9 @@ function getAccounts() {
 }
 
 export function TripProvider({ children }) {
-  const [accounts, setAccounts] = useState(() => getAccounts());
+  const [accounts, setAccounts] = useState(() => FIREBASE_ENABLED ? [] : getAccounts());
   const [user, setUser] = useState(() => {
+    if (FIREBASE_ENABLED) return null; // restored async via onAuthChange below
     const accs = getAccounts();
     let sessionId = safeGet('deadend_session', null);
     if (!sessionId && safeGet('deadend_user', null)) {
@@ -47,6 +54,8 @@ export function TripProvider({ children }) {
     if (!sessionId) return null;
     return accs.find(a => a.id === sessionId) || null;
   });
+  // While true, the auth state is still being restored from Firebase — don't redirect to /login yet.
+  const [authLoading, setAuthLoading] = useState(() => FIREBASE_ENABLED);
   const [activeTrip, setActiveTrip] = useState(() => safeGet('deadend_trip', null));
   const [isAdmin, setIsAdmin] = useState(() => safeGet('deadend_admin_session', false));
   const [notifications, setNotifications] = useState([]);
@@ -143,6 +152,21 @@ export function TripProvider({ children }) {
 
     return () => clearInterval(etaTimerRef.current);
   }, [activeTrip?.id, activeTrip?.expectedReturn, activeTrip?.expectedReturnAt, activeTrip?.status, activeTrip?.overdueAt]);
+
+  // Restore session from Firebase Auth on load, and react to login/logout elsewhere.
+  useEffect(() => {
+    if (!FIREBASE_ENABLED) return;
+    const unsub = onAuthChange(async (fbUser) => {
+      if (fbUser) {
+        const profile = await loadUserProfile(fbUser.uid);
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
+      setAuthLoading(false);
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     const goOnline = () => { setIsOnline(true); syncPendingData(); };
@@ -331,8 +355,39 @@ export function TripProvider({ children }) {
     else safeRemove('deadend_trip');
   }, [activeTrip]);
 
-  function registerUser({ firstName, lastName, email, password }) {
+  async function registerUser({ firstName, lastName, email, password }) {
     const normEmail = email.trim().toLowerCase();
+
+    if (FIREBASE_ENABLED) {
+      const result = await firebaseRegister(normEmail, password);
+      if (!result.success) return result;
+      const newAccount = {
+        id: result.uid,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        gender: '',
+        dob: '',
+        bloodType: 'O+',
+        height: null,
+        weight: null,
+        country: 'Kazakhstan',
+        phone: '',
+        allergies: '',
+        specialMarks: '',
+        photo: `https://i.pravatar.cc/150?u=${encodeURIComponent(normEmail)}`,
+        contacts: [],
+        pin: String(Math.floor(100000 + Math.random() * 900000)),
+        role: 'tourist',
+        tripsCompleted: 0,
+        totalKm: 0,
+      };
+      await saveUserProfile(result.uid, newAccount);
+      await savePinIndex(newAccount.pin, result.uid);
+      setUser(newAccount);
+      return { success: true };
+    }
+
     if (accounts.some(a => a.email.trim().toLowerCase() === normEmail)) {
       return { success: false, error: 'exists' };
     }
@@ -364,8 +419,18 @@ export function TripProvider({ children }) {
     return { success: true };
   }
 
-  function loginUser({ email, password }) {
+  async function loginUser({ email, password }) {
     const normEmail = email.trim().toLowerCase();
+
+    if (FIREBASE_ENABLED) {
+      const result = await firebaseLogin(normEmail, password);
+      if (!result.success) return result;
+      const profile = await loadUserProfile(result.uid);
+      if (!profile) return { success: false, error: 'invalid' };
+      setUser(profile);
+      return { success: true };
+    }
+
     const found = accounts.find(a => a.email.trim().toLowerCase() === normEmail && a.password === password);
     if (!found) return { success: false, error: 'invalid' };
     safeSet('deadend_session', found.id);
@@ -374,8 +439,15 @@ export function TripProvider({ children }) {
   }
 
   function logoutUser() {
+    if (FIREBASE_ENABLED) firebaseLogout();
     safeRemove('deadend_session');
     setUser(null);
+  }
+
+  // PinLogin: find an account by its emergency PIN without needing to be signed in.
+  async function findAccountByPin(pin) {
+    if (FIREBASE_ENABLED) return findUserByPin(pin);
+    return accounts.find(a => String(a.pin) === pin) || null;
   }
 
   function login(credentials) {
@@ -467,15 +539,13 @@ export function TripProvider({ children }) {
       const traveledKm = Math.round((activeTrip.traveledKm || 0) * 10) / 10;
       setUser(prev => {
         const count = (prev.tripsCompleted || 0) + 1;
+        const totalKm = (prev.totalKm || 0) + traveledKm;
         const badges = { 5: '🥉 Bronze Explorer', 10: '🥈 Silver Explorer', 20: '🥇 Gold Explorer' };
         if (badges[count]) {
           setTimeout(() => addNotification(`${badges[count]} статусын алдыңыз! 🎉`, 'success'), 1500);
         }
-        return {
-          ...prev,
-          tripsCompleted: count,
-          totalKm: (prev.totalKm || 0) + traveledKm,
-        };
+        if (FIREBASE_ENABLED) updateUserProfile(prev.id, { tripsCompleted: count, totalKm });
+        return { ...prev, tripsCompleted: count, totalKm };
       });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
       archiveTrip(DEVICE_ID, {
@@ -558,7 +628,8 @@ export function TripProvider({ children }) {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...updates };
-      setAccounts(accs => accs.map(a => a.id === updated.id ? updated : a));
+      if (FIREBASE_ENABLED) updateUserProfile(updated.id, updates);
+      else setAccounts(accs => accs.map(a => a.id === updated.id ? updated : a));
       return updated;
     });
   }
@@ -566,7 +637,7 @@ export function TripProvider({ children }) {
   return (
     <TripContext.Provider value={{
       user, updateUser, login, logout, isAdmin,
-      accounts, isAuthenticated: !!user, registerUser, loginUser, logoutUser,
+      accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, logoutUser, findAccountByPin,
       activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
       notifications, addNotification,
       currentCoords, isOnline,
