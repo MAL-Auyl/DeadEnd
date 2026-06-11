@@ -66,7 +66,8 @@ export default function ChatWidget() {
       {open && (
         <div style={{
           width: 340, maxWidth: 'calc(100vw - 48px)', height: 480, maxHeight: 'calc(100vh - 120px)',
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16,
+          background: 'rgba(19,16,9,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid var(--border)', borderRadius: 16,
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
         }}>
