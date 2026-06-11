@@ -37,7 +37,7 @@ function WeatherPill() {
 }
 
 export default function Home() {
-  const { activeTrip } = useTrip();
+  const { activeTrip, user } = useTrip();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
@@ -88,7 +88,7 @@ export default function Home() {
       </section>
 
       {/* ACTIVE TRIP BANNER */}
-      {activeTrip && (
+      {activeTrip && user && (
         <div className="active-trip-banner" onClick={() => navigate('/tracking')}>
           <span className="status-dot status-active" />
           <div style={{ flex: 1 }}>

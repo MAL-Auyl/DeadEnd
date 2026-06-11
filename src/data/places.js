@@ -50,8 +50,8 @@ export const PLACES = [
     coords: { lat: 43.8, lng: 53.2 },
     checkpoints: [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
-      { id: 'cp2', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 120 },
-      { id: 'cp3', name: 'Shetpe', nameKz: 'Шетпе', nameRu: 'Шетпе', coords: { lat: 43.18, lng: 52.12 }, km: 190 },
+      { id: 'cp2', name: 'Zhetybay', nameKz: 'Жетібай', nameRu: 'Жетыбай', coords: { lat: 43.594, lng: 52.079 }, km: 90 },
+      { id: 'cp3', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 120 },
       { id: 'cp4', name: 'Bozzhyra', nameKz: 'Бозжыра', nameRu: 'Бозжыра', coords: { lat: 43.8, lng: 53.2 }, km: 285 },
     ],
     routePoints: [
@@ -143,7 +143,8 @@ export const PLACES = [
     coords: { lat: 43.6, lng: 51.1 },
     checkpoints: [
       { id: 'cp1', name: 'Aktau', nameKz: 'Ақтау', nameRu: 'Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
-      { id: 'cp2', name: 'Beach', nameKz: 'Жағажай', nameRu: 'Пляж', coords: { lat: 43.6, lng: 51.1 }, km: 15 },
+      { id: 'cp2', name: 'Mangystau village', nameKz: 'Маңғыстау кенті', nameRu: 'пос. Мангистау', coords: { lat: 43.62, lng: 51.14 }, km: 8 },
+      { id: 'cp3', name: 'Bokty beach', nameKz: 'Бокты жағажайы', nameRu: 'Пляж Бокты', coords: { lat: 43.6, lng: 51.1 }, km: 15 },
     ],
     routePoints: [
       { id: 'rp1', type: 'photo', coords: { lat: 43.6, lng: 51.09 }, km: 15, title: 'Sunset photo spot', titleKz: 'Күн батысын суретке түсіру орны', titleRu: 'Точка для фото на закате', desc: 'Calm shoreline with great sunset views over the Caspian.', descKz: 'Каспий үстіндегі күн батысы көрінетін тыныш жағалау.', descRu: 'Спокойный берег с видом на закат над Каспием.' },
@@ -224,9 +225,10 @@ export const PLACES = [
     coords: { lat: 43.08, lng: 52.97 },
     checkpoints: [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
-      { id: 'cp2', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 150 },
-      { id: 'cp3', name: 'Descent point', nameKz: 'Түсу нүктесі', nameRu: 'Точка спуска', coords: { lat: 43.12, lng: 52.9 }, km: 295 },
-      { id: 'cp4', name: 'Karynzharyk bottom', nameKz: 'Қарынжарық түбі', nameRu: 'Дно Карынжарык', coords: { lat: 43.08, lng: 52.97 }, km: 310 },
+      { id: 'cp2', name: 'Zhetybay', nameKz: 'Жетібай', nameRu: 'Жетыбай', coords: { lat: 43.594, lng: 52.079 }, km: 90 },
+      { id: 'cp3', name: 'Zhanaozen', nameKz: 'Жаңаөзен', nameRu: 'Жанаозен', coords: { lat: 43.33, lng: 52.85 }, km: 150 },
+      { id: 'cp4', name: 'Descent point', nameKz: 'Түсу нүктесі', nameRu: 'Точка спуска', coords: { lat: 43.12, lng: 52.9 }, km: 295 },
+      { id: 'cp5', name: 'Karynzharyk bottom', nameKz: 'Қарынжарық түбі', nameRu: 'Дно Карынжарык', coords: { lat: 43.08, lng: 52.97 }, km: 310 },
     ],
     routePoints: [
       { id: 'rp1', type: 'animal', coords: { lat: 43.34, lng: 52.83 }, km: 145, title: 'Livestock crossing', titleKz: 'Мал өтетін жер', titleRu: 'Переход скота', desc: 'Herds cross near Zhanaozen pastures.', descKz: 'Жаңаөзен жайылымдары жанында үйірлер өтеді.', descRu: 'Возле пастбищ Жанаозена переходят стада.' },

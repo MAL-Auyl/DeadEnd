@@ -724,14 +724,125 @@ const DANGER_ZONES = [
   { name: 'Шеркала — ночёвка в горах', reason: 'Гипотермия, нет освещения',            level: 'medium',   color: '#d97706' },
 ];
 const MONTHS = [
-  { m: 'Янв', v: 42 }, { m: 'Фев', v: 58 }, { m: 'Мар', v: 134 },
-  { m: 'Апр', v: 289 }, { m: 'Май', v: 512 }, { m: 'Июн', v: 847 },
+  { m: 'Янв', v: 42,  sos: 0 }, { m: 'Фев', v: 58,  sos: 1 }, { m: 'Мар', v: 134, sos: 1 },
+  { m: 'Апр', v: 289, sos: 2 }, { m: 'Май', v: 512, sos: 3 }, { m: 'Июн', v: 847, sos: 1 },
 ];
 const TOURIST_TYPES = [
   { label: 'Казахстанцы', value: 535, pct: 63, color: '#2563eb' },
   { label: 'СНГ',         value: 178, pct: 21, color: '#16a34a' },
   { label: 'Иностранцы',  value: 134, pct: 16, color: '#d97706' },
 ];
+const SOS_BY_RISK = [
+  { label: 'Критический', value: 5, color: RISK.critical.color },
+  { label: 'Высокий',     value: 2, color: RISK.high.color },
+  { label: 'Средний',     value: 1, color: RISK.medium.color },
+];
+
+// ── Donut chart (SVG ring) ──────────────────────────────────────
+function DonutChart({ data, size = 120, strokeWidth = 16 }) {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={C.bg} strokeWidth={strokeWidth} />
+      {data.map((d, i) => {
+        const dash = (d.value / total) * circumference;
+        const seg = (
+          <circle
+            key={i} cx={size / 2} cy={size / 2} r={radius} fill="none"
+            stroke={d.color} strokeWidth={strokeWidth}
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            strokeDashoffset={-offset}
+          />
+        );
+        offset += dash;
+        return seg;
+      })}
+    </svg>
+  );
+}
+
+// ── Report export (CSV download + print/PDF) ────────────────────
+function downloadAkimatCSV(mergedRoutes) {
+  const rows = [
+    ['МЧС — Отчёт туристической активности', new Date().toLocaleDateString('ru-RU')],
+    [],
+    ['Метрика', 'Значение'],
+    ['Туристов за месяц', MONTHLY_STATS.total],
+    ['Иностранцев', MONTHLY_STATS.foreign],
+    ['В среднем в день', MONTHLY_STATS.avgDay],
+    ['SOS за месяц', MONTHLY_STATS.sos],
+    ['SOS закрыто', MONTHLY_STATS.sosClosed],
+    ['Среднее время реакции (мин)', MONTHLY_STATS.sosAvgMin],
+    [],
+    ['Месяц', 'Туристов', 'SOS'],
+    ...MONTHS.map(m => [m.m, m.v, m.sos]),
+    [],
+    ['Состав туристов', 'Кол-во', '%'],
+    ...TOURIST_TYPES.map(t => [t.label, t.value, t.pct]),
+    [],
+    ['Маршрут', 'Посещений', 'SOS'],
+    ...mergedRoutes.map(r => [r.name, r.visits, r.sos]),
+    [],
+    ['Опасная зона', 'Причина', 'Уровень'],
+    ...DANGER_ZONES.map(z => [z.name, z.reason, z.level]),
+  ];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mchs-akimat-otchet-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ── Export menu (CSV / Печать-PDF) ───────────────────────────────
+function ExportMenu({ mergedRoutes }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="akimat-print-hide" style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
+        background: C.surface, border: `1px solid ${C.border}`, color: C.text1,
+        fontSize: 12, fontWeight: 700, cursor: 'pointer',
+      }}>
+        ⬇ Скачать отчёт
+      </button>
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 90 }} />
+          <div style={{
+            position: 'absolute', top: '110%', right: 0, zIndex: 100, minWidth: 180,
+            background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)', overflow: 'hidden',
+          }}>
+            <button
+              onClick={() => { downloadAkimatCSV(mergedRoutes); setOpen(false); }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: C.text1, fontWeight: 600 }}
+              onMouseEnter={e => e.currentTarget.style.background = C.bg}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              📄 CSV (Excel)
+            </button>
+            <button
+              onClick={() => { setOpen(false); setTimeout(() => window.print(), 50); }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: C.text1, fontWeight: 600, borderTop: `1px solid ${C.border}` }}
+              onMouseEnter={e => e.currentTarget.style.background = C.bg}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              🖨️ Печать / PDF
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 function AkimatStats({ liveStats }) {
   const { total: liveTotal = 0, sos: liveSos = 0, routeCounts: liveRouteCounts = {}, connected = false } = liveStats || {};
@@ -748,24 +859,28 @@ function AkimatStats({ liveStats }) {
 
   const maxVisits = mergedRoutes[0]?.visits || 1;
   const maxMonth  = Math.max(...MONTHS.map(m => m.v));
+  const maxSos    = Math.max(...MONTHS.map(m => m.sos));
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: C.bg }}>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Мангыстауская область · Июнь 2026</div>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
-            padding: '2px 8px', borderRadius: 999,
-            color: connected ? C.green : C.text3,
-            background: connected ? C.greenBg : C.bg,
-            border: `1px solid ${connected ? C.greenBorder : C.border}`,
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? C.green : C.text3 }} />
-            {connected ? 'Live из Firebase' : 'Демо-режим (Firebase не подключен)'}
-          </span>
+    <div className="akimat-print-area" style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', background: C.bg }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 24 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Мангыстауская область · Июнь 2026</div>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600,
+              padding: '2px 8px', borderRadius: 999,
+              color: connected ? C.green : C.text3,
+              background: connected ? C.greenBg : C.bg,
+              border: `1px solid ${connected ? C.greenBorder : C.border}`,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? C.green : C.text3 }} />
+              {connected ? 'Live из Firebase' : 'Демо-режим (Firebase не подключен)'}
+            </span>
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Syne, sans-serif', color: C.text1 }}>Отчёт туристической активности</div>
+          <div style={{ fontSize: 12, color: C.text3, marginTop: 4 }}>Данные актуальны на {new Date().toLocaleDateString('ru-RU')} · Для Акимата Мангыстауской области</div>
         </div>
-        <div style={{ fontSize: 22, fontWeight: 800, fontFamily: 'Syne, sans-serif', color: C.text1 }}>Отчёт туристической активности</div>
-        <div style={{ fontSize: 12, color: C.text3, marginTop: 4 }}>Данные актуальны на {new Date().toLocaleDateString('ru-RU')} · Для Акимата Мангыстауской области</div>
+        <ExportMenu mergedRoutes={mergedRoutes} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -819,6 +934,38 @@ function AkimatStats({ liveStats }) {
           ))}
           <div style={{ marginTop: 12, padding: '9px 12px', borderRadius: 8, background: C.greenBg, border: `1px solid ${C.greenBorder}`, fontSize: 12, color: C.green, fontWeight: 500 }}>
             {MONTHLY_STATS.sosClosed}/{MONTHLY_STATS.sos} SOS закрыты · Ср. время реакции {MONTHLY_STATS.sosAvgMin} мин
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.text1, marginBottom: 16 }}>SOS-вызовы по месяцам</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 90 }}>
+            {MONTHS.map(({ m, sos }) => (
+              <div key={m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ fontSize: 10, color: C.text3, fontWeight: 600 }}>{sos > 0 ? sos : ''}</div>
+                <div style={{ width: '100%', borderRadius: '4px 4px 0 0', background: sos === maxSos && sos > 0 ? C.red : C.redBg, border: sos === maxSos && sos > 0 ? 'none' : `1px solid ${C.redBorder}`, height: `${sos > 0 ? Math.round((sos / maxSos) * 72) : 2}px` }} />
+                <div style={{ fontSize: 10, color: C.text3 }}>{m}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, fontSize: 11, color: C.text3, textAlign: 'center' }}>Всего за сезон — {MONTHLY_STATS.sos} обращений</div>
+        </div>
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', gap: 20 }}>
+          <DonutChart data={SOS_BY_RISK} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.text1, marginBottom: 12 }}>SOS по уровню риска</div>
+            {SOS_BY_RISK.map(s => (
+              <div key={s.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
+                  <span style={{ fontSize: 12, color: C.text2 }}>{s.label}</span>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: C.text1 }}>{s.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1066,7 +1213,7 @@ export default function AdminPanel() {
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: C.bg, fontFamily: 'DM Sans, sans-serif', color: C.text1 }}>
+      <div className="akimat-print-area" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: C.bg, fontFamily: 'DM Sans, sans-serif', color: C.text1 }}>
 
         {/* Overdue transition alerts */}
         {adminAlerts.length > 0 && (
@@ -1086,8 +1233,9 @@ export default function AdminPanel() {
         )}
 
         {/* Header */}
-        <div style={{ padding: '14px 24px', borderBottom: `1px solid ${C.border}`, flexShrink: 0, background: C.surface }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: view === 'ops' ? 14 : 0 }}>
+        <div className="akimat-print-hide" style={{ padding: '14px 24px', borderBottom: `1px solid ${C.border}`, flexShrink: 0, background: C.surface }}>
+          {/* paddingRight reserves space for the floating "← App / Выйти" buttons in MChSApp, which sit top-right with zIndex:200 and would otherwise overlap and intercept clicks on the view toggle below */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: view === 'ops' ? 14 : 0, paddingRight: 150 }}>
             <div>
               <div style={{ fontSize: 17, fontWeight: 800, fontFamily: 'Syne, sans-serif', color: C.text1 }}>МЧС — Центр мониторинга</div>
               <div style={{ fontSize: 11, color: C.text3, marginTop: 2 }}>Мангыстауская область · Нажмите туриста для подробностей</div>
@@ -1170,7 +1318,7 @@ export default function AdminPanel() {
             />
           </>
         ) : (
-          <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
+          <div className="akimat-print-area" style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
             <AkimatStats liveStats={liveStats} />
           </div>
         )}

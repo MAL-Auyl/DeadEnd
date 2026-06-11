@@ -33,12 +33,13 @@ Your job:
 - Answer questions about the routes/places below (distance, difficulty, what to expect, what to pack, safety tips).
 - Recommend 1-3 routes based on the user's preferences (time available, fitness level, interest in mountains/sea/culture, etc.), referencing the route names from the catalog.
 - Give practical safety advice (water, 4x4 vehicles, offline maps, heat, signal loss) when relevant — the app has live weather, SOS, and checkpoint tracking features the user can use.
+- Translate words and phrases on request — e.g. "how do I say X in Kazakh/Russian/English" or "translate: ...". Reply with the translation (and a short pronunciation hint if helpful), in the requested language, even if that differs from the user's app language. This helps tourists communicate with locals and rescuers.
 - Keep answers concise and conversational (2-5 sentences), using the local route names.
 
 Available routes (id: name — distance, duration, rating, tags — description):
 ${catalog}
 
-If asked something unrelated to travel/safety in Mangystau, gently steer the conversation back to trip planning.`;
+If asked something unrelated to travel/safety/translation in Mangystau, gently steer the conversation back to trip planning.`;
 }
 
 function buildProfileSection(profile) {
@@ -54,6 +55,33 @@ function buildProfileSection(profile) {
   return `\n\nThe current user has shared this personal profile:\n${parts.map(p => `- ${p}`).join('\n')}\n\nUse it to personalize practical advice — e.g. warn about allergens in local food/drinks, adjust pace/water/gear suggestions for their build, or flag a route as too demanding given their notes — but ONLY when it's relevant to what they asked. Don't recite this profile back or bring it up in unrelated answers, and never give medical diagnoses or treatment advice.`;
 }
 
+function buildLiveContextSection(live) {
+  if (!live) return '';
+  const parts = [];
+
+  if (live.coords) {
+    parts.push(`Current GPS location: ${live.coords.lat.toFixed(3)}, ${live.coords.lng.toFixed(3)}`);
+  }
+
+  if (live.weather) {
+    const w = live.weather;
+    parts.push(`Current weather: ${w.tempNow}°C, wind ${w.windNow} m/s. Today's range: ${w.tempMinToday}–${w.tempMaxToday}°C, rain chance ${w.rainChanceToday}%.`);
+  }
+
+  if (live.trip) {
+    const trip = live.trip;
+    const statusDesc = trip.status === 'sos' ? 'SOS ACTIVE — the user has triggered an emergency alert'
+      : trip.status === 'overdue' ? 'OVERDUE — the user has not checked in by their expected return time'
+      : trip.status === 'active' ? 'in progress'
+      : trip.status;
+    parts.push(`Active trip: heading to "${trip.placeName}", status: ${statusDesc}, expected return: ${trip.expectedReturn}.`);
+  }
+
+  if (!parts.length) return '';
+
+  return `\n\nLive context about the user's current situation:\n${parts.map(p => `- ${p}`).join('\n')}\n\nGround your answers in this real-world context when relevant — e.g. tailor packing/safety advice to the actual current weather, mention nearby routes relative to their location, or react with urgency if their trip status is overdue/SOS. If the trip status is overdue or SOS, gently but clearly encourage them to check in via the app's tracking screen or use the SOS button. Don't mention this context if it's irrelevant to the question.`;
+}
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -66,14 +94,14 @@ export default async function handler(req) {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  const { messages, lang, profile } = body || {};
+  const { messages, lang, profile, live } = body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response('Missing messages', { status: 400 });
   }
 
   const result = streamText({
     model: google('gemini-2.5-flash'),
-    system: buildSystemPrompt(lang) + buildProfileSection(profile),
+    system: buildSystemPrompt(lang) + buildProfileSection(profile) + buildLiveContextSection(live),
     messages,
   });
 

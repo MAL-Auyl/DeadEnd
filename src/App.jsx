@@ -9,7 +9,6 @@ const Home        = lazy(() => import('./pages/Home'));
 const PlaceDetail = lazy(() => import('./pages/PlaceDetail'));
 const PlanTrip    = lazy(() => import('./pages/PlanTrip'));
 const Tracking    = lazy(() => import('./pages/Tracking'));
-const Translator  = lazy(() => import('./pages/Translator'));
 const Profile     = lazy(() => import('./pages/Profile'));
 const AdminPanel  = lazy(() => import('./pages/AdminPanel'));
 const PinLogin    = lazy(() => import('./pages/PinLogin'));
@@ -67,9 +66,6 @@ function TopNav() {
             {t.nav_profile}
           </NavLink>
         )}
-        <NavLink to="/translator" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-          {t.nav_translator}
-        </NavLink>
         <NavLink to="/mchs" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
           {t.nav_mchs}
         </NavLink>
@@ -79,7 +75,7 @@ function TopNav() {
       </div>
 
       <div className="nav-right">
-        {activeTrip && (
+        {activeTrip && user && (
           <div className="nav-trip" onClick={() => navigate('/tracking')}>
             <span className="status-dot status-active" style={{ width: 7, height: 7 }} />
             {t.nav_in_trip} · {activeTrip.placeName}
@@ -117,7 +113,7 @@ function TopNav() {
 }
 
 // Routes reachable without being logged in (public browsing + emergency SOS access + auth pages)
-const PUBLIC_PATHS = ['/', '/login', '/register', '/pin', '/admin-login', '/translator'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/pin', '/admin-login'];
 
 function isPublicPath(pathname) {
   return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/place/');
@@ -144,7 +140,6 @@ function Layout() {
             <Route path="/place/:id" element={<PlaceDetail />} />
             <Route path="/plan/:id"  element={<PlanTrip />} />
             <Route path="/tracking"  element={<Tracking />} />
-            <Route path="/translator" element={<Translator />} />
             <Route path="/profile"   element={<Profile />} />
             <Route path="/pin"       element={<PinLogin />} />
             <Route path="/login"     element={<Login />} />
@@ -169,12 +164,12 @@ function MChSApp() {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)', position: 'relative' }}>
       <Notifications />
-      <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 200, display: 'flex', gap: 8 }}>
+      <div className="akimat-print-hide" style={{ position: 'absolute', top: 14, right: 16, zIndex: 200, display: 'flex', gap: 8 }}>
         <button
           onClick={() => navigate('/')}
           style={{
-            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-            color: 'rgba(255,255,255,0.5)', borderRadius: 8,
+            background: '#f4f5f7', border: '1px solid #e2e4e9',
+            color: '#4b5264', borderRadius: 8,
             padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}
         >
@@ -183,8 +178,8 @@ function MChSApp() {
         <button
           onClick={() => { logout(); navigate('/admin-login'); }}
           style={{
-            background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)',
-            color: 'var(--red)', borderRadius: 8,
+            background: '#fef2f2', border: '1px solid #fca5a5',
+            color: '#dc2626', borderRadius: 8,
             padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}
         >

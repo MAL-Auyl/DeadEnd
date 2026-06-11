@@ -1,7 +1,12 @@
-// Shared text-to-speech helper: picks the most natural-sounding voice
-// available for a language instead of the OS default robotic voice.
+// Shared text-to-speech helper. Tries the Google Cloud TTS-backed /api/tts
+// endpoint for a natural human voice (kk/ru/en), falling back to the
+// browser's SpeechSynthesis (with the best available system voice) if the
+// API isn't configured or the request fails.
+
+const SERVER_TTS_LANGS = new Set(['ru-RU', 'en-US', 'kk-KZ']);
 
 let voicesPromise = null;
+let currentAudio = null;
 
 function loadVoices() {
   if (voicesPromise) return voicesPromise;
@@ -35,10 +40,8 @@ function pickVoice(voices, bcpLang) {
   );
 }
 
-// Speaks `text` in `bcpLang` (e.g. 'ru-RU'). Returns the SpeechSynthesisUtterance
-// so callers can attach onstart/onend handlers, or pass them via `opts`.
-export async function speakText(text, bcpLang, { onStart, onEnd } = {}) {
-  if (!('speechSynthesis' in window) || !text) return null;
+async function speakWithBrowser(text, bcpLang, { onStart, onEnd } = {}) {
+  if (!('speechSynthesis' in window)) return null;
   const synth = window.speechSynthesis;
   synth.cancel();
 
@@ -59,6 +62,56 @@ export async function speakText(text, bcpLang, { onStart, onEnd } = {}) {
   return utter;
 }
 
+// Tries the Google Cloud TTS proxy. Returns the playing Audio element, or
+// null if the API isn't available/configured (caller should fall back).
+async function speakWithServer(text, bcpLang, { onStart, onEnd } = {}) {
+  const res = await fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, lang: bcpLang }),
+  });
+  if (!res.ok) return null;
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+
+  const cleanup = () => {
+    URL.revokeObjectURL(url);
+    if (currentAudio === audio) currentAudio = null;
+    onEnd?.();
+  };
+  audio.onplay = () => onStart?.();
+  audio.onended = cleanup;
+  audio.onerror = cleanup;
+
+  currentAudio = audio;
+  await audio.play();
+  return audio;
+}
+
+// Speaks `text` in `bcpLang` (e.g. 'ru-RU'). Returns the SpeechSynthesisUtterance
+// or Audio element so callers can pass onStart/onEnd handlers via `opts`.
+export async function speakText(text, bcpLang, opts = {}) {
+  if (!text) return null;
+  stopSpeaking();
+
+  if (SERVER_TTS_LANGS.has(bcpLang)) {
+    try {
+      const playing = await speakWithServer(text, bcpLang, opts);
+      if (playing) return playing;
+    } catch {
+      // fall through to browser TTS
+    }
+  }
+
+  return speakWithBrowser(text, bcpLang, opts);
+}
+
 export function stopSpeaking() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }

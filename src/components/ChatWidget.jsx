@@ -1,16 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../context/LangContext';
 import { useTrip } from '../context/TripContext';
-import TranslatorPanel from './TranslatorPanel';
+import { useWeather } from '../hooks/useWeather';
 import { speakText, stopSpeaking } from '../lib/tts';
 
 const BCP47 = { kz: 'kk-KZ', ru: 'ru-RU', en: 'en-US' };
+const AKTAU = { lat: 43.65, lng: 51.17 };
 
 export default function ChatWidget() {
   const { t, lang } = useLang();
-  const { user } = useTrip();
+  const { user, activeTrip, currentCoords } = useTrip();
+  const { weather } = useWeather(currentCoords || AKTAU);
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState('chat');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,11 +69,27 @@ export default function ChatWidget() {
       specialMarks: user.specialMarks,
     } : null;
 
+    const live = {
+      coords: currentCoords ? { lat: currentCoords.lat, lng: currentCoords.lng } : null,
+      weather: weather ? {
+        tempNow: weather.current.temp,
+        windNow: weather.current.wind,
+        tempMinToday: weather.today.tempMin,
+        tempMaxToday: weather.today.tempMax,
+        rainChanceToday: weather.today.rainChance,
+      } : null,
+      trip: activeTrip ? {
+        placeName: activeTrip.placeName,
+        status: activeTrip.status,
+        expectedReturn: activeTrip.expectedReturn,
+      } : null,
+    };
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages, lang, profile }),
+        body: JSON.stringify({ messages: nextMessages, lang, profile, live }),
       });
       if (!res.ok || !res.body) throw new Error('bad response');
 
@@ -165,107 +182,80 @@ export default function ChatWidget() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
-            {[
-              { key: 'chat', label: `🤖 ${t.chat_tab_ai}` },
-              { key: 'translate', label: `🌐 ${t.chat_tab_translate}` },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setMode(tab.key)}
-                style={{
-                  flex: 1, padding: '8px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  background: mode === tab.key ? 'var(--surface2)' : 'transparent',
-                  border: 'none', borderBottom: `2px solid ${mode === tab.key ? 'var(--purple)' : 'transparent'}`,
-                  color: mode === tab.key ? 'var(--text)' : 'var(--text3)',
-                }}
-              >{tab.label}</button>
+          {/* Messages */}
+          <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{
+              alignSelf: 'flex-start', maxWidth: '85%', padding: '10px 13px', borderRadius: '4px 14px 14px 14px',
+              background: 'var(--surface2)', border: '1px solid var(--border)', fontSize: 13, color: 'var(--text2)', lineHeight: 1.5,
+            }}>
+              {t.chat_welcome}
+            </div>
+
+            {messages.map((m, i) => (
+              <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{
+                  padding: '10px 13px',
+                  borderRadius: m.role === 'user' ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
+                  background: m.role === 'user' ? 'var(--purple)' : 'var(--surface2)',
+                  border: m.role === 'user' ? 'none' : '1px solid var(--border)',
+                  color: m.role === 'user' ? '#fff' : 'var(--text2)',
+                  fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap',
+                }}>
+                  {m.content || (loading && i === messages.length - 1 ? '…' : '')}
+                </div>
+                {ttsSupported && m.role === 'assistant' && m.content && !(loading && i === messages.length - 1) && (
+                  <button
+                    onClick={() => speak(m.content, i)}
+                    title={speakingId === i ? t.chat_stop_speak : t.chat_speak}
+                    style={{
+                      alignSelf: 'flex-start', background: 'transparent', border: 'none',
+                      color: speakingId === i ? 'var(--purple)' : 'var(--text3)', fontSize: 13, cursor: 'pointer', padding: '0 4px',
+                      ...(speakingId === i ? { animation: 'pulse 1.2s infinite' } : {}),
+                    }}
+                  >{speakingId === i ? '⏹️' : '🔊'}</button>
+                )}
+              </div>
             ))}
+
+            {error && (
+              <div style={{
+                alignSelf: 'flex-start', maxWidth: '85%', padding: '10px 13px', borderRadius: '4px 14px 14px 14px',
+                background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', fontSize: 13, color: 'var(--red)',
+              }}>
+                {t.chat_error}
+              </div>
+            )}
           </div>
 
-          {mode === 'chat' ? (
-            <>
-              {/* Messages */}
-              <div ref={listRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{
-                  alignSelf: 'flex-start', maxWidth: '85%', padding: '10px 13px', borderRadius: '4px 14px 14px 14px',
-                  background: 'var(--surface2)', border: '1px solid var(--border)', fontSize: 13, color: 'var(--text2)', lineHeight: 1.5,
-                }}>
-                  {t.chat_welcome}
-                </div>
-
-                {messages.map((m, i) => (
-                  <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{
-                      padding: '10px 13px',
-                      borderRadius: m.role === 'user' ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
-                      background: m.role === 'user' ? 'var(--purple)' : 'var(--surface2)',
-                      border: m.role === 'user' ? 'none' : '1px solid var(--border)',
-                      color: m.role === 'user' ? '#fff' : 'var(--text2)',
-                      fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap',
-                    }}>
-                      {m.content || (loading && i === messages.length - 1 ? '…' : '')}
-                    </div>
-                    {ttsSupported && m.role === 'assistant' && m.content && !(loading && i === messages.length - 1) && (
-                      <button
-                        onClick={() => speak(m.content, i)}
-                        title={speakingId === i ? t.chat_stop_speak : t.chat_speak}
-                        style={{
-                          alignSelf: 'flex-start', background: 'transparent', border: 'none',
-                          color: speakingId === i ? 'var(--purple)' : 'var(--text3)', fontSize: 13, cursor: 'pointer', padding: '0 4px',
-                          ...(speakingId === i ? { animation: 'pulse 1.2s infinite' } : {}),
-                        }}
-                      >{speakingId === i ? '⏹️' : '🔊'}</button>
-                    )}
-                  </div>
-                ))}
-
-                {error && (
-                  <div style={{
-                    alignSelf: 'flex-start', maxWidth: '85%', padding: '10px 13px', borderRadius: '4px 14px 14px 14px',
-                    background: 'rgba(255,71,87,0.08)', border: '1px solid rgba(255,71,87,0.2)', fontSize: 13, color: 'var(--red)',
-                  }}>
-                    {t.chat_error}
-                  </div>
-                )}
-              </div>
-
-              {/* Input */}
-              <div style={{ padding: 12, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-                <input
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={listening ? t.chat_listening : t.chat_placeholder}
-                  className="form-input"
-                  style={{ flex: 1, fontSize: 13 }}
-                  disabled={loading || listening}
-                />
-                {speechSupported && (
-                  <button
-                    onClick={toggleListening}
-                    disabled={loading}
-                    className="btn btn-glass"
-                    style={{
-                      padding: '0 14px', fontSize: 16,
-                      ...(listening ? { background: 'rgba(255,71,87,0.15)', borderColor: 'rgba(255,71,87,0.4)', animation: 'pulse 1.2s infinite' } : {}),
-                    }}
-                  >🎤</button>
-                )}
-                <button
-                  onClick={() => send()}
-                  disabled={loading || !input.trim()}
-                  className="btn btn-primary"
-                  style={{ padding: '0 16px', opacity: (loading || !input.trim()) ? 0.5 : 1 }}
-                >{t.chat_send}</button>
-              </div>
-            </>
-          ) : (
-            <div style={{ flex: 1, overflowY: 'auto', padding: 14 }}>
-              <TranslatorPanel compact />
-            </div>
-          )}
+          {/* Input */}
+          <div style={{ padding: 12, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={listening ? t.chat_listening : t.chat_placeholder}
+              className="form-input"
+              style={{ flex: 1, fontSize: 13 }}
+              disabled={loading || listening}
+            />
+            {speechSupported && (
+              <button
+                onClick={toggleListening}
+                disabled={loading}
+                className="btn btn-glass"
+                style={{
+                  padding: '0 14px', fontSize: 16,
+                  ...(listening ? { background: 'rgba(255,71,87,0.15)', borderColor: 'rgba(255,71,87,0.4)', animation: 'pulse 1.2s infinite' } : {}),
+                }}
+              >🎤</button>
+            )}
+            <button
+              onClick={() => send()}
+              disabled={loading || !input.trim()}
+              className="btn btn-primary"
+              style={{ padding: '0 16px', opacity: (loading || !input.trim()) ? 0.5 : 1 }}
+            >{t.chat_send}</button>
+          </div>
         </div>
       )}
 

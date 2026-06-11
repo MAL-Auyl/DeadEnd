@@ -1517,3 +1517,10 @@ html, body, #root {
 @media (max-width: 480px) {
   .places-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Akimat report printing (МЧС → Акимат tab → "Печать / PDF") ── */
+@media print {
+  html, body, #root { overflow: visible !important; height: auto !important; }
+  .akimat-print-hide { display: none !important; }
+  .akimat-print-area { overflow: visible !important; height: auto !important; flex: none !important; }
+}
