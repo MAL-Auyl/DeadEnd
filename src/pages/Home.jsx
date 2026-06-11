@@ -3,7 +3,7 @@ import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import { useWeather, weatherIcon } from '../hooks/useWeather';
-import heroPhoto from '../assets/photos/robmiddleton__1780509245_3911514779171669734_7000075621.jpg';
+import heroPhoto from '../assets/photos/karynzharyk-hero.png';
 
 const AKTAU = { lat: 43.65, lng: 51.17 };
 
