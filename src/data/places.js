@@ -28,7 +28,12 @@ import sarytas6 from '../assets/photos/sarytas/6.webp';
 import sarytas7 from '../assets/photos/sarytas/7.webp';
 import shakpakAta4 from '../assets/photos/shakpak-ata/4.webp';
 import shakpakAta5 from '../assets/photos/shakpak-ata/5.webp';
-import ayraqty4 from '../assets/photos/ayraqty/4.webp';
+import ayraqty1 from '../assets/photos/ayraqty/1.jpg';
+import ayraqty2 from '../assets/photos/ayraqty/2.jpg';
+import ayraqty3 from '../assets/photos/ayraqty/3.jpg';
+import ayraqty4 from '../assets/photos/ayraqty/4.jpg';
+import ayraqty5 from '../assets/photos/ayraqty/5.jpg';
+import ayraqty6 from '../assets/photos/ayraqty/6.jpg';
 import bokty1 from '../assets/photos/caspian-beach/1.jpg';
 import bokty2 from '../assets/photos/caspian-beach/2.jpg';
 import bokty3 from '../assets/photos/caspian-beach/3.jpg';
@@ -86,41 +91,36 @@ export const PLACES = [
   },
   {
     id: 'ayraqty',
-    name: 'Karynzharyk canyon',
-    nameKz: 'Қарынжарық каньоны',
-    nameRu: 'Каньон Карынжарык',
-    region: 'Mangystau',
-    distance: 140,
-    duration: '2 hr 10 min',
+    name: 'Valley of Castles',
+    nameKz: 'Айрақты (Қамалдар алқабы)',
+    nameRu: 'Долина замков Айракты',
+    region: 'Near Shetpe, Mangystau',
+    distance: 180,
+    duration: '2 hr 28 min',
     rating: 4.8,
     reviews: 214,
-    category: ['popular', 'mountain', 'beach'],
-    image: 'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Airakty-Valley-of-Castles-1024x682.jpg',
-    images: [
-      'https://central-asia.guide/wp-content/uploads/2024/10/Airakty-Mangystau-1024x682.jpg',
-      'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Airakty-Valley-of-Castles-1024x682.jpg',
-      'https://eurasia.travel/wp-content/uploads/2024/10/11.-Dolina-Zamkov-Mangystau-1024x683.jpg',
-      ayraqty4,
-    ],
-    description: 'A spectacular canyon with layered red and white rock formations. One of the most photogenic spots in Mangystau.',
-    descriptionKz: 'Қызыл және ақ тау жыныстарының қабаттары бар керемет каньон. Мангыстаудың ең фотогенді жерлерінің бірі.',
-    descriptionRu: 'Впечатляющий каньон со слоистыми красными и белыми скальными образованиями. Одно из самых фотогеничных мест Мангистау.',
-    coords: { lat: 43.5, lng: 52.0 },
+    category: ['popular', 'mountain'],
+    image: ayraqty1,
+    images: [ayraqty1, ayraqty2, ayraqty3, ayraqty4, ayraqty5, ayraqty6],
+    description: 'Ayraqty — the "Valley of Castles": wind-carved remnant ridges that look like a fairy-tale desert city of medieval castles, spires and colonnades. The valley got its name from sketches made here by Taras Shevchenko in 1851.',
+    descriptionKz: 'Айрақты — «Қамалдар алқабы». Жел мүсіндеген останец жоталар ертегідегі қамалдар, мұнаралар мен бағаналарды елестетеді. Бұл алқапқа есім 1851 жылы осында болған Тарас Шевченко салған суреттерден кейін берілген.',
+    descriptionRu: 'Айракты — «Долина замков»: останцовые гряды, выточенные ветром в форме сказочного пустынного города со шпилями, башнями и колоннадами средневековых замков. Название закрепилось благодаря рисункам Тараса Шевченко, побывавшего здесь в 1851 году.',
+    coords: { lat: 44.2421, lng: 52.0896 },
     checkpoints: [
       { id: 'cp1', name: 'Aktau start', nameKz: 'Ақтау старты', nameRu: 'Старт Актау', coords: { lat: 43.65, lng: 51.17 }, km: 0 },
-      { id: 'cp2', name: 'Karynzharyk', nameKz: 'Қарынжарық', nameRu: 'Карынжарык', coords: { lat: 43.5, lng: 52.0 }, km: 140 },
+      { id: 'cp2', name: 'Ayraqty', nameKz: 'Айрақты', nameRu: 'Айракты', coords: { lat: 44.2421, lng: 52.0896 }, km: 180 },
     ],
     routePoints: [
-      { id: 'rp1', type: 'animal', coords: { lat: 43.564, lng: 51.643 }, km: 80, title: 'Pasture crossing', titleKz: 'Жайылым өткелі', titleRu: 'Пастбищный переход', desc: 'Sheep herds cross frequently. Watch your speed.', descKz: 'Қой үйірлері жиі өтеді. Жылдамдықты бақылаңыз.', descRu: 'Здесь часто проходят отары овец. Следите за скоростью.' },
-      { id: 'rp2', type: 'photo', coords: { lat: 43.49, lng: 52.0 }, km: 138, title: 'Canyon overlook', titleKz: 'Каньон көрінісі', titleRu: 'Смотровая на каньон', desc: 'Iconic red-and-white layered cliffs — perfect for photos.', descKz: 'Қызыл-ақ қабатты жарлар — фотоға өте жақсы.', descRu: 'Культовые красно-белые слоистые скалы — идеально для фото.' },
+      { id: 'rp1', type: 'animal', coords: { lat: 43.93, lng: 51.6 }, km: 85, title: 'Pasture crossing', titleKz: 'Жайылым өткелі', titleRu: 'Пастбищный переход', desc: 'Camel and sheep herds cross frequently. Watch your speed.', descKz: 'Түйе мен қой үйірлері жиі өтеді. Жылдамдықты бақылаңыз.', descRu: 'Здесь часто проходят стада верблюдов и овец. Следите за скоростью.' },
+      { id: 'rp2', type: 'photo', coords: { lat: 44.24, lng: 52.08 }, km: 178, title: 'Castle ridges overlook', titleKz: 'Қамал жоталарының көрінісі', titleRu: 'Смотровая на гряды-замки', desc: 'Spires and ridges resembling castle ruins — perfect for photos.', descKz: 'Қамал қирандыларына ұқсас мұнаралар мен жоталар — фотоға өте жақсы.', descRu: 'Шпили и гряды, похожие на руины замков — идеально для фото.' },
     ],
     warnings: [
       { type: 'heat', icon: '☀️', title: 'Very hot in summer', titleKz: 'Жазда өте ыстық', titleRu: 'Очень жарко летом', desc: 'Up to +42°C. Start your hike early morning or evening', descKz: '+42°C дейін. Таңертең ерте немесе кешке жүріңіз', descRu: 'До +42°C. Начинайте поход рано утром или вечером' },
       { type: 'animal', icon: '🐄', title: 'Livestock near road', titleKz: 'Жол жанында мал', titleRu: 'Скот возле дороги', desc: 'Slow down in pasture zones', descKz: 'Жайылым аймақтарында баяулаңыз', descRu: 'Снижайте скорость в зонах пастбищ' },
     ],
     mamaSays: [
-      { icon: '💧', tip: 'It gets very hot. Take 2–3 liters of water. There are no springs in the canyon.', tipKz: 'Өте ыстық. 2-3 литр су ал. Каньонда бұлақ жоқ.', tipRu: 'Здесь очень жарко. Возьми 2–3 литра воды. В каньоне нет источников.' },
-      { icon: '👟', tip: 'Wear closed shoes with good grip. The rocks are slippery.', tipKz: 'Тұтқыр табанды жабық аяқ киім кий. Тастар тайғақ.', tipRu: 'Надень закрытую обувь с хорошим протектором. Камни скользкие.' },
+      { icon: '💧', tip: 'It gets very hot. Take 2–3 liters of water. There are no springs among the ridges.', tipKz: 'Өте ыстық. 2-3 литр су ал. Жоталар арасында бұлақ жоқ.', tipRu: 'Здесь очень жарко. Возьми 2–3 литра воды. Среди гряд нет источников.' },
+      { icon: '👟', tip: 'Wear closed shoes with good grip. The eroded rocks are slippery.', tipKz: 'Тұтқыр табанды жабық аяқ киім кий. Мүжілген тастар тайғақ.', tipRu: 'Надень закрытую обувь с хорошим протектором. Выветренные камни скользкие.' },
       { icon: '📸', tip: 'Golden hour photos are magical here. Stay for sunset!', tipKz: 'Күн батқанда фото ғажайып шығады. Батысқа дейін тұр!', tipRu: 'Фото в золотой час здесь волшебные. Останься до заката!' },
     ],
     vehicles: ['Toyota Land Cruiser', 'Mitsubishi Pajero', 'Any SUV'],
@@ -485,7 +485,7 @@ export const PLACES = [
 
 export const VIBES = {
   'caspian-beach': { name: 'Бокты тауы', mood: 'Mystical & Remote', color: '#D97706', tracks: ['Desert plateau ambient', 'Steppe wind & silence', 'Kazakh folk fusion'] },
-  'ayraqty': { name: 'Қарынжарық каньоны', mood: 'Epic & Cinematic', color: '#F59E0B', tracks: ['Canyon winds orchestral', 'Desert rock adventure', 'Ancient lands soundtrack'] },
+  'ayraqty': { name: 'Айрақты — Қамалдар алқабы', mood: 'Epic & Cinematic', color: '#F59E0B', tracks: ['Canyon winds orchestral', 'Desert rock adventure', 'Ancient lands soundtrack'] },
   'bozzhyra': { name: 'Бозжыра платосы', mood: 'Mystical & Deep', color: '#8B5CF6', tracks: ['Plateau silence & wind', 'Kazakh folk fusion', 'End of the world ambient'] },
   'sherkala': { name: 'Шеркала тауы', mood: 'Spiritual & Powerful', color: '#10B981', tracks: ['Sacred mountain tones', 'Steppe epic', 'Dombyra & modern'] },
   'highway': { name: 'Жол бойы', mood: 'Road trip energy', color: '#EF4444', tracks: ['Kazakh rock & drive', 'Highway beats', 'Midnight road mix'] },
@@ -551,7 +551,7 @@ export const MOCK_ACTIVE_TOURISTS = [
     name: 'Maria Schmidt',
     photo: 'https://i.pravatar.cc/150?img=5',
     phone: '+49 176 555 0100',
-    destination: 'Karynzharyk canyon',
+    destination: 'Valley of Castles',
     status: 'overdue',
     startTime: '07:00',
     expectedReturn: '14:00',
