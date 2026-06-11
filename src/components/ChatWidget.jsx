@@ -3,6 +3,7 @@ import { useLang } from '../context/LangContext';
 import { useTrip } from '../context/TripContext';
 import { useWeather } from '../hooks/useWeather';
 import { speakText, stopSpeaking } from '../lib/tts';
+import { MascotFace } from './Mascot';
 
 const BCP47 = { kz: 'kk-KZ', ru: 'ru-RU', en: 'en-US' };
 const AKTAU = { lat: 43.65, lng: 51.17 };
@@ -159,9 +160,14 @@ export default function ChatWidget() {
             padding: '14px 16px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)', fontFamily: 'Syne, sans-serif' }}>{t.chat_title}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{t.chat_subtitle}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#EFD9AE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <MascotFace size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)', fontFamily: 'Syne, sans-serif' }}>{t.chat_title}</div>
+                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{t.chat_subtitle}</div>
+              </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {ttsSupported && (
@@ -192,28 +198,35 @@ export default function ChatWidget() {
             </div>
 
             {messages.map((m, i) => (
-              <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div style={{
-                  padding: '10px 13px',
-                  borderRadius: m.role === 'user' ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
-                  background: m.role === 'user' ? 'var(--purple)' : 'var(--surface2)',
-                  border: m.role === 'user' ? 'none' : '1px solid var(--border)',
-                  color: m.role === 'user' ? '#fff' : 'var(--text2)',
-                  fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap',
-                }}>
-                  {m.content || (loading && i === messages.length - 1 ? '…' : '')}
-                </div>
-                {ttsSupported && m.role === 'assistant' && m.content && !(loading && i === messages.length - 1) && (
-                  <button
-                    onClick={() => speak(m.content, i)}
-                    title={speakingId === i ? t.chat_stop_speak : t.chat_speak}
-                    style={{
-                      alignSelf: 'flex-start', background: 'transparent', border: 'none',
-                      color: speakingId === i ? 'var(--purple)' : 'var(--text3)', fontSize: 13, cursor: 'pointer', padding: '0 4px',
-                      ...(speakingId === i ? { animation: 'pulse 1.2s infinite' } : {}),
-                    }}
-                  >{speakingId === i ? '⏹️' : '🔊'}</button>
+              <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', alignItems: 'flex-end', gap: 6 }}>
+                {m.role === 'assistant' && (
+                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#EFD9AE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <MascotFace size={18} />
+                  </div>
                 )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{
+                    padding: '10px 13px',
+                    borderRadius: m.role === 'user' ? '14px 4px 14px 14px' : '4px 14px 14px 14px',
+                    background: m.role === 'user' ? 'var(--purple)' : 'var(--surface2)',
+                    border: m.role === 'user' ? 'none' : '1px solid var(--border)',
+                    color: m.role === 'user' ? '#fff' : 'var(--text2)',
+                    fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap',
+                  }}>
+                    {m.content || (loading && i === messages.length - 1 ? '…' : '')}
+                  </div>
+                  {ttsSupported && m.role === 'assistant' && m.content && !(loading && i === messages.length - 1) && (
+                    <button
+                      onClick={() => speak(m.content, i)}
+                      title={speakingId === i ? t.chat_stop_speak : t.chat_speak}
+                      style={{
+                        alignSelf: 'flex-start', background: 'transparent', border: 'none',
+                        color: speakingId === i ? 'var(--purple)' : 'var(--text3)', fontSize: 13, cursor: 'pointer', padding: '0 4px',
+                        ...(speakingId === i ? { animation: 'pulse 1.2s infinite' } : {}),
+                      }}
+                    >{speakingId === i ? '⏹️' : '🔊'}</button>
+                  )}
+                </div>
               </div>
             ))}
 
@@ -262,13 +275,14 @@ export default function ChatWidget() {
       {/* Toggle button */}
       <button
         onClick={() => setOpen(o => !o)}
+        title="Таумару"
         style={{
           width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
-          background: 'var(--purple)', color: '#fff', fontSize: 24,
+          background: open ? 'var(--purple)' : '#EFD9AE', color: '#fff', fontSize: 24,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 6px 20px rgba(108,99,255,0.4)',
         }}
-      >{open ? '×' : '💬'}</button>
+      >{open ? '×' : <MascotFace size={38} />}</button>
     </div>
   );
 }

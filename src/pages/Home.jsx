@@ -4,6 +4,7 @@ import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import { useWeather, weatherIcon } from '../hooks/useWeather';
 import heroPhoto from '../assets/photos/karynzharyk-hero.png';
+import Mascot from '../components/Mascot';
 
 const AKTAU = { lat: 43.65, lng: 51.17 };
 
@@ -84,6 +85,10 @@ export default function Home() {
         <div className="home-hero-scroll">
           <div className="home-scroll-line" />
           <span>{t.home_scroll}</span>
+        </div>
+
+        <div className="home-mascot" title="Таумару" onClick={e => e.stopPropagation()}>
+          <Mascot size={110} />
         </div>
       </section>
 

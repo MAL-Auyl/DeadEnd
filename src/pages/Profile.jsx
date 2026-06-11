@@ -173,6 +173,13 @@ export default function Profile() {
         }}>
           <div className="grid-2" style={{ gap: 12 }}>
             <div className="form-group">
+              <label className="form-label">{t.prof_gender}</label>
+              <select className="form-select" value={form.gender || 'Male'} onChange={e => set('gender', e.target.value)}>
+                <option value="Male">{t.prof_gender_male}</option>
+                <option value="Female">{t.prof_gender_female}</option>
+              </select>
+            </div>
+            <div className="form-group">
               <label className="form-label">{t.prof_blood}</label>
               <select className="form-select" value={form.bloodType} onChange={e => set('bloodType', e.target.value)}>
                 {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bt => <option key={bt}>{bt}</option>)}
