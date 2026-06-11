@@ -355,6 +355,10 @@ export function TripProvider({ children }) {
   async function syncPendingData() {
     const pending = safeGet('deadend_pending', []);
     if (pending.length > 0) {
+      const last = pending[pending.length - 1];
+      if (last?.coords) {
+        await updateTourist(DEVICE_ID, { coords: last.coords, lastSignal: new Date().toTimeString().slice(0, 5) });
+      }
       addNotification(`🔄 ${pending.length} офлайн оқиға синхронизацияланды`, 'success');
       safeRemove('deadend_pending');
       pendingSync.current = [];
