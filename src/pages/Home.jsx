@@ -3,6 +3,7 @@ import { PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import { useWeather, weatherIcon } from '../hooks/useWeather';
+import heroPhoto from '../assets/photos/robmiddleton__1780509245_3911514779171669734_7000075621.jpg';
 
 const AKTAU = { lat: 43.65, lng: 51.17 };
 
@@ -41,7 +42,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   const hero = PLACES.find(p => p.id === 'karynzharyk') || PLACES[0];
-  const heroBg = hero.images?.[1] || hero.image;
+  const heroBg = heroPhoto;
   const featured = PLACES.find(p => p.id === 'bozzhyra') || PLACES[0];
   const destinations = PLACES.slice(0, 4);
 
