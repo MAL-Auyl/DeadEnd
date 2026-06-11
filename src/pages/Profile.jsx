@@ -1,146 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
-
-const UNIVERSES = [
-  {
-    tag: 'Властелин колец',
-    facts: [
-      { km: 0,    text: 'Фродо ещё в Шире. Кольцо спит.' },
-      { km: 285,  text: 'Столько Фродо прошёл до Бри — первого трактира вне Шира.' },
-      { km: 750,  text: 'Фродо добрался до Ривенделла. Братство только собирается.' },
-      { km: 1050, text: 'Мория позади. Гэндальф пал. Путь не остановить.' },
-      { km: 1150, text: 'Лóриэн. Галадриэль предложила Кольцо — и отказалась.' },
-      { km: 1650, text: 'Минас Тирит. Война Кольца у порога.' },
-      { km: 1800, text: 'Кольцо уничтожено. Фродо прошёл ровно столько же.' },
-    ],
-  },
-  {
-    tag: 'Игра Престолов',
-    facts: [
-      { km: 0,    text: 'Ты в Винтерфелле. Зима близко.' },
-      { km: 400,  text: 'Столько Джон Сноу прошёл из Винтерфелла до Стены.' },
-      { km: 900,  text: 'Примерно столько Арья Старк брела в одиночку через Вестерос.' },
-      { km: 1500, text: 'Путь из Винтерфелла до Королевской Гавани. Нед Старк ехал три недели.' },
-      { km: 2000, text: 'Дейенерис пересекла бы Узкое море дважды.' },
-    ],
-  },
-  {
-    tag: 'Атака Титанов',
-    facts: [
-      { km: 0,    text: 'Ты внутри стены Сина. Здесь безопасно.' },
-      { km: 100,  text: 'Столько от Шиганшины до Трозта. Первое появление Колоссального.' },
-      { km: 500,  text: 'Половина окружности стены Марии. Разведкорпус знает каждый метр.' },
-      { km: 960,  text: 'Ровно столько — полная окружность стены Марии. Эрен бы оценил.' },
-      { km: 1500, text: 'Как путь от Парадиса до Маре через море. Дорога «Грохота».' },
-    ],
-  },
-  {
-    tag: 'Наруто',
-    facts: [
-      { km: 0,    text: 'Ты в Деревне Листа. До первого задания — рукой подать.' },
-      { km: 300,  text: 'Столько от Деревни Листа до Деревни Песка. Гааре — привет.' },
-      { km: 700,  text: 'Наруто столько пробежал за время тренировок с Дзирайей.' },
-      { km: 1200, text: 'Путь Наруто за Саске после предательства — он не останавливался.' },
-      { km: 1800, text: 'Если бы Наруто бежал без остановок — добежал бы до Страны Облаков.' },
-    ],
-  },
-  {
-    tag: 'Аватар',
-    facts: [
-      { km: 0,    text: 'Аанг только проснулся во льдах. Огненная Нация ещё не знает.' },
-      { km: 450,  text: 'Аанг пролетел на Аппе от Южного полюса до Огненной Нации.' },
-      { km: 900,  text: 'Половина пути до Ба Синг Се. Аппа устал бы.' },
-      { km: 1400, text: 'Столько Аанг преодолел, чтобы освоить все четыре стихии.' },
-    ],
-  },
-  {
-    tag: 'Ведьмак',
-    facts: [
-      { km: 0,    text: 'Геральт только покинул Каэр Морхен. Дорога длинная.' },
-      { km: 350,  text: 'От Каэр Морхена до Новиграда — примерно столько.' },
-      { km: 750,  text: 'Столько Геральт прошёл в поисках Цири по Континенту.' },
-      { km: 1300, text: 'Геральт и Цири вместе — от Новиграда до края карты.' },
-    ],
-  },
-];
-
-function getUniverseFact(facts, km) {
-  let match = facts[0];
-  for (const f of facts) {
-    if (km >= f.km) match = f;
-    else break;
-  }
-  return match;
-}
-
-function KmWidget({ totalKm }) {
-  const km = totalKm || 0;
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  return (
-    <div style={{
-      background: 'var(--surface)',
-      border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-sm)',
-      padding: '20px 20px 18px',
-      marginBottom: 16,
-    }}>
-      {/* big number */}
-      <div style={{
-        fontFamily: 'Syne, sans-serif',
-        fontSize: 'clamp(32px, 10vw, 44px)', fontWeight: 900,
-        color: 'var(--text)', letterSpacing: '-0.05em', lineHeight: 1,
-        marginBottom: 4,
-      }}>
-        {km.toLocaleString()}
-        <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text3)', letterSpacing: '-0.02em', marginLeft: 6 }}>км</span>
-      </div>
-      <div style={{ fontSize: 11, color: 'var(--text3)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 20 }}>
-        пройдено в DeadEnd
-      </div>
-
-      {/* universe facts */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {UNIVERSES.map((u, i) => {
-          const fact = getUniverseFact(u.facts, km);
-          return (
-            <div
-              key={u.tag}
-              style={{
-                paddingTop: i === 0 ? 0 : 12,
-                paddingBottom: 12,
-                borderBottom: i < UNIVERSES.length - 1 ? '1px solid var(--border)' : 'none',
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'none' : 'translateY(8px)',
-                transition: `opacity 400ms ${E} ${i * 70}ms, transform 400ms ${E} ${i * 70}ms`,
-              }}
-            >
-              <div style={{
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'var(--gold)',
-                marginBottom: 5,
-              }}>
-                {u.tag}
-              </div>
-              <div style={{
-                fontSize: 13, color: 'var(--text2)', lineHeight: 1.65,
-              }}>
-                {fact.text}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+import KmTracker from '../components/KmTracker';
 
 function getExplorerBadge(count) {
   if (count >= 20) return { label: 'Gold Explorer',   color: '#F4C430', bg: 'rgba(244,196,48,0.1)',  border: 'rgba(244,196,48,0.3)'  };
@@ -284,8 +146,8 @@ export default function Profile() {
         </div>
       )}
 
-      {/* KM WIDGET */}
-      <KmWidget totalKm={user.totalKm} />
+      {/* KM TRACKER */}
+      <KmTracker initialKm={user.totalKm} />
 
       {/* EMERGENCY PIN */}
       <div className="profile-pin-card">
