@@ -91,7 +91,7 @@ function CompletionScreen({ data, onHome }) {
 
 export default function Tracking() {
   const navigate = useNavigate();
-  const { activeTrip, stopTrip, triggerSOS, updateCheckpoint, user } = useTrip();
+  const { activeTrip, stopTrip, triggerSOS, updateCheckpoint, user, isOnline, connectionType } = useTrip();
   const { t } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
@@ -353,6 +353,20 @@ export default function Tracking() {
           <div key={i} style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 4 }}>📞 {c.name} · {c.phone}</div>
         ))}
       </div>
+
+      {/* Connection quality — SOS falls back to a compact retrying signal on weak/2G */}
+      {(!isOnline || connectionType === '2g' || connectionType === 'slow-2g') && (
+        <div style={{
+          marginBottom: 12, padding: '8px 14px', borderRadius: 10,
+          background: 'rgba(244,162,97,0.1)', border: '1px solid rgba(244,162,97,0.4)',
+          fontSize: 12, color: '#F4A261', display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span>📶</span>
+          {!isOnline
+            ? 'Желі жоқ — SOS қосылған кезде автоматты жіберіледі'
+            : 'Әлсіз 2G байланыс — SOS сигналы қысқартылған форматта жіберіледі'}
+        </div>
+      )}
 
       {/* Action buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

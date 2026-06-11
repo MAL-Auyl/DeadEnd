@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
-import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse } from '../lib/sync.js';
+import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse, sendSOSCompact } from '../lib/sync.js';
 import { FIREBASE_ENABLED } from '../lib/firebase.js';
+import { isSlowConnection, getConnectionType } from '../lib/network.js';
 import {
   firebaseRegister, firebaseLogin, firebaseLogout, onAuthChange,
   saveUserProfile, loadUserProfile, updateUserProfile,
@@ -61,6 +62,7 @@ export function TripProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [currentCoords, setCurrentCoords] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [connectionType, setConnectionType] = useState(() => getConnectionType());
 
   const sosLock = useRef(false);
   const stopLock = useRef(false);
@@ -133,12 +135,19 @@ export function TripProvider({ children }) {
         const sosCoords = currentCoordsRef.current || { lat: 43.65, lng: 51.17 };
         const sosTime = new Date().toISOString();
         addNotification('🆘 Уақыт бітті, жауап болмады — SOS автоматты түрде жіберілді!', 'danger');
-        updateTourist(DEVICE_ID, {
+        const fields = {
           status: 'sos',
           sosTime,
           lastSignal: new Date().toTimeString().slice(0, 5),
           coords: sosCoords,
           autoSOS: true,
+        };
+        sendSOSCompact(DEVICE_ID, fields).then(ok => {
+          if (!ok) {
+            const queue = safeGet('deadend_pending_sos', []);
+            queue.push(fields);
+            safeSet('deadend_pending_sos', queue);
+          }
         });
         setActiveTrip(prev => prev && prev.status === 'overdue'
           ? { ...prev, status: 'sos', sosTime, sosCoords, sosCount: (prev.sosCount || 0) + 1, autoSOS: true }
@@ -177,6 +186,15 @@ export function TripProvider({ children }) {
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
     };
+  }, []);
+
+  // Track connection quality (e.g. '2g', '3g', '4g') to drive data-saving behaviour
+  useEffect(() => {
+    const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (!c) return;
+    const onChange = () => setConnectionType(getConnectionType());
+    c.addEventListener('change', onChange);
+    return () => c.removeEventListener('change', onChange);
   }, []);
 
   // Listen for MChS SOS response via Firebase
@@ -267,12 +285,17 @@ export function TripProvider({ children }) {
           pendingSync.current.push({ type: 'coords', coords, time: Date.now() });
           safeSet('deadend_pending', pendingSync.current);
         }
-        // Debounced GPS push to Firebase (max once per 15s)
+        // Debounced GPS push to Firebase — back off to once per 60s and send
+        // rounded coords (no accuracy field) on a weak/2G connection
         if (!gpsFirebaseTimer.current) {
+          const slow = isSlowConnection();
           gpsFirebaseTimer.current = setTimeout(() => {
             gpsFirebaseTimer.current = null;
-            updateTourist(DEVICE_ID, { coords, lastSignal: new Date().toTimeString().slice(0, 5) });
-          }, 15000);
+            const pushCoords = slow
+              ? { lat: Math.round(coords.lat * 10000) / 10000, lng: Math.round(coords.lng * 10000) / 10000 }
+              : coords;
+            updateTourist(DEVICE_ID, { coords: pushCoords, lastSignal: new Date().toTimeString().slice(0, 5) });
+          }, slow ? 60000 : 15000);
         }
         // Accumulate real traveled distance from GPS deltas (filter out noise/jumps)
         const last = lastGpsCoordsRef.current;
@@ -328,12 +351,22 @@ export function TripProvider({ children }) {
     });
   }
 
-  function syncPendingData() {
+  async function syncPendingData() {
     const pending = safeGet('deadend_pending', []);
     if (pending.length > 0) {
       addNotification(`🔄 ${pending.length} офлайн оқиға синхронизацияланды`, 'success');
       safeRemove('deadend_pending');
       pendingSync.current = [];
+    }
+
+    const pendingSos = safeGet('deadend_pending_sos', []);
+    if (pendingSos.length > 0) {
+      const last = pendingSos[pendingSos.length - 1];
+      const ok = await sendSOSCompact(DEVICE_ID, last);
+      if (ok) {
+        safeRemove('deadend_pending_sos');
+        addNotification('✅ Кезектегі SOS жетті — МЧС хабардар етілді.', 'danger');
+      }
     }
   }
 
@@ -568,7 +601,7 @@ export function TripProvider({ children }) {
     setTimeout(() => { stopLock.current = false; }, 2000);
   }
 
-  function triggerSOS(coords) {
+  async function triggerSOS(coords) {
     const now = Date.now();
     if (sosLock.current) { addNotification('SOS жіберілуде... Күте тұрыңыз.', 'info'); return; }
     const timeSinceLast = now - lastSosTime.current;
@@ -582,20 +615,33 @@ export function TripProvider({ children }) {
     if (!activeTrip) { sosLock.current = false; return; }
 
     const sosCoords = coords || currentCoords || { lat: 43.65, lng: 51.17 };
+    const sosTime = new Date().toISOString();
     setActiveTrip(prev => {
       if (!prev) return prev;
-      return { ...prev, status: 'sos', sosTime: new Date().toISOString(), sosCoords, sosCount: (prev.sosCount || 0) + 1 };
+      return { ...prev, status: 'sos', sosTime, sosCoords, sosCount: (prev.sosCount || 0) + 1 };
     });
 
-    // Firebase: mark tourist as SOS instantly
-    updateTourist(DEVICE_ID, {
+    const fields = {
       status: 'sos',
-      sosTime: new Date().toISOString(),
+      sosTime,
       lastSignal: new Date().toTimeString().slice(0, 5),
       coords: sosCoords,
-    });
+    };
 
-    addNotification('🆘 SOS жіберілді! МЧС хабардар етілді.', 'danger');
+    const slow = isSlowConnection() || !navigator.onLine;
+    addNotification(slow ? '🆘 SOS жіберілуде... әлсіз байланыс, қайталануда' : '🆘 SOS жіберілді! МЧС хабардар етілді.', 'danger');
+
+    // Compact REST PATCH with retries — gets through even on a weak 2G link
+    const ok = await sendSOSCompact(DEVICE_ID, fields);
+    if (ok) {
+      if (slow) addNotification('✅ SOS жетті — МЧС хабардар етілді.', 'danger');
+    } else {
+      const queue = safeGet('deadend_pending_sos', []);
+      queue.push(fields);
+      safeSet('deadend_pending_sos', queue);
+      addNotification('⚠️ Байланыс жоқ — SOS кезекте, қалпына келген кезде автоматты жіберіледі.', 'danger');
+    }
+
     setTimeout(() => { sosLock.current = false; }, 30000);
   }
 
@@ -640,7 +686,7 @@ export function TripProvider({ children }) {
       accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, logoutUser, findAccountByPin,
       activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
       notifications, addNotification,
-      currentCoords, isOnline,
+      currentCoords, isOnline, connectionType,
     }}>
       {children}
     </TripContext.Provider>

@@ -23,6 +23,53 @@ export function removeTourist(deviceId) {
   remove(ref(db, `${SESSION}/tourists/${deviceId}`));
 }
 
+// ── Weak-connection SOS path ──────────────────────────────────
+// A single short HTTPS PATCH to the Realtime Database REST API. Unlike the
+// SDK's persistent websocket, this can succeed over a slow/2G link with a
+// short timeout + retries, and `hackathon_demo` is open for unauthenticated
+// read/write per database.rules.json.
+
+const DB_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL;
+
+function roundCoord(n) {
+  return Math.round(n * 10000) / 10000; // ~11m precision — keeps the payload tiny
+}
+
+async function restPatch(path, data, { timeoutMs = 5000, retries = 3 } = {}) {
+  if (!DB_URL) return false;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${DB_URL}/${path}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (res.ok) return true;
+    } catch {
+      clearTimeout(timer);
+    }
+    if (attempt < retries) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+  }
+  return false;
+}
+
+// Pushes SOS fields via the SDK (fast path) and via a compact, retrying REST
+// PATCH (reliable path on weak 2G). Resolves true only once the REST call
+// has confirmed delivery — callers use this to decide whether to queue for retry.
+export async function sendSOSCompact(deviceId, fields) {
+  if (!FIREBASE_ENABLED) return false;
+  updateTourist(deviceId, fields);
+  const compact = { ...fields };
+  if (compact.coords) {
+    compact.coords = { lat: roundCoord(compact.coords.lat), lng: roundCoord(compact.coords.lng) };
+  }
+  return restPatch(`${SESSION}/tourists/${deviceId}`, compact);
+}
+
 // ── MChS → Tourist (SOS response) ────────────────────────────
 
 export function sendSOSResponse(deviceId, step) {
