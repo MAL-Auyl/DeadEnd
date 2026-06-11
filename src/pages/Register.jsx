@@ -3,6 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import GoogleIcon from '../components/GoogleIcon';
+import Mascot from '../components/Mascot';
 
 export default function Register() {
   const { isAuthenticated, registerUser, loginWithGoogle } = useTrip();
@@ -53,8 +54,11 @@ export default function Register() {
 
   return (
     <div className="page" style={{ maxWidth: 400 }}>
-      <h1 className="page-title">{t.auth_register_title}</h1>
-      <p className="page-sub">{t.auth_register_sub}</p>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+        <Mascot size={100} style={{ animation: 'mascotFloat 4s ease-in-out infinite' }} />
+      </div>
+      <h1 className="page-title" style={{ textAlign: 'center' }}>{t.auth_register_title}</h1>
+      <p className="page-sub" style={{ textAlign: 'center' }}>{t.auth_register_sub}</p>
 
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>

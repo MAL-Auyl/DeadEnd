@@ -3,6 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import GoogleIcon from '../components/GoogleIcon';
+import Mascot from '../components/Mascot';
 
 export default function Login() {
   const { isAuthenticated, loginUser, loginWithGoogle } = useTrip();
@@ -44,8 +45,11 @@ export default function Login() {
 
   return (
     <div className="page" style={{ maxWidth: 400 }}>
-      <h1 className="page-title">{t.auth_login_title}</h1>
-      <p className="page-sub">{t.auth_login_sub}</p>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+        <Mascot size={100} style={{ animation: 'mascotFloat 4s ease-in-out infinite' }} />
+      </div>
+      <h1 className="page-title" style={{ textAlign: 'center' }}>{t.auth_login_title}</h1>
+      <p className="page-sub" style={{ textAlign: 'center' }}>{t.auth_login_sub}</p>
 
       <div style={{
         background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.2)',
@@ -66,7 +70,7 @@ export default function Login() {
             autoComplete="username"
           />
         </div>
-        <div className="form-group" style={{ marginBottom: 16 }}>
+        <div className="form-group" style={{ marginBottom: 8 }}>
           <label className="form-label">{t.auth_password}</label>
           <input
             type="password"
@@ -75,6 +79,12 @@ export default function Login() {
             onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
             autoComplete="current-password"
           />
+        </div>
+
+        <div style={{ textAlign: 'right', marginBottom: 16 }}>
+          <Link to="/forgot-password" style={{ fontSize: 13, color: 'var(--purple)', fontWeight: 600 }}>
+            {t.auth_forgot_link}
+          </Link>
         </div>
 
         {error && (
