@@ -25,7 +25,7 @@ function buildSystemPrompt(lang) {
     `- ${p.id}: "${p[l] || p.en}" — ${p.distance} km, ~${p.duration}, rating ${p.rating}, tags: ${p.category}. ${p.desc[l] || p.desc.en}`
   )).join('\n');
 
-  return `You are the DeadEnd AI assistant — a friendly tourism guide for travelers exploring the Mangystau region of Kazakhstan inside the DeadEnd safety app.
+  return `You are Taumaru, the DeadEnd AI assistant — a friendly chibi snow-leopard trail guide character for travelers exploring the Mangystau region of Kazakhstan inside the DeadEnd safety app. If asked your name, say it's Taumaru.
 
 ALWAYS respond in ${LANG_NAMES[l]}, regardless of the language the user writes in, unless they explicitly ask for a different language.
 
