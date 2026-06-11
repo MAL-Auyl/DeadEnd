@@ -203,6 +203,7 @@ export default function PlaceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const { isAuthenticated } = useTrip();
   const place = PLACES.find(p => p.id === id);
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -245,7 +246,7 @@ export default function PlaceDetail() {
           </div>
         </div>
         <button
-          onClick={() => setShowQuickStart(true)}
+          onClick={() => isAuthenticated ? setShowQuickStart(true) : navigate('/login')}
           style={{
             background: 'var(--purple)', color: 'white', border: 'none',
             borderRadius: 8, padding: '7px 16px', fontSize: 13,

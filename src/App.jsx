@@ -61,9 +61,11 @@ function TopNav() {
         <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
           {t.nav_explore}
         </NavLink>
-        <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
-          {t.nav_profile}
-        </NavLink>
+        {user && (
+          <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+            {t.nav_profile}
+          </NavLink>
+        )}
         <NavLink to="/mchs" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
           {t.nav_mchs}
         </NavLink>
@@ -89,21 +91,33 @@ function TopNav() {
             }}>{l}</button>
           ))}
         </div>
-        {user && (
+        {user ? (
           <img
             src={user.photo}
             alt=""
             className="nav-avatar"
             onClick={() => navigate('/profile')}
           />
+        ) : (
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/login')}
+            style={{ padding: '8px 20px', fontSize: 13 }}
+          >
+            {t.auth_login_btn}
+          </button>
         )}
       </div>
     </nav>
   );
 }
 
-// Routes reachable without being logged in (emergency SOS access + auth pages)
-const PUBLIC_PATHS = ['/login', '/register', '/pin', '/admin-login'];
+// Routes reachable without being logged in (public browsing + emergency SOS access + auth pages)
+const PUBLIC_PATHS = ['/', '/login', '/register', '/pin', '/admin-login'];
+
+function isPublicPath(pathname) {
+  return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/place/');
+}
 
 function Layout() {
   const { isAuthenticated, authLoading } = useTrip();
@@ -111,7 +125,7 @@ function Layout() {
 
   if (authLoading) return <PageLoader />;
 
-  if (!isAuthenticated && !PUBLIC_PATHS.includes(location.pathname)) {
+  if (!isAuthenticated && !isPublicPath(location.pathname)) {
     return <Navigate to="/login" replace />;
   }
 
