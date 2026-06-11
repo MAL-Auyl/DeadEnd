@@ -8,7 +8,7 @@ import { FIREBASE_ENABLED } from '../lib/firebase.js';
 const INITIAL_HISTORY = [
   { id: 'h1', name: 'Алексей Попов',   time: '09:14', date: '07.06.2026', location: 'Бозжыра трактісі',  outcome: 'Эвакуирован вертолётом',    duration: '1ч 22м' },
   { id: 'h2', name: 'Aizat Nurlanova', time: '14:30', date: '06.06.2026', location: 'Шеркала тауы',       outcome: 'Закрыт: ложная тревога',    duration: '12м' },
-  { id: 'h3', name: 'Thomas Brauer',   time: '11:55', date: '05.06.2026', location: 'Айрақты каньоны',    outcome: 'Найден группой спасателей', duration: '45м' },
+  { id: 'h3', name: 'Thomas Brauer',   time: '11:55', date: '05.06.2026', location: 'Қарынжарық каньоны',    outcome: 'Найден группой спасателей', duration: '45м' },
 ];
 
 const OP_STEPS = [
@@ -712,7 +712,7 @@ const ROUTE_STATS = [
   { name: 'Жыгылған',   visits: 156, sos: 1 },
   { name: 'Карынжарық', visits: 98,  sos: 2 },
   { name: 'Торыш',      visits: 87,  sos: 0 },
-  { name: 'Айрақты',    visits: 76,  sos: 0 },
+  { name: 'Қарынжарық', visits: 76,  sos: 0 },
   { name: 'Шақпақ-ата', visits: 62,  sos: 1 },
   { name: 'Сарыташ',    visits: 34,  sos: 1 },
 ];
