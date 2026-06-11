@@ -514,7 +514,6 @@ export default function AboutUs() {
                   <div style={{
                     padding: '18px 20px',
                     background: 'rgba(255,255,255,0.025)',
-                    borderLeft: '2px solid rgba(201,160,85,0.4)',
                     border: '1px solid rgba(255,255,255,0.04)',
                     borderLeft: '2px solid rgba(201,160,85,0.4)',
                     borderRadius: '0 10px 10px 0',
