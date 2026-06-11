@@ -29,6 +29,17 @@ import sarytas7 from '../assets/photos/sarytas/7.webp';
 import shakpakAta4 from '../assets/photos/shakpak-ata/4.webp';
 import shakpakAta5 from '../assets/photos/shakpak-ata/5.webp';
 import ayraqty4 from '../assets/photos/ayraqty/4.webp';
+import boktyBeach1 from '../assets/photos/caspian-beach/1.jpg';
+import boktyBeach2 from '../assets/photos/caspian-beach/2.jpg';
+import boktyBeach3 from '../assets/photos/caspian-beach/3.jpg';
+import boktyBeach4 from '../assets/photos/caspian-beach/4.jpg';
+import boktyBeach5 from '../assets/photos/caspian-beach/5.jpg';
+import boktyBeach6 from '../assets/photos/caspian-beach/6.jpg';
+import boktyBeach7 from '../assets/photos/caspian-beach/7.jpg';
+import boktyBeach8 from '../assets/photos/caspian-beach/8.jpg';
+import boktyBeach9 from '../assets/photos/caspian-beach/9.jpg';
+import boktyBeach10 from '../assets/photos/caspian-beach/10.jpg';
+import boktyBeach11 from '../assets/photos/caspian-beach/11.jpg';
 
 export const PLACES = [
   {
@@ -133,10 +144,8 @@ export const PLACES = [
     rating: 4.6,
     reviews: 512,
     category: ['popular', 'beach', 'sea'],
-    image: 'https://eurasia.travel/wp-content/uploads/2024/10/4.-Mangystau-1024x683.jpg',
-    images: [
-      'https://eurasia.travel/wp-content/uploads/2024/10/4.-Mangystau-1024x683.jpg',
-    ],
+    image: boktyBeach1,
+    images: [boktyBeach1, boktyBeach2, boktyBeach3, boktyBeach4, boktyBeach5, boktyBeach6, boktyBeach7, boktyBeach8, boktyBeach9, boktyBeach10, boktyBeach11],
     description: 'Beautiful sandy beaches on the Caspian Sea coast near Aktau. Crystal clear water, gentle waves.',
     descriptionKz: 'Ақтау жанындағы Каспий теңізі жағалауындағы əдемі құм жағажайлар. Мөлдір су, жайлы толқындар.',
     descriptionRu: 'Красивые песчаные пляжи на побережье Каспийского моря рядом с Актау. Кристально чистая вода, спокойные волны.',
