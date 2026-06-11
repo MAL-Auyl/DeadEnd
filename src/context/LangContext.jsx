@@ -11,6 +11,7 @@ const UI = {
     nav_dashboard: 'Dashboard',
     nav_logout:    'Log out',
     nav_in_trip:   'In progress',
+    nav_translator:'Translator',
 
     // Home
     home_eyebrow:     'Mangystau · Kazakhstan',
@@ -219,6 +220,25 @@ const UI = {
     chat_welcome:     "Hi! I'm the DeadEnd assistant. Ask me about routes in Mangystau, distances, difficulty, or what to pack — I can recommend a trip for you.",
     chat_send:        'Send',
     chat_error:       'Something went wrong. Try again.',
+    chat_listening:   'Listening…',
+    chat_voice_on:    'Voice replies on',
+    chat_voice_off:   'Voice replies off',
+    chat_speak:       'Listen',
+    chat_tab_ai:        'AI Guide',
+    chat_tab_translate: 'Translator',
+
+    // AI Translator
+    trnsl_title:        'AI Translator',
+    trnsl_subtitle:     'Speak or type — translated instantly both ways',
+    trnsl_you:          'You',
+    trnsl_local:        'Local / Rescuer',
+    trnsl_placeholder:  'Type a message…',
+    trnsl_send:         'Send',
+    trnsl_listening:    'Listening…',
+    trnsl_mic_unsupported: 'Voice input is not supported in this browser',
+    trnsl_empty:        'Start a conversation — type or tap the mic',
+    trnsl_translating:  'Translating…',
+    trnsl_error:        'Translation failed. Try again.',
   },
 
   ru: {
@@ -230,6 +250,7 @@ const UI = {
     nav_dashboard: 'Дашборд',
     nav_logout:    'Выйти',
     nav_in_trip:   'В пути',
+    nav_translator:'Переводчик',
 
     home_eyebrow:     'Мангыстау · Казахстан',
     home_title:       'Откройте\nДикие просторы',
@@ -434,6 +455,25 @@ const UI = {
     chat_welcome:     'Привет! Я ассистент DeadEnd. Спросите про маршруты по Мангистау, расстояния, сложность или что взять с собой — подберу поездку под вас.',
     chat_send:        'Отправить',
     chat_error:       'Что-то пошло не так. Попробуйте ещё раз.',
+    chat_listening:   'Слушаю…',
+    chat_voice_on:    'Озвучка включена',
+    chat_voice_off:   'Озвучка выключена',
+    chat_speak:       'Озвучить',
+    chat_tab_ai:        'ИИ-гид',
+    chat_tab_translate: 'Переводчик',
+
+    // AI Translator
+    trnsl_title:        'ИИ-переводчик',
+    trnsl_subtitle:     'Говорите или печатайте — перевод сразу в обе стороны',
+    trnsl_you:          'Вы',
+    trnsl_local:        'Местный / Спасатель',
+    trnsl_placeholder:  'Введите сообщение…',
+    trnsl_send:         'Отправить',
+    trnsl_listening:    'Слушаю…',
+    trnsl_mic_unsupported: 'Голосовой ввод не поддерживается в этом браузере',
+    trnsl_empty:        'Начните разговор — напечатайте или нажмите на микрофон',
+    trnsl_translating:  'Перевожу…',
+    trnsl_error:        'Не удалось перевести. Попробуйте ещё раз.',
   },
 
   kz: {
@@ -445,6 +485,7 @@ const UI = {
     nav_dashboard: 'Дашборд',
     nav_logout:    'Шығу',
     nav_in_trip:   'Жолда',
+    nav_translator:'Аудармашы',
 
     home_eyebrow:     'Маңғыстау · Қазақстан',
     home_title:       'Жабайы табиғатты\nашыңыз',
@@ -645,6 +686,25 @@ const UI = {
     chat_welcome:     'Сәлем! Мен DeadEnd көмекшісімін. Маңғыстау маршруттары, қашықтық, қиындық немесе не алу керектігі туралы сұраңыз — сізге сапар таңдап беремін.',
     chat_send:        'Жіберу',
     chat_error:       'Бірдеңе дұрыс болмады. Қайталап көріңіз.',
+    chat_listening:   'Тыңдап жатырмын…',
+    chat_voice_on:    'Дауыс қосулы',
+    chat_voice_off:   'Дауыс өшірулі',
+    chat_speak:       'Дыбыстау',
+    chat_tab_ai:        'ИИ-гид',
+    chat_tab_translate: 'Аудармашы',
+
+    // AI Translator
+    trnsl_title:        'ИИ-аудармашы',
+    trnsl_subtitle:     'Сөйлеңіз немесе жазыңыз — екі бағытта да бірден аударылады',
+    trnsl_you:          'Сіз',
+    trnsl_local:        'Жергілікті тұрғын / Құтқарушы',
+    trnsl_placeholder:  'Хабарлама жазыңыз…',
+    trnsl_send:         'Жіберу',
+    trnsl_listening:    'Тыңдап жатырмын…',
+    trnsl_mic_unsupported: 'Бұл браузерде дауыспен енгізу қолдау таппайды',
+    trnsl_empty:        'Әңгімені бастаңыз — жазыңыз немесе микрофонды басыңыз',
+    trnsl_translating:  'Аударылуда…',
+    trnsl_error:        'Аудару сәтсіз аяқталды. Қайталап көріңіз.',
   },
 };
 

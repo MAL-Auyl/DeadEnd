@@ -9,6 +9,7 @@ const Home        = lazy(() => import('./pages/Home'));
 const PlaceDetail = lazy(() => import('./pages/PlaceDetail'));
 const PlanTrip    = lazy(() => import('./pages/PlanTrip'));
 const Tracking    = lazy(() => import('./pages/Tracking'));
+const Translator  = lazy(() => import('./pages/Translator'));
 const Profile     = lazy(() => import('./pages/Profile'));
 const AdminPanel  = lazy(() => import('./pages/AdminPanel'));
 const PinLogin    = lazy(() => import('./pages/PinLogin'));
@@ -66,6 +67,9 @@ function TopNav() {
             {t.nav_profile}
           </NavLink>
         )}
+        <NavLink to="/translator" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
+          {t.nav_translator}
+        </NavLink>
         <NavLink to="/mchs" className={({ isActive }) => `nav-link${isActive ? ' nav-active' : ''}`}>
           {t.nav_mchs}
         </NavLink>
@@ -113,7 +117,7 @@ function TopNav() {
 }
 
 // Routes reachable without being logged in (public browsing + emergency SOS access + auth pages)
-const PUBLIC_PATHS = ['/', '/login', '/register', '/pin', '/admin-login'];
+const PUBLIC_PATHS = ['/', '/login', '/register', '/pin', '/admin-login', '/translator'];
 
 function isPublicPath(pathname) {
   return PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/place/');
@@ -140,6 +144,7 @@ function Layout() {
             <Route path="/place/:id" element={<PlaceDetail />} />
             <Route path="/plan/:id"  element={<PlanTrip />} />
             <Route path="/tracking"  element={<Tracking />} />
+            <Route path="/translator" element={<Translator />} />
             <Route path="/profile"   element={<Profile />} />
             <Route path="/pin"       element={<PinLogin />} />
             <Route path="/login"     element={<Login />} />

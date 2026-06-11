@@ -41,6 +41,19 @@ ${catalog}
 If asked something unrelated to travel/safety in Mangystau, gently steer the conversation back to trip planning.`;
 }
 
+function buildProfileSection(profile) {
+  if (!profile) return '';
+  const parts = [];
+  if (profile.allergies)    parts.push(`Allergies: ${profile.allergies}`);
+  if (profile.bloodType)    parts.push(`Blood type: ${profile.bloodType}`);
+  if (profile.height)       parts.push(`Height: ${profile.height} cm`);
+  if (profile.weight)       parts.push(`Weight: ${profile.weight} kg`);
+  if (profile.specialMarks) parts.push(`Special notes / conditions: ${profile.specialMarks}`);
+  if (!parts.length) return '';
+
+  return `\n\nThe current user has shared this personal profile:\n${parts.map(p => `- ${p}`).join('\n')}\n\nUse it to personalize practical advice — e.g. warn about allergens in local food/drinks, adjust pace/water/gear suggestions for their build, or flag a route as too demanding given their notes — but ONLY when it's relevant to what they asked. Don't recite this profile back or bring it up in unrelated answers, and never give medical diagnoses or treatment advice.`;
+}
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -53,14 +66,14 @@ export default async function handler(req) {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  const { messages, lang } = body || {};
+  const { messages, lang, profile } = body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response('Missing messages', { status: 400 });
   }
 
   const result = streamText({
     model: google('gemini-2.5-flash'),
-    system: buildSystemPrompt(lang),
+    system: buildSystemPrompt(lang) + buildProfileSection(profile),
     messages,
   });
 
