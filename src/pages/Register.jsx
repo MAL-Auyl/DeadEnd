@@ -2,18 +2,32 @@ import { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useTrip } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
+import GoogleIcon from '../components/GoogleIcon';
 
 export default function Register() {
-  const { isAuthenticated, registerUser } = useTrip();
+  const { isAuthenticated, registerUser, loginWithGoogle } = useTrip();
   const { t } = useLang();
   const navigate = useNavigate();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
 
   function set(key, val) { setForm(p => ({ ...p, [key]: val })); }
+
+  async function handleGoogle() {
+    setError('');
+    setGoogleLoading(true);
+    const result = await loginWithGoogle();
+    setGoogleLoading(false);
+    if (result.success) {
+      navigate('/');
+    } else if (result.error !== 'cancelled') {
+      setError(t.auth_err_config);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -101,6 +115,23 @@ export default function Register() {
           {loading ? '…' : t.auth_register_btn}
         </button>
       </form>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0 20px' }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        <span style={{ fontSize: 12, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.auth_or}</span>
+        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      </div>
+
+      <button
+        type="button"
+        onClick={handleGoogle}
+        disabled={googleLoading}
+        className="btn btn-ghost btn-full btn-lg"
+        style={{ opacity: googleLoading ? 0.5 : 1, marginBottom: 20 }}
+      >
+        <GoogleIcon />
+        {googleLoading ? '…' : t.auth_google_btn}
+      </button>
 
       <p style={{ fontSize: 13, color: 'var(--text2)', textAlign: 'center' }}>
         {t.auth_have_account}{' '}

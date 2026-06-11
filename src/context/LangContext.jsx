@@ -168,6 +168,8 @@ const UI = {
     auth_err_weak:       'Password must be at least 6 characters',
     auth_err_config:     'Sign-in is not configured yet. Please try again later.',
     auth_demo_hint:      'Demo account: james@gmail.com / demo1234',
+    auth_or:             'or',
+    auth_google_btn:     'Continue with Google',
 
     // Place Detail extra
     pd_go:           'Go',
@@ -401,6 +403,8 @@ const UI = {
     auth_err_weak:       'Пароль должен быть не короче 6 символов',
     auth_err_config:     'Вход временно не настроен. Попробуйте позже.',
     auth_demo_hint:      'Демо-аккаунт: james@gmail.com / demo1234',
+    auth_or:             'или',
+    auth_google_btn:     'Войти через Google',
 
     // Place Detail extra
     pd_go:           'Поехать',
@@ -637,6 +641,8 @@ const UI = {
     auth_err_weak:       'Құпия сөз кемінде 6 таңбадан тұруы керек',
     auth_err_config:     'Кіру әлі баптаулмаған. Кейінірек қайталап көріңіз.',
     auth_demo_hint:      'Демо аккаунт: james@gmail.com / demo1234',
+    auth_or:             'немесе',
+    auth_google_btn:     'Google арқылы кіру',
 
     // Place Detail extra
     pd_go:           'Жолға',

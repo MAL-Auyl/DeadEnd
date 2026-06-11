@@ -1,6 +1,8 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
@@ -32,6 +34,19 @@ export async function firebaseLogin(email, password) {
     return { success: true, uid: cred.user.uid };
   } catch (e) {
     if (e.code === 'auth/configuration-not-found') return { success: false, error: 'config' };
+    return { success: false, error: 'invalid' };
+  }
+}
+
+export async function firebaseGoogleSignIn() {
+  const auth = getFirebaseAuth();
+  if (!auth) return { success: false, error: 'disabled' };
+  try {
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+    return { success: true, uid: cred.user.uid, profile: cred.additionalUserInfo?.profile, fbUser: cred.user };
+  } catch (e) {
+    if (e.code === 'auth/configuration-not-found') return { success: false, error: 'config' };
+    if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return { success: false, error: 'cancelled' };
     return { success: false, error: 'invalid' };
   }
 }

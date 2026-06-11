@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
 import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse, sendSOSCompact } from '../lib/sync.js';
-import { FIREBASE_ENABLED } from '../lib/firebase.js';
+import { FIREBASE_AUTH_ENABLED } from '../lib/firebase.js';
 import { isSlowConnection, getConnectionType } from '../lib/network.js';
 import {
-  firebaseRegister, firebaseLogin, firebaseLogout, onAuthChange,
+  firebaseRegister, firebaseLogin, firebaseGoogleSignIn, firebaseLogout, onAuthChange,
   saveUserProfile, loadUserProfile, updateUserProfile,
   savePinIndex, findUserByPin,
 } from '../lib/authDb.js';
@@ -42,9 +42,9 @@ function getAccounts() {
 }
 
 export function TripProvider({ children }) {
-  const [accounts, setAccounts] = useState(() => FIREBASE_ENABLED ? [] : getAccounts());
+  const [accounts, setAccounts] = useState(() => FIREBASE_AUTH_ENABLED ? [] : getAccounts());
   const [user, setUser] = useState(() => {
-    if (FIREBASE_ENABLED) return null; // restored async via onAuthChange below
+    if (FIREBASE_AUTH_ENABLED) return null; // restored async via onAuthChange below
     const accs = getAccounts();
     let sessionId = safeGet('deadend_session', null);
     if (!sessionId && safeGet('deadend_user', null)) {
@@ -56,7 +56,7 @@ export function TripProvider({ children }) {
     return accs.find(a => a.id === sessionId) || null;
   });
   // While true, the auth state is still being restored from Firebase — don't redirect to /login yet.
-  const [authLoading, setAuthLoading] = useState(() => FIREBASE_ENABLED);
+  const [authLoading, setAuthLoading] = useState(() => FIREBASE_AUTH_ENABLED);
   const [activeTrip, setActiveTrip] = useState(() => safeGet('deadend_trip', null));
   const [isAdmin, setIsAdmin] = useState(() => safeGet('deadend_admin_session', false));
   const [notifications, setNotifications] = useState([]);
@@ -164,7 +164,7 @@ export function TripProvider({ children }) {
 
   // Restore session from Firebase Auth on load, and react to login/logout elsewhere.
   useEffect(() => {
-    if (!FIREBASE_ENABLED) return;
+    if (!FIREBASE_AUTH_ENABLED) return;
     const unsub = onAuthChange(async (fbUser) => {
       if (fbUser) {
         const profile = await loadUserProfile(fbUser.uid);
@@ -391,7 +391,7 @@ export function TripProvider({ children }) {
   async function registerUser({ firstName, lastName, email, password }) {
     const normEmail = email.trim().toLowerCase();
 
-    if (FIREBASE_ENABLED) {
+    if (FIREBASE_AUTH_ENABLED) {
       const result = await firebaseRegister(normEmail, password);
       if (!result.success) return result;
       const newAccount = {
@@ -455,7 +455,7 @@ export function TripProvider({ children }) {
   async function loginUser({ email, password }) {
     const normEmail = email.trim().toLowerCase();
 
-    if (FIREBASE_ENABLED) {
+    if (FIREBASE_AUTH_ENABLED) {
       const result = await firebaseLogin(normEmail, password);
       if (!result.success) return result;
       const profile = await loadUserProfile(result.uid);
@@ -471,15 +471,47 @@ export function TripProvider({ children }) {
     return { success: true };
   }
 
+  // Sign in (or silently register) with a Google account via Firebase Auth.
+  async function loginWithGoogle() {
+    if (!FIREBASE_AUTH_ENABLED) return { success: false, error: 'config' };
+    const result = await firebaseGoogleSignIn();
+    if (!result.success) return result;
+
+    let profile = await loadUserProfile(result.uid);
+    if (!profile) {
+      const fbUser = result.fbUser;
+      const [firstName, ...rest] = (fbUser.displayName || '').split(' ');
+      const newAccount = {
+        id: result.uid,
+        firstName: firstName || '',
+        lastName: rest.join(' '),
+        email: fbUser.email || '',
+        gender: '', dob: '', bloodType: 'O+', height: null, weight: null,
+        country: 'Kazakhstan', phone: '', allergies: '', specialMarks: '',
+        photo: fbUser.photoURL || `https://i.pravatar.cc/150?u=${encodeURIComponent(fbUser.email || result.uid)}`,
+        contacts: [],
+        pin: String(Math.floor(100000 + Math.random() * 900000)),
+        role: 'tourist',
+        tripsCompleted: 0,
+        totalKm: 0,
+      };
+      await saveUserProfile(result.uid, newAccount);
+      await savePinIndex(newAccount.pin, result.uid);
+      profile = newAccount;
+    }
+    setUser(profile);
+    return { success: true };
+  }
+
   function logoutUser() {
-    if (FIREBASE_ENABLED) firebaseLogout();
+    if (FIREBASE_AUTH_ENABLED) firebaseLogout();
     safeRemove('deadend_session');
     setUser(null);
   }
 
   // PinLogin: find an account by its emergency PIN without needing to be signed in.
   async function findAccountByPin(pin) {
-    if (FIREBASE_ENABLED) return findUserByPin(pin);
+    if (FIREBASE_AUTH_ENABLED) return findUserByPin(pin);
     return accounts.find(a => String(a.pin) === pin) || null;
   }
 
@@ -577,7 +609,7 @@ export function TripProvider({ children }) {
         if (badges[count]) {
           setTimeout(() => addNotification(`${badges[count]} статусын алдыңыз! 🎉`, 'success'), 1500);
         }
-        if (FIREBASE_ENABLED) updateUserProfile(prev.id, { tripsCompleted: count, totalKm });
+        if (FIREBASE_AUTH_ENABLED) updateUserProfile(prev.id, { tripsCompleted: count, totalKm });
         return { ...prev, tripsCompleted: count, totalKm };
       });
       addNotification('Сапар аяқталды. Қауіпсіз оралдыңыз! ✅', 'success');
@@ -674,7 +706,7 @@ export function TripProvider({ children }) {
     setUser(prev => {
       if (!prev) return prev;
       const updated = { ...prev, ...updates };
-      if (FIREBASE_ENABLED) updateUserProfile(updated.id, updates);
+      if (FIREBASE_AUTH_ENABLED) updateUserProfile(updated.id, updates);
       else setAccounts(accs => accs.map(a => a.id === updated.id ? updated : a));
       return updated;
     });
@@ -683,7 +715,8 @@ export function TripProvider({ children }) {
   return (
     <TripContext.Provider value={{
       user, updateUser, login, logout, isAdmin,
-      accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, logoutUser, findAccountByPin,
+      accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, loginWithGoogle, logoutUser, findAccountByPin,
+      googleAuthAvailable: FIREBASE_AUTH_ENABLED,
       activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
       notifications, addNotification,
       currentCoords, isOnline, connectionType,

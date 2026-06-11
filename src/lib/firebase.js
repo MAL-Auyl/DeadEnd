@@ -14,6 +14,11 @@ const firebaseConfig = {
 
 export const FIREBASE_ENABLED = !!import.meta.env.VITE_FIREBASE_DATABASE_URL;
 
+// Auth (email/password, Google, etc.) needs the Web SDK key — separate from
+// the database URL so demo builds without an Auth setup fall back to the
+// local-accounts auth in TripContext instead of hitting Firebase.
+export const FIREBASE_AUTH_ENABLED = !!import.meta.env.VITE_FIREBASE_API_KEY;
+
 let db = null;
 let auth = null;
 
