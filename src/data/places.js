@@ -1,3 +1,31 @@
+import bozzhyra1 from '../assets/photos/bozzhyra/1.webp';
+import bozzhyra2 from '../assets/photos/bozzhyra/2.webp';
+import bozzhyra3 from '../assets/photos/bozzhyra/3.webp';
+import bozzhyra4 from '../assets/photos/bozzhyra/4.webp';
+import bozzhyra5 from '../assets/photos/bozzhyra/5.webp';
+import bozzhyra6 from '../assets/photos/bozzhyra/6.webp';
+import bozzhyra7 from '../assets/photos/bozzhyra/7.webp';
+import bozzhyra8 from '../assets/photos/bozzhyra/8.webp';
+import karynzharyk1 from '../assets/photos/karynzharyk/1.webp';
+import karynzharyk2 from '../assets/photos/karynzharyk/2.webp';
+import karynzharyk3 from '../assets/photos/karynzharyk/3.webp';
+import karynzharyk4 from '../assets/photos/karynzharyk/4.webp';
+import karynzharyk5 from '../assets/photos/karynzharyk/5.webp';
+import karynzharyk6 from '../assets/photos/karynzharyk/6.webp';
+import karynzharyk7 from '../assets/photos/karynzharyk/7.webp';
+import karynzharyk8 from '../assets/photos/karynzharyk/8.webp';
+import karynzharyk9 from '../assets/photos/karynzharyk/9.webp';
+import sarytas1 from '../assets/photos/sarytas/1.webp';
+import sarytas2 from '../assets/photos/sarytas/2.webp';
+import sarytas3 from '../assets/photos/sarytas/3.webp';
+import sarytas4 from '../assets/photos/sarytas/4.webp';
+import sarytas5 from '../assets/photos/sarytas/5.webp';
+import sarytas6 from '../assets/photos/sarytas/6.webp';
+import sarytas7 from '../assets/photos/sarytas/7.webp';
+import shakpakAta4 from '../assets/photos/shakpak-ata/4.webp';
+import shakpakAta5 from '../assets/photos/shakpak-ata/5.webp';
+import ayraqty4 from '../assets/photos/ayraqty/4.webp';
+
 export const PLACES = [
   {
     id: 'bozzhyra',
@@ -10,13 +38,8 @@ export const PLACES = [
     rating: 5.0,
     reviews: 390,
     category: ['popular', 'mountain'],
-    image: 'https://eurasia.travel/wp-content/uploads/2024/10/12.-Boszhira-mountain-1024x683.jpg',
-    images: [
-      'https://central-asia.guide/wp-content/uploads/2024/10/Bozhyra-Mangystau-1024x682.jpg',
-      'https://eurasia.travel/wp-content/uploads/2024/10/12.-Boszhira-mountain-1024x683.jpg',
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/%D0%92%D0%B8%D0%B4_%D0%BD%D0%B0_%D0%B4%D0%BE%D0%BB%D0%B8%D0%BD%D1%83._%D0%91%D0%BE%D0%B7%D0%B6%D1%8B%D1%80%D0%B0.jpg/1280px-%D0%92%D0%B8%D0%B4_%D0%BD%D0%B0_%D0%B4%D0%BE%D0%BB%D0%B8%D0%BD%D1%83._%D0%91%D0%BE%D0%B7%D0%B6%D1%8B%D1%80%D0%B0.jpg',
-      'https://central-asia.guide/wp-content/uploads/2021/01/IMG_7798-1024x683.jpg',
-    ],
+    image: bozzhyra1,
+    images: [bozzhyra1, bozzhyra2, bozzhyra3, bozzhyra4, bozzhyra5, bozzhyra6, bozzhyra7, bozzhyra8],
     description: 'The tract is a ridge of rock formations of different sizes and shapes. The territory was part of the possession of the Mesozoic Tethys Ocean.',
     descriptionKz: 'Тракт — әр түрлі өлшем мен пішіндегі тау жыныстары қырқасы. Аумақ мезозой Тетис мұхитының иелігінің бір бөлігі болған.',
     descriptionRu: 'Урочище представляет собой гряду скальных образований разных размеров и форм. Территория когда-то была частью мезозойского океана Тетис.',
@@ -61,6 +84,7 @@ export const PLACES = [
       'https://central-asia.guide/wp-content/uploads/2024/10/Airakty-Mangystau-1024x682.jpg',
       'https://central-asia.guide/wp-content/uploads/2025/01/Mangystau-Airakty-Valley-of-Castles-1024x682.jpg',
       'https://eurasia.travel/wp-content/uploads/2024/10/11.-Dolina-Zamkov-Mangystau-1024x683.jpg',
+      ayraqty4,
     ],
     description: 'A spectacular canyon with layered red and white rock formations. One of the most photogenic spots in Mangystau.',
     descriptionKz: 'Қызыл және ақ тау жыныстарының қабаттары бар керемет каньон. Мангыстаудың ең фотогенді жерлерінің бірі.',
@@ -170,12 +194,8 @@ export const PLACES = [
     rating: 4.9,
     reviews: 143,
     category: ['popular', 'mountain'],
-    image: 'https://central-asia.guide/wp-content/uploads/2024/10/Karynzharyk-Mangystau-1024x682.jpg',
-    images: [
-      'https://central-asia.guide/wp-content/uploads/2024/10/Karynzharyk-Mangystau-1024x682.jpg',
-      'https://www.planetesoterica.com/wp-content/uploads/2021/05/karyndzharyk-depression-seen-from-escarpment-kazakhstan.jpg',
-      'https://aboutkazakhstan.com/blog/wp-content/uploads/2017/07/karynzharyk-depression-kazakhstan-2-small.jpg',
-    ],
+    image: karynzharyk1,
+    images: [karynzharyk1, karynzharyk2, karynzharyk3, karynzharyk4, karynzharyk5, karynzharyk6, karynzharyk7, karynzharyk8, karynzharyk9],
     description: 'One of the deepest depressions in the world — 132 m below sea level. A surreal ochre landscape of canyons, gorges and salt flats that looks like another planet.',
     descriptionKz: 'Теңіз деңгейінен 132 м төмен орналасқан дүниедегі ең терең ойпаттардың бірі. Каньондар, сайлар мен тұзды жазықтар — бұл басқа планета.',
     descriptionRu: 'Одна из самых глубоких впадин в мире — 132 м ниже уровня моря. Сюрреалистичный охристый пейзаж из каньонов, ущелий и солончаков, похожий на другую планету.',
@@ -259,6 +279,8 @@ export const PLACES = [
       'https://central-asia.guide/wp-content/uploads/2025/01/Shakpak-ata-Mangystau-1024x682.jpg',
       'https://www.planetesoterica.com/wp-content/uploads/2021/06/shakpak-ata-outside-mangystau-768x512.jpg',
       'https://central-asia.guide/wp-content/uploads/2025/01/Mangyshlak-sacred-cave-mosque-1024x682.jpg',
+      shakpakAta4,
+      shakpakAta5,
     ],
     description: 'An underground mosque carved into the white chalk cliffs in the 10th–14th century. Ancient Arabic inscriptions and ornaments cover the walls. One of the most sacred pilgrimage sites in Kazakhstan.',
     descriptionKz: 'X–XIV ғасырларда ақ бор тастарына қашалған жерасты мешіті. Қабырғаларды ежелгі арабша жазулар мен өрнектер жабады. Қазақстандағы ең қасиетті зиярат орындарының бірі.',
@@ -294,12 +316,8 @@ export const PLACES = [
     rating: 4.7,
     reviews: 88,
     category: ['mountain'],
-    image: 'https://central-asia.guide/wp-content/uploads/2025/02/Kyzylkup-Tract-Mangystau-1024x682.jpg',
-    images: [
-      'https://central-asia.guide/wp-content/uploads/2025/02/Kyzylkup-Tract-Mangystau-1024x682.jpg',
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/%D0%9A%D1%8B%D0%B7%D1%8B%D0%BB%D0%BA%D1%83%D0%BF_%D0%BD%D0%B0_%D1%80%D0%B0%D1%81%D1%81%D0%B2%D0%B5%D1%82%D0%B5.jpg/1280px-%D0%9A%D1%8B%D0%B7%D1%8B%D0%BB%D0%BA%D1%83%D0%BF_%D0%BD%D0%B0_%D1%80%D0%B0%D1%81%D1%81%D0%B2%D0%B5%D1%82%D0%B5.jpg',
-      'https://central-asia.guide/wp-content/uploads/2025/02/Kyzylkup-Tract-Mangistau-1024x682.jpg',
-    ],
+    image: sarytas1,
+    images: [sarytas1, sarytas2, sarytas3, sarytas4, sarytas5, sarytas6, sarytas7],
     description: 'Vivid red and orange sandstone formations carved by wind and water over millions of years. A hidden canyon less known than Bozzhyra but equally stunning.',
     descriptionKz: 'Миллиондаған жылдар бойы жел мен судың қашаған қызыл-сарғыш құмтас пішімдері. Бозжырадан гөрі аз танымал, бірақ бірдей тамаша жасырын каньон.',
     descriptionRu: 'Яркие красные и оранжевые песчаниковые формации, высеченные ветром и водой за миллионы лет. Скрытый каньон, менее известный, чем Бозжыра, но не менее впечатляющий.',
