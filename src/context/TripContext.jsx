@@ -601,6 +601,7 @@ export function TripProvider({ children }) {
       emergencyContacts: config.contacts || [],
       bloodType: user.bloodType || '',
       country: user.country || '',
+      gender: user.gender || '',
       height: user.height || null,
       weight: user.weight || null,
       allergies: user.allergies || '',

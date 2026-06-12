@@ -318,12 +318,40 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
   const [tab, setTab] = useState('card');
   const [confirming, setConfirming] = useState(false);
   const [outcome, setOutcome] = useState('');
+  const [photofit, setPhotofit] = useState({});
 
   const isSOS = t.status === 'sos';
   const isNoSignal = t.status === 'overdue';
 
   const waLink = (phone) => `https://wa.me/${phone.replace(/\D/g, '')}`;
   const contacts = t.emergencyContacts || (t.emergencyContact ? [t.emergencyContact] : []);
+
+  const pf = photofit[t.id];
+
+  async function generatePhotofit() {
+    setPhotofit(prev => ({ ...prev, [t.id]: { loading: true } }));
+    try {
+      const res = await fetch('/api/photofit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gender: t.gender,
+          height: t.height,
+          weight: t.weight,
+          country: t.country,
+          clothing: t.clothing,
+          specialMarks: t.specialMarks,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (!data.image) throw new Error();
+      setPhotofit(prev => ({ ...prev, [t.id]: { loading: false, image: data.image } }));
+      onAddLog('🎨', 'Сгенерирован AI-фоторобот');
+    } catch {
+      setPhotofit(prev => ({ ...prev, [t.id]: { loading: false, error: true } }));
+    }
+  }
 
   const Row = ({ label, value, red }) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '9px 0', borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
@@ -409,6 +437,27 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
               ))}
             </div>
           )}
+
+          <div style={{ marginBottom: 16, padding: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>🎨 AI-фоторобот</div>
+            {pf?.image ? (
+              <img src={pf.image} alt="AI-фоторобот" style={{ width: '100%', borderRadius: 8, marginBottom: 8, display: 'block' }} />
+            ) : (
+              <div style={{ fontSize: 12, color: C.text3, marginBottom: 8, lineHeight: 1.4 }}>
+                Примерная реконструкция внешности по описанию (пол, рост, вес, приметы). Не настоящее фото — только для ориентира поисковой группы.
+              </div>
+            )}
+            {pf?.error && <div style={{ fontSize: 12, color: C.red, marginBottom: 8 }}>Не удалось сгенерировать. Попробуйте ещё раз.</div>}
+            <button
+              onClick={generatePhotofit}
+              disabled={pf?.loading}
+              style={{
+                width: '100%', padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                background: C.surface, border: `1px solid ${C.border}`, color: C.text1,
+                cursor: pf?.loading ? 'default' : 'pointer', opacity: pf?.loading ? 0.6 : 1,
+              }}
+            >{pf?.loading ? 'Генерация…' : pf?.image ? 'Сгенерировать снова' : 'Сгенерировать фоторобот'}</button>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {(isSOS || isNoSignal) && (
@@ -1082,6 +1131,7 @@ export default function AdminPanel() {
     plate: '—',
     bloodType: user.bloodType,
     country: user.country,
+    gender: user.gender,
     height: user.height,
     weight: user.weight,
     allergies: user.allergies,
