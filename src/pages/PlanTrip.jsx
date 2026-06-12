@@ -14,7 +14,7 @@ function loc(obj, field, lang) {
 export default function PlanTrip() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, startTrip, isAuthenticated } = useTrip();
+  const { user, startTrip, isAuthenticated, addNotification } = useTrip();
   const { t, lang } = useLang();
   const place = PLACES.find(p => p.id === id);
 
@@ -36,6 +36,10 @@ export default function PlanTrip() {
   const placeName = loc(place, 'name', lang);
 
   function handleStart() {
+    if (!clothing.trim() || (isMotorized && !plate.trim())) {
+      addNotification(t.auth_err_required, 'danger');
+      return;
+    }
     startTrip(place, { clothing, vehicle, plate, returnDate, returnTime, groupType, contacts });
     navigate('/tracking');
   }
@@ -94,7 +98,7 @@ export default function PlanTrip() {
 
         {/* Clothing */}
         <div className="form-group">
-          <label className="form-label">{t.pt_clothing}</label>
+          <label className="form-label">{t.pt_clothing} <span style={{ color: 'var(--red)' }}>*</span></label>
           <input
             value={clothing} onChange={e => setClothing(e.target.value)}
             placeholder={t.pt_clothing_ph}
@@ -113,7 +117,7 @@ export default function PlanTrip() {
         {/* Plate number — only for motorized transport */}
         {isMotorized && (
           <div className="form-group">
-            <label className="form-label">{t.qs_plate}</label>
+            <label className="form-label">{t.qs_plate} <span style={{ color: 'var(--red)' }}>*</span></label>
             <input
               value={plate}
               onChange={e => setPlate(e.target.value)}
