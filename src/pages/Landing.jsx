@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import heroPhoto from '../assets/photos/karynzharyk-hero.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -420,7 +421,7 @@ export default function Landing() {
         {/* Background photo */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
-          backgroundImage: 'url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Ustyurt_Plateau.jpg/1280px-Ustyurt_Plateau.jpg)',
+          backgroundImage: `url(${heroPhoto})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
           filter: 'brightness(0.2) saturate(0.75)',
         }} />
@@ -754,7 +755,7 @@ export default function Landing() {
       <section style={{ position: 'relative', overflow: 'hidden', padding: '140px 48px', textAlign: 'center' }}>
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'url(https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Ustyurt_Plateau.jpg/1280px-Ustyurt_Plateau.jpg)',
+          backgroundImage: `url(${heroPhoto})`,
           backgroundSize: 'cover', backgroundPosition: 'center 40%',
           filter: 'brightness(0.13) saturate(0.6)',
         }} />

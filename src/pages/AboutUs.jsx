@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LangContext';
+import heroPhoto from '../assets/photos/karynzharyk-hero.png';
 
 const E      = 'cubic-bezier(0.23, 1, 0.32, 1)';
 const gold   = '#C9A055';
 const border = 'rgba(255,255,255,0.07)';
-const PHOTO  = 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Ustyurt_Plateau.jpg/1280px-Ustyurt_Plateau.jpg';
+const PHOTO  = heroPhoto;
 const GRAIN  = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E")`;
 
 // ─── Translations ────────────────────────────────────────────────────────────
