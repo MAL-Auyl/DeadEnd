@@ -692,6 +692,26 @@ export function TripProvider({ children }) {
     setTimeout(() => { sosLock.current = false; }, 30000);
   }
 
+  function cancelSOS(reason) {
+    if (!activeTrip || activeTrip.status !== 'sos') return;
+
+    autoSosFiredRef.current = false;
+    setActiveTrip(prev => {
+      if (!prev) return prev;
+      const { sosTime, sosCoords, autoSOS, overdueAt, ...rest } = prev;
+      return { ...rest, status: 'active' };
+    });
+
+    updateTourist(DEVICE_ID, {
+      status: 'active',
+      sosCancelReason: reason,
+      sosCancelTime: new Date().toISOString(),
+      autoSOS: false,
+    });
+
+    addNotification('✅ SOS болдырылмады. Сапар жалғасады.', 'success');
+  }
+
   function updateCheckpoint(checkpointId) {
     if (!activeTrip) return;
     setActiveTrip(prev => {
@@ -732,7 +752,7 @@ export function TripProvider({ children }) {
       user, updateUser, login, logout, isAdmin,
       accounts, isAuthenticated: !!user, authLoading, registerUser, loginUser, loginWithGoogle, forgotPassword, logoutUser, findAccountByPin,
       googleAuthAvailable: FIREBASE_AUTH_ENABLED,
-      activeTrip, startTrip, stopTrip, triggerSOS, updateCheckpoint,
+      activeTrip, startTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint,
       notifications, addNotification,
       currentCoords, isOnline, connectionType,
     }}>

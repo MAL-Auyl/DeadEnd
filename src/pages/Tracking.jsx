@@ -91,11 +91,12 @@ function CompletionScreen({ data, onHome }) {
 
 export default function Tracking() {
   const navigate = useNavigate();
-  const { activeTrip, stopTrip, triggerSOS, updateCheckpoint, user, isOnline, connectionType } = useTrip();
+  const { activeTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint, user, isOnline, connectionType } = useTrip();
   const { t, lang } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
+  const [showCancelSOS, setShowCancelSOS] = useState(false);
   const [playingVibe, setPlayingVibe] = useState(false);
   const [sosSending, setSosSending] = useState(false);
   const [stopSending, setStopSending] = useState(false);
@@ -170,6 +171,11 @@ export default function Tracking() {
     }
   }
 
+  function handleCancelSOS(reason) {
+    cancelSOS(reason);
+    setShowCancelSOS(false);
+  }
+
   function handleStop() {
     if (stopSending) return;
     setStopSending(true);
@@ -211,6 +217,37 @@ export default function Tracking() {
           <div>
             <div style={{ fontSize: 16, fontWeight: 900, color: '#FF4757', fontFamily: 'Syne, sans-serif' }}>{t.tr_sos_sent}</div>
             <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 3 }}>{t.tr_sos_stay}</div>
+          </div>
+        </div>
+      )}
+
+      {activeTrip.status === 'sos' && !showCancelSOS && (
+        <button
+          onClick={() => setShowCancelSOS(true)}
+          className="btn btn-ghost btn-lg btn-full"
+          style={{ marginBottom: 20 }}
+        >
+          {t.tr_sos_cancel_btn}
+        </button>
+      )}
+
+      {activeTrip.status === 'sos' && showCancelSOS && (
+        <div style={{
+          marginBottom: 20, padding: '14px 18px', borderRadius: 14,
+          background: 'var(--surface)', border: '1px solid var(--border)',
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)', fontFamily: 'Syne, sans-serif', marginBottom: 10 }}>
+            {t.tr_sos_cancel_title}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button onClick={() => handleCancelSOS('ok')} className="btn btn-ghost btn-full">{t.tr_sos_cancel_reason_ok}</button>
+            <button onClick={() => handleCancelSOS('misclick')} className="btn btn-ghost btn-full">{t.tr_sos_cancel_reason_misclick}</button>
+            <button onClick={() => handleCancelSOS('resolved')} className="btn btn-ghost btn-full">{t.tr_sos_cancel_reason_resolved}</button>
+            <button onClick={() => handleCancelSOS('other')} className="btn btn-ghost btn-full">{t.tr_sos_cancel_reason_other}</button>
+            <button onClick={() => setShowCancelSOS(false)} style={{
+              background: 'none', border: 'none', color: 'var(--text2)', fontSize: 13,
+              padding: '6px 0', cursor: 'pointer',
+            }}>{t.tr_cancel}</button>
           </div>
         </div>
       )}
