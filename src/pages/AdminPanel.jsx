@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
-import { MOCK_ACTIVE_TOURISTS, PLACES } from '../data/places';
+import { MOCK_ACTIVE_TOURISTS, MOCK_USER, PLACES } from '../data/places';
 import { useTrip } from '../context/TripContext';
 import { listenTourists, listenTripsHistory, sendSOSResponse } from '../lib/sync.js';
 import { FIREBASE_ENABLED } from '../lib/firebase.js';
@@ -1117,7 +1117,12 @@ export default function AdminPanel() {
   const notifiedOverdueRef        = useRef(new Set());
   const notifiedSosRef            = useRef(new Set());
 
-  const liveTourist = activeTrip ? {
+  // The seed/demo account (used before a tourist registers their own profile) —
+  // never show it as a live tourist in the dashboard.
+  const SEED_NAME = `${MOCK_USER.firstName} ${MOCK_USER.lastName}`;
+  const isRegisteredUser = user && user.id !== MOCK_USER.id;
+
+  const liveTourist = (activeTrip && isRegisteredUser) ? {
     id: 'live-' + activeTrip.id,
     name: `${user.firstName} ${user.lastName}`,
     photo: user.photo,
@@ -1194,10 +1199,13 @@ export default function AdminPanel() {
     return () => clearInterval(id);
   }, []);
 
-  const firebaseIds  = new Set(firebaseTourists.map(t => t.id));
+  // Devices that started a trip while still on the unregistered seed account
+  // sync to Firebase under that account's name — filter those out too.
+  const registeredFirebaseTourists = firebaseTourists.filter(t => t.name !== SEED_NAME);
+  const firebaseIds  = new Set(registeredFirebaseTourists.map(t => t.id));
   const mockFallback = MOCK_ACTIVE_TOURISTS.filter(t => !firebaseIds.has(t.id));
-  const baseTourists = firebaseTourists.length > 0
-    ? [...firebaseTourists, ...mockFallback]
+  const baseTourists = registeredFirebaseTourists.length > 0
+    ? [...registeredFirebaseTourists, ...mockFallback]
     : (liveTourist ? [liveTourist, ...MOCK_ACTIVE_TOURISTS] : MOCK_ACTIVE_TOURISTS);
 
   // Apply real-time status: active → overdue when expectedReturn has passed
