@@ -377,6 +377,7 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
           </div>
 
           <div style={{ marginBottom: 16 }}>
+            <Row label="Страна"           value={t.country} />
             <Row label="Группа крови"     value={t.bloodType}   red />
             <Row label="Аллергии"         value={t.allergies}   red />
             <Row label="Особые приметы"   value={t.specialMarks} />
@@ -1080,6 +1081,7 @@ export default function AdminPanel() {
     vehicle: activeTrip.vehicle || '—',
     plate: '—',
     bloodType: user.bloodType,
+    country: user.country,
     height: user.height,
     weight: user.weight,
     allergies: user.allergies,

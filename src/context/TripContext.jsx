@@ -600,6 +600,7 @@ export function TripProvider({ children }) {
       checkpointsTotal: (place.checkpoints || []).length,
       emergencyContacts: config.contacts || [],
       bloodType: user.bloodType || '',
+      country: user.country || '',
       height: user.height || null,
       weight: user.weight || null,
       allergies: user.allergies || '',
