@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' };
 
-const HF_MODEL = 'black-forest-labs/FLUX.1-schnell';
+const HF_MODEL = 'stabilityai/stable-diffusion-xl-base-1.0';
 
 function buildPrompt({ gender, height, weight, country, clothing, specialMarks }) {
   const parts = [gender === 'Female' ? 'a woman' : gender === 'Male' ? 'a man' : 'a person'];
@@ -23,7 +23,11 @@ function bufferToBase64(buf) {
 async function requestImage(prompt, token) {
   return fetch(`https://router.huggingface.co/hf-inference/models/${HF_MODEL}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'X-Wait-For-Model': 'true',
+    },
     body: JSON.stringify({ inputs: prompt }),
   });
 }
