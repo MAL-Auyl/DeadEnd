@@ -598,7 +598,7 @@ export function TripProvider({ children }) {
       coords: currentCoords || place.coords || { lat: 43.65, lng: 51.17 },
       checkpointsDone: 0,
       checkpointsTotal: (place.checkpoints || []).length,
-      emergencyContact: (config.contacts || [])[0] || { name: '—', phone: '—' },
+      emergencyContacts: config.contacts || [],
       bloodType: user.bloodType || '',
       height: user.height || null,
       weight: user.weight || null,

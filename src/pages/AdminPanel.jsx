@@ -11,6 +11,11 @@ const INITIAL_HISTORY = [
   { id: 'h3', name: 'Thomas Brauer',   time: '11:55', date: '05.06.2026', location: 'Айрақты — Қамалдар алқабы',    outcome: 'Найден группой спасателей', duration: '45м' },
 ];
 
+const REL_RU = {
+  relative: 'Родственник', spouse: 'Супруг(а)', parent: 'Родитель',
+  friend: 'Друг', colleague: 'Коллега', other: 'Другое',
+};
+
 const OP_STEPS = [
   { key: 'new',     label: 'Новый' },
   { key: 'enroute', label: 'Выехали' },
@@ -318,6 +323,7 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
   const isNoSignal = t.status === 'overdue';
 
   const waLink = (phone) => `https://wa.me/${phone.replace(/\D/g, '')}`;
+  const contacts = t.emergencyContacts || (t.emergencyContact ? [t.emergencyContact] : []);
 
   const Row = ({ label, value, red }) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '9px 0', borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
@@ -382,21 +388,24 @@ function TouristPanel({ t, logs, onClose, onCloseIncident, onCreateOperation, on
             <Row label="Последний сигнал" value={t.lastSignal} />
           </div>
 
-          {t.emergencyContact && (
-            <div style={{ marginBottom: 16, padding: '12px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Родственник</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.text1 }}>{t.emergencyContact.name}</div>
-              <div style={{ fontSize: 12, color: C.text3, marginBottom: 10 }}>{t.emergencyContact.relation}</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <a href={`tel:${t.emergencyContact.phone}`} onClick={() => onAddLog('📞', `Позвонили — ${t.emergencyContact.name}`)} style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '8px', borderRadius: 8, background: C.blueBg, color: C.blue, border: `1px solid ${C.blueBorder}`, textDecoration: 'none', fontSize: 12, fontWeight: 600,
-                }}>Позвонить</a>
-                <a href={waLink(t.emergencyContact.phone)} target="_blank" rel="noreferrer" onClick={() => onAddLog('💬', `WhatsApp — ${t.emergencyContact.name}`)} style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '8px', borderRadius: 8, background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', textDecoration: 'none', fontSize: 12, fontWeight: 600,
-                }}>WhatsApp</a>
-              </div>
+          {contacts.length > 0 && (
+            <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {contacts.map((c, i) => (
+                <div key={i} style={{ padding: '12px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: C.text3, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{REL_RU[c.relation] || c.relation || 'Контакт'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text1, marginBottom: 10 }}>{c.name}</div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <a href={`tel:${c.phone}`} onClick={() => onAddLog('📞', `Позвонили — ${c.name}`)} style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '8px', borderRadius: 8, background: C.blueBg, color: C.blue, border: `1px solid ${C.blueBorder}`, textDecoration: 'none', fontSize: 12, fontWeight: 600,
+                    }}>Позвонить</a>
+                    <a href={waLink(c.phone)} target="_blank" rel="noreferrer" onClick={() => onAddLog('💬', `WhatsApp — ${c.name}`)} style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '8px', borderRadius: 8, background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', textDecoration: 'none', fontSize: 12, fontWeight: 600,
+                    }}>WhatsApp</a>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -1056,6 +1065,7 @@ export default function AdminPanel() {
   const [tick, setTick]           = useState(0);         // 30s ticker → re-evaluate statuses
   const [adminAlerts, setAdminAlerts] = useState([]);    // overdue transition toasts
   const notifiedOverdueRef        = useRef(new Set());
+  const notifiedSosRef            = useRef(new Set());
 
   const liveTourist = activeTrip ? {
     id: 'live-' + activeTrip.id,
@@ -1074,9 +1084,7 @@ export default function AdminPanel() {
     weight: user.weight,
     allergies: user.allergies,
     specialMarks: user.specialMarks,
-    emergencyContact: user.contacts?.[0]
-      ? { name: user.contacts[0].name, phone: user.contacts[0].phone, relation: user.contacts[0].relation }
-      : null,
+    emergencyContacts: user.contacts || [],
     coords: currentCoords || { lat: 43.65, lng: 51.17 },
     isLive: true,
   } : null;
@@ -1093,8 +1101,10 @@ export default function AdminPanel() {
     const unsub = listenTourists((tourists) => {
       setFirebaseTourists(tourists);
       tourists.forEach(t => {
-        if (t.status === 'sos' && !selected) {
-          setSelected(t); setFilter('sos'); addLog(t.id, '→', 'SOS получен (Firebase)');
+        if (t.status === 'sos' && !notifiedSosRef.current.has(t.id)) {
+          notifiedSosRef.current.add(t.id);
+          addLog(t.id, '→', 'SOS получен (Firebase)');
+          setAdminAlerts(prev => [...prev, { id: `${t.id}-sos`, type: 'sos', msg: `🆘 SOS — ${t.name}`, tourist: t }]);
         }
       });
     });
@@ -1111,7 +1121,11 @@ export default function AdminPanel() {
     const curr = activeTrip?.status;
     if (curr === 'sos' && prev !== 'sos' && liveTouristRef.current) {
       const t = liveTouristRef.current;
-      setSelected(t); setFilter('sos'); addLog(t.id, '→', 'SOS получен');
+      if (!notifiedSosRef.current.has(t.id)) {
+        notifiedSosRef.current.add(t.id);
+        addLog(t.id, '→', 'SOS получен');
+        setAdminAlerts(prevAlerts => [...prevAlerts, { id: `${t.id}-sos`, type: 'sos', msg: `🆘 SOS — ${t.name}`, tourist: t }]);
+      }
     }
     prevStatusRef.current = curr ?? null;
   }, [activeTrip?.status]);
@@ -1215,18 +1229,26 @@ export default function AdminPanel() {
       `}</style>
       <div className="akimat-print-area" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: C.bg, fontFamily: 'DM Sans, sans-serif', color: C.text1 }}>
 
-        {/* Overdue transition alerts */}
+        {/* Overdue / SOS transition alerts */}
         {adminAlerts.length > 0 && (
-          <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 500, display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 500, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {adminAlerts.map(a => (
-              <div key={a.id} style={{
-                padding: '10px 18px', borderRadius: 10, background: C.amberBg, border: `1px solid ${C.amberBorder}`,
-                color: C.amber, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+              <div key={a.id} onClick={() => {
+                if (a.type === 'sos' && a.tourist) { setSelected(a.tourist); setFilter('sos'); }
+                setAdminAlerts(prev => prev.filter(x => x.id !== a.id));
+              }} style={{
+                padding: '10px 18px', borderRadius: 10,
+                background: a.type === 'sos' ? C.redBg : C.amberBg,
+                border: `1px solid ${a.type === 'sos' ? C.redBorder : C.amberBorder}`,
+                color: a.type === 'sos' ? C.red : C.amber,
+                fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
                 display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap',
-                animation: 'adminAlertIn 0.25s cubic-bezier(0.23,1,0.32,1)',
+                animation: a.type === 'sos' ? 'adminAlertIn 0.25s cubic-bezier(0.23,1,0.32,1), adminPulse 1s ease infinite' : 'adminAlertIn 0.25s cubic-bezier(0.23,1,0.32,1)',
+                cursor: 'pointer',
               }}>
-                <span style={{ fontSize: 16 }}>⚠️</span>
+                <span style={{ fontSize: 16 }}>{a.type === 'sos' ? '🆘' : '⚠️'}</span>
                 {a.msg}
+                {a.type === 'sos' && <span style={{ fontSize: 11, opacity: 0.8, marginLeft: 4 }}>· Открыть →</span>}
               </div>
             ))}
           </div>

@@ -18,6 +18,7 @@ function QuickStartDrawer({ place, onClose }) {
   const { user, startTrip } = useTrip();
   const { t, lang } = useLang();
   const navigate = useNavigate();
+  const [returnDate, setReturnDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [returnTime, setReturnTime] = useState('18:00');
   const [vehicle, setVehicle] = useState(place.vehicles[0]);
   const [plate, setPlate] = useState('');
@@ -27,7 +28,7 @@ function QuickStartDrawer({ place, onClose }) {
   const isMotorized = !NON_MOTOR.includes(vehicle);
 
   function handleStart() {
-    startTrip(place, { returnTime, vehicle, plate, contacts: user.contacts, groupType: 'solo', clothing: '' });
+    startTrip(place, { returnDate, returnTime, vehicle, plate, contacts: user.contacts, groupType: 'solo', clothing: '' });
     navigate('/tracking');
   }
 
@@ -45,7 +46,16 @@ function QuickStartDrawer({ place, onClose }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.qs_return}</div>
-            <input type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)} className="form-input" style={{ width: '100%' }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="date" value={returnDate} min={new Date().toISOString().slice(0, 10)}
+                onChange={e => setReturnDate(e.target.value)} className="form-input" style={{ flex: 1, minWidth: 0 }}
+              />
+              <input
+                type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)}
+                className="form-input" style={{ flex: 1, minWidth: 0 }}
+              />
+            </div>
           </div>
           <div>
             <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{t.pd_notify}</div>

@@ -22,6 +22,8 @@ function SectionLabel({ children, accent }) {
   );
 }
 
+const RELATION_KEYS = ['relative', 'spouse', 'parent', 'friend', 'colleague', 'other'];
+
 const ALLERGY_SUGGESTIONS = {
   en: ['Penicillin', 'Peanuts', 'Tree nuts', 'Pollen', 'Bee stings', 'Lactose', 'Gluten', 'Shellfish', 'Latex', 'Aspirin'],
   ru: ['Пенициллин', 'Арахис', 'Орехи', 'Пыльца', 'Укусы пчёл/ос', 'Лактоза', 'Глютен', 'Морепродукты', 'Латекс', 'Аспирин'],
@@ -266,21 +268,31 @@ export default function Profile() {
         <SectionLabel>{t.prof_contacts}</SectionLabel>
         <div className="profile-card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {form.contacts.map((c, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10 }}>
+            <div key={i} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <input
                 value={c.name}
                 onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], name: e.target.value }; set('contacts', cs); }}
                 placeholder={t.pt_contact_name}
                 className="form-input"
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: 100 }}
               />
               <input
                 value={c.phone}
                 onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], phone: e.target.value }; set('contacts', cs); }}
                 placeholder={t.pt_contact_ph}
                 className="form-input"
-                style={{ flex: 1 }}
+                style={{ flex: 1, minWidth: 100 }}
               />
+              <select
+                value={c.relation || 'relative'}
+                onChange={e => { const cs = [...form.contacts]; cs[i] = { ...cs[i], relation: e.target.value }; set('contacts', cs); }}
+                className="form-select"
+                style={{ flex: 1, minWidth: 100 }}
+              >
+                {RELATION_KEYS.map(k => (
+                  <option key={k} value={k}>{t['rel_' + k]}</option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => { const cs = form.contacts.filter((_, j) => j !== i); set('contacts', cs); }}
@@ -291,7 +303,7 @@ export default function Profile() {
           ))}
           <button
             type="button"
-            onClick={() => set('contacts', [...form.contacts, { name: '', phone: '' }])}
+            onClick={() => set('contacts', [...form.contacts, { name: '', phone: '', relation: 'relative' }])}
             className="btn"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text2)' }}
           >{t.prof_add_contact}</button>
