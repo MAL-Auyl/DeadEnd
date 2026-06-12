@@ -38,8 +38,8 @@ export default async function handler(req) {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: 'generation_failed', message: String(err?.message || err), cause: err?.cause ? String(err.cause?.message || err.cause) : undefined }), {
+  } catch {
+    return new Response(JSON.stringify({ error: 'generation_failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
