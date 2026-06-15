@@ -1,4 +1,4 @@
-import { ref, set, update, remove, push, onValue, off } from 'firebase/database';
+import { ref, set, update, remove, push, get, onValue, off } from 'firebase/database';
 import { getDB, FIREBASE_ENABLED } from './firebase.js';
 
 const SESSION = 'hackathon_demo';
@@ -145,6 +145,34 @@ export function listenTouristByDevice(deviceId, callback) {
   const r = ref(db, `${SESSION}/tourists/${deviceId}`);
   onValue(r, snap => callback(snap.val()));
   return () => off(r);
+}
+
+// ── Group rooms (group tours — one tourist creates a room code, others join) ──
+
+const GROUP_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I — easy to read aloud
+
+export function generateGroupCode() {
+  let code = '';
+  for (let i = 0; i < 6; i++) code += GROUP_CODE_CHARS[Math.floor(Math.random() * GROUP_CODE_CHARS.length)];
+  return code;
+}
+
+export async function createGroup(code, data) {
+  if (!FIREBASE_ENABLED) return false;
+  const db = getDB(); if (!db) return false;
+  await set(ref(db, `${SESSION}/groups/${code}`), data);
+  return true;
+}
+
+export async function getGroup(code) {
+  if (!FIREBASE_ENABLED) return null;
+  const db = getDB(); if (!db) return null;
+  try {
+    const snap = await get(ref(db, `${SESSION}/groups/${code}`));
+    return snap.exists() ? snap.val() : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── Trip history (for Akimat analytics) ──────────────────────

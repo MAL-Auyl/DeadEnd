@@ -113,6 +113,8 @@ export default function Tracking() {
   const [showEmergencyCard, setShowEmergencyCard] = useState(false);
   const [emergencyQR, setEmergencyQR] = useState(null);
   const [nearbyTourists, setNearbyTourists] = useState([]);
+  const [groupMembers, setGroupMembers] = useState([]);
+  const [groupCodeCopied, setGroupCodeCopied] = useState(false);
   const now = useClock();
   const liveUrl = `${window.location.origin}/live/${deviceId}`;
   const voiceSOSSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -179,18 +181,29 @@ export default function Tracking() {
       .catch(() => setEmergencyQR(null));
   }, [showEmergencyCard, user, activeTrip]);
 
-  // Other tourists currently heading to the same place — situational awareness on the map
+  // Other tourists currently heading to the same place, and members of this group room
   useEffect(() => {
     if (!activeTrip) return;
     const unsub = listenTourists((tourists) => {
-      setNearbyTourists(tourists.filter(t =>
-        t.id !== deviceId && t.coords &&
+      const others = tourists.filter(t => t.id !== deviceId);
+      const groupCode = activeTrip.groupCode;
+      setNearbyTourists(others.filter(t =>
+        t.coords &&
         t.destination === activeTrip.placeName &&
-        (t.status === 'active' || t.status === 'overdue')
+        (t.status === 'active' || t.status === 'overdue') &&
+        !(groupCode && t.groupCode === groupCode)
       ));
+      setGroupMembers(groupCode ? others.filter(t => t.groupCode === groupCode) : []);
     });
     return unsub;
-  }, [activeTrip?.placeName, deviceId]);
+  }, [activeTrip?.placeName, activeTrip?.groupCode, deviceId]);
+
+  function handleCopyGroupCode() {
+    navigator.clipboard?.writeText(activeTrip.groupCode).then(() => {
+      setGroupCodeCopied(true);
+      setTimeout(() => setGroupCodeCopied(false), 2000);
+    });
+  }
 
   function buildSosSmsHref() {
     const coords = activeTrip.sosCoords || currentCoords || { lat: 43.65, lng: 51.17 };
@@ -396,7 +409,10 @@ export default function Tracking() {
       <div style={{ marginBottom: 24 }}>
         <MapView
           place={place} activeTrip={activeTrip} height={220} lang={lang}
-          otherTourists={nearbyTourists.map(t => ({ id: t.id, coords: t.coords, name: t.name }))}
+          otherTourists={[
+            ...nearbyTourists.map(t => ({ id: t.id, coords: t.coords, name: t.name })),
+            ...groupMembers.map(t => ({ id: t.id, coords: t.coords, name: t.name, group: true })),
+          ]}
         />
         {nearbyTourists.length > 0 && (
           <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text3)' }}>
@@ -404,6 +420,33 @@ export default function Tracking() {
           </div>
         )}
       </div>
+
+      {/* Group room */}
+      {activeTrip.groupCode && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20, marginBottom: 24 }}>
+          <div className="section-label" style={{ marginBottom: 12 }}>{t.tr_group_title}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t.tr_group_code}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '0.25em', color: 'var(--purple)', fontFamily: 'Syne, sans-serif' }}>{activeTrip.groupCode}</div>
+            </div>
+            <button onClick={handleCopyGroupCode} className="btn btn-ghost" style={{ fontSize: 12, flexShrink: 0 }}>
+              {groupCodeCopied ? t.tr_live_copied : t.pt_room_copy}
+            </button>
+          </div>
+          {groupMembers.length === 0 ? (
+            <div style={{ fontSize: 13, color: 'var(--text3)' }}>{t.tr_group_empty}</div>
+          ) : (
+            groupMembers.map(m => (
+              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+                <span style={{ fontSize: 16 }}>{m.status === 'sos' ? '🆘' : m.status === 'overdue' ? '⏰' : '🟢'}</span>
+                <span style={{ fontSize: 13, color: 'var(--text)', flex: 1 }}>{m.name}</span>
+                <span style={{ fontSize: 12, color: 'var(--text3)' }}>{m.lastSignal || ''}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid-3" style={{ marginBottom: 24 }}>

@@ -19,9 +19,10 @@ function liveIcon() {
   });
 }
 
-function otherTouristIcon() {
+function otherTouristIcon(isGroup) {
+  const bg = isGroup ? '#06D6A0' : '#A78BFA';
   return window.L.divIcon({
-    html: '<div style="background:#A78BFA;width:16px;height:16px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:9px">🚶</div>',
+    html: `<div style="background:${bg};width:16px;height:16px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:9px">🚶</div>`,
     iconSize: [16, 16], iconAnchor: [8, 8], className: '',
   });
 }
@@ -155,7 +156,7 @@ export default function MapView({ place, activeTrip, height = 260, lang = 'en', 
       if (otherMarkersRef.current[ot.id]) {
         otherMarkersRef.current[ot.id].setLatLng([ot.coords.lat, ot.coords.lng]);
       } else {
-        otherMarkersRef.current[ot.id] = window.L.marker([ot.coords.lat, ot.coords.lng], { icon: otherTouristIcon() })
+        otherMarkersRef.current[ot.id] = window.L.marker([ot.coords.lat, ot.coords.lng], { icon: otherTouristIcon(ot.group) })
           .addTo(map).bindPopup(ot.name || 'Tourist');
       }
     });

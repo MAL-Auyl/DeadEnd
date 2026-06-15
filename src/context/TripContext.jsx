@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
-import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse, sendSOSCompact, broadcastSOS, removeSOSBroadcast, listenSOSBroadcasts } from '../lib/sync.js';
+import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse, sendSOSCompact, broadcastSOS, removeSOSBroadcast, listenSOSBroadcasts, createGroup } from '../lib/sync.js';
 import { FIREBASE_AUTH_ENABLED } from '../lib/firebase.js';
 import { isSlowConnection, getConnectionType } from '../lib/network.js';
 import {
@@ -650,6 +650,8 @@ export function TripProvider({ children }) {
       plate: config.plate || '',
       groupType: config.groupType || 'solo',
       groupMembers: config.groupMembers || [],
+      groupCode: config.groupCode || null,
+      groupRole: config.groupRole || null,
       checkpoints: (place.checkpoints || []).map(cp => ({ ...cp, status: 'pending', arrivedAt: null })),
       status: 'active',
       pin: user.pin,
@@ -688,7 +690,21 @@ export function TripProvider({ children }) {
       weight: user.weight || null,
       allergies: user.allergies || '',
       specialMarks: user.specialMarks || '',
+      groupCode: config.groupCode || null,
     });
+
+    if (config.groupCode && config.groupRole === 'leader') {
+      createGroup(config.groupCode, {
+        code: config.groupCode,
+        leaderId: DEVICE_ID,
+        leaderName: `${user.firstName} ${user.lastName}`.trim() || 'Tourist',
+        placeId: place.id,
+        placeName: place.name,
+        returnDate,
+        returnTime,
+        createdAt: new Date().toISOString(),
+      });
+    }
 
     addNotification('Сапар басталды! Контактілерге хабар жіберілді. ✅', 'success');
     return trip;

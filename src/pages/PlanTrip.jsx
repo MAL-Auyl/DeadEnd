@@ -1,10 +1,11 @@
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useParams, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { PLACES } from '../data/places';
 import { useTrip, SOS_GRACE_MINUTES } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import MapView from '../components/MapView';
 import WeatherWidget from '../components/WeatherWidget';
+import { generateGroupCode, getGroup } from '../lib/sync.js';
 
 function loc(obj, field, lang) {
   const key = lang === 'kz' ? field + 'Kz' : lang === 'ru' ? field + 'Ru' : field;
@@ -14,6 +15,7 @@ function loc(obj, field, lang) {
 export default function PlanTrip() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, startTrip, isAuthenticated, addNotification } = useTrip();
   const { t, lang } = useLang();
   const place = PLACES.find(p => p.id === id);
@@ -26,21 +28,83 @@ export default function PlanTrip() {
   const [groupType, setGroupType] = useState('solo');
   const [contacts, setContacts] = useState(user?.contacts || []);
 
+  const [roomMode, setRoomMode] = useState('create');
+  const [roomCode] = useState(() => generateGroupCode());
+  const [roomCodeCopied, setRoomCodeCopied] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joinedGroup, setJoinedGroup] = useState(null);
+  const [joinError, setJoinError] = useState('');
+  const [joinChecking, setJoinChecking] = useState(false);
+
   const NON_MOTOR = ['🚶 On foot', '🤙 Hitchhiking'];
   const allVehicles = [...NON_MOTOR, ...(place?.vehicles || []), 'Other'];
   const isMotorized = !NON_MOTOR.includes(vehicle);
+
+  // ?join=CODE — arrived here from a group invite link, look the code up automatically
+  useEffect(() => {
+    const join = searchParams.get('join');
+    if (join && place) {
+      setGroupType('group');
+      setRoomMode('join');
+      setJoinCode(join.toUpperCase());
+      checkJoinCode(join);
+    }
+  }, []);
 
   if (!isAuthenticated) return <Navigate to="/register" replace />;
   if (!place) return <div className="page">{t.place_not_found}</div>;
 
   const placeName = loc(place, 'name', lang);
 
+  async function checkJoinCode(code) {
+    const normalized = code.trim().toUpperCase();
+    if (!normalized) return;
+    setJoinChecking(true);
+    setJoinError('');
+    const group = await getGroup(normalized);
+    setJoinChecking(false);
+    if (!group) {
+      setJoinedGroup(null);
+      setJoinError(t.pt_room_join_notfound);
+      return;
+    }
+    if (group.placeId !== place.id) {
+      navigate(`/plan/${group.placeId}?join=${normalized}`);
+      return;
+    }
+    setJoinedGroup(group);
+    if (group.returnDate) setReturnDate(group.returnDate);
+    if (group.returnTime) setReturnTime(group.returnTime);
+  }
+
+  function handleCopyRoomCode() {
+    navigator.clipboard?.writeText(roomCode);
+    setRoomCodeCopied(true);
+    setTimeout(() => setRoomCodeCopied(false), 2000);
+  }
+
   function handleStart() {
     if (!clothing.trim() || (isMotorized && !plate.trim())) {
       addNotification(t.auth_err_required, 'danger');
       return;
     }
-    startTrip(place, { clothing, vehicle, plate, returnDate, returnTime, groupType, contacts });
+    if (groupType === 'group' && roomMode === 'join' && !joinedGroup) {
+      addNotification(t.pt_room_join_required, 'danger');
+      return;
+    }
+
+    const config = { clothing, vehicle, plate, returnDate, returnTime, groupType, contacts };
+    if (groupType === 'group') {
+      if (roomMode === 'create') {
+        config.groupCode = roomCode;
+        config.groupRole = 'leader';
+      } else {
+        config.groupCode = joinCode.trim().toUpperCase();
+        config.groupRole = 'member';
+      }
+    }
+
+    startTrip(place, config);
     navigate('/tracking');
   }
 
@@ -78,6 +142,61 @@ export default function PlanTrip() {
           </div>
         </div>
 
+        {/* Group room — create or join via a unique code */}
+        {groupType === 'group' && (
+          <div className="form-group">
+            <label className="form-label">{t.pt_room_title}</label>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {['create', 'join'].map(mode => (
+                <button key={mode} onClick={() => setRoomMode(mode)} className="btn" style={{
+                  flex: 1, padding: '10px 16px', fontSize: 13,
+                  background: roomMode === mode ? 'var(--purple)' : 'var(--surface)',
+                  color: roomMode === mode ? 'white' : 'var(--text2)',
+                  border: `1px solid ${roomMode === mode ? 'var(--purple)' : 'var(--border)'}`,
+                }}>
+                  {mode === 'create' ? t.pt_room_create : t.pt_room_join}
+                </button>
+              ))}
+            </div>
+
+            {roomMode === 'create' && (
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 10 }}>{t.pt_room_code_hint}</div>
+                <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '0.25em', color: 'var(--purple)', fontFamily: 'Syne, sans-serif', marginBottom: 12 }}>{roomCode}</div>
+                <button onClick={handleCopyRoomCode} className="btn btn-ghost btn-full">
+                  {roomCodeCopied ? t.pt_room_copied : t.pt_room_copy}
+                </button>
+              </div>
+            )}
+
+            {roomMode === 'join' && (
+              <div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={joinCode}
+                    onChange={e => { setJoinCode(e.target.value.toUpperCase()); setJoinedGroup(null); setJoinError(''); }}
+                    placeholder={t.pt_room_join_ph}
+                    maxLength={6}
+                    className="form-input"
+                    style={{ flex: 1, letterSpacing: '0.2em', textTransform: 'uppercase' }}
+                  />
+                  <button onClick={() => checkJoinCode(joinCode)} className="btn btn-ghost" disabled={joinChecking || !joinCode.trim()}>
+                    {joinChecking ? '…' : t.pt_room_join_check}
+                  </button>
+                </div>
+                {joinError && (
+                  <div style={{ fontSize: 12, color: 'var(--red)', marginTop: 8 }}>{joinError}</div>
+                )}
+                {joinedGroup && (
+                  <div style={{ fontSize: 13, color: 'var(--teal)', marginTop: 8 }}>
+                    {t.pt_room_join_found} {joinedGroup.leaderName} · {joinedGroup.placeName}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Return date & time */}
         <div className="form-group">
           <label className="form-label">{t.qs_return}</label>
@@ -85,10 +204,12 @@ export default function PlanTrip() {
             <input
               type="date" value={returnDate} min={new Date().toISOString().slice(0, 10)}
               onChange={e => setReturnDate(e.target.value)} className="form-input" style={{ flex: 1 }}
+              disabled={groupType === 'group' && roomMode === 'join' && !!joinedGroup}
             />
             <input
               type="time" value={returnTime} onChange={e => setReturnTime(e.target.value)}
               className="form-input" style={{ flex: 1 }}
+              disabled={groupType === 'group' && roomMode === 'join' && !!joinedGroup}
             />
           </div>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 6 }}>
