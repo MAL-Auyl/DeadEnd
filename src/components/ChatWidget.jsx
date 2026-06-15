@@ -20,8 +20,11 @@ export default function ChatWidget() {
   const [listening, setListening] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [speakingId, setSpeakingId] = useState(null);
+  const [hasNewReply, setHasNewReply] = useState(false);
   const listRef = useRef(null);
   const recognitionRef = useRef(null);
+  const openRef = useRef(open);
+  const sosMode = activeTrip?.status === 'sos';
 
   const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
   const speechSupported = !!SpeechRecognitionImpl;
@@ -38,6 +41,11 @@ export default function ChatWidget() {
       stopSpeaking();
     };
   }, []);
+
+  useEffect(() => {
+    openRef.current = open;
+    if (open) setHasNewReply(false);
+  }, [open]);
 
   function speak(text, id) {
     if (!ttsSupported || !text) return;
@@ -109,6 +117,7 @@ export default function ChatWidget() {
         });
       }
       if (voiceOn || fromVoice) speak(acc, nextMessages.length);
+      if (!openRef.current) setHasNewReply(true);
     } catch {
       setError(true);
     } finally {
@@ -161,7 +170,10 @@ export default function ChatWidget() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#EFD9AE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{
+                width: 30, height: 30, borderRadius: '50%', background: '#EFD9AE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                animation: loading ? 'mascotWiggle 0.5s ease-in-out infinite' : 'none',
+              }}>
                 <MascotFace size={24} />
               </div>
               <div>
@@ -200,7 +212,10 @@ export default function ChatWidget() {
             {messages.map((m, i) => (
               <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', display: 'flex', alignItems: 'flex-end', gap: 6 }}>
                 {m.role === 'assistant' && (
-                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#EFD9AE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: '50%', background: '#EFD9AE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    animation: (speakingId === i || (loading && i === messages.length - 1)) ? 'mascotWiggle 0.5s ease-in-out infinite' : 'none',
+                  }}>
                     <MascotFace size={18} />
                   </div>
                 )}
@@ -213,7 +228,7 @@ export default function ChatWidget() {
                     color: m.role === 'user' ? '#fff' : 'var(--text2)',
                     fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap',
                   }}>
-                    {m.content || (loading && i === messages.length - 1 ? '…' : '')}
+                    {m.content || (loading && i === messages.length - 1 ? <TypingDots /> : '')}
                   </div>
                   {ttsSupported && m.role === 'assistant' && m.content && !(loading && i === messages.length - 1) && (
                     <button
@@ -280,9 +295,31 @@ export default function ChatWidget() {
           width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
           background: open ? 'var(--purple)' : '#EFD9AE', color: '#fff', fontSize: 24,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 6px 20px rgba(108,99,255,0.4)',
+          boxShadow: '0 6px 20px rgba(108,99,255,0.4)', position: 'relative',
+          animation: (!open && !sosMode) ? 'chatBob 3s ease-in-out infinite' : 'none',
         }}
-      >{open ? '×' : <MascotFace size={38} />}</button>
+      >
+        {open ? '×' : <MascotFace size={38} />}
+        {!open && hasNewReply && (
+          <span style={{
+            position: 'absolute', top: 0, right: 0, width: 14, height: 14, borderRadius: '50%',
+            background: 'var(--red)', border: '2px solid var(--bg)', animation: 'pulse 1.2s infinite',
+          }} />
+        )}
+      </button>
+    </div>
+  );
+}
+
+function TypingDots() {
+  return (
+    <div style={{ display: 'flex', gap: 4, padding: '2px 0' }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{
+          width: 6, height: 6, borderRadius: '50%', background: 'var(--text3)',
+          animation: `typingDot 1.2s ${i * 0.16}s ease-in-out infinite`,
+        }} />
+      ))}
     </div>
   );
 }

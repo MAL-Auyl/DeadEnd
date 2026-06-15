@@ -49,10 +49,14 @@ export default function Mascot({ size = 140, className = '', style = {} }) {
       <circle cx="150" cy="128" r="6" fill="#C9A055" />
 
       {/* eyes */}
-      <ellipse cx="103" cy="100" rx="10" ry="13" fill="#1C1610" />
-      <ellipse cx="147" cy="100" rx="10" ry="13" fill="#1C1610" />
-      <circle cx="106" cy="95" r="3" fill="#fff" />
-      <circle cx="150" cy="95" r="3" fill="#fff" />
+      <g className="mascot-eye">
+        <ellipse cx="103" cy="100" rx="10" ry="13" fill="#1C1610" />
+        <circle cx="106" cy="95" r="3" fill="#fff" />
+      </g>
+      <g className="mascot-eye">
+        <ellipse cx="147" cy="100" rx="10" ry="13" fill="#1C1610" />
+        <circle cx="150" cy="95" r="3" fill="#fff" />
+      </g>
 
       {/* blush */}
       <circle cx="85" cy="116" r="8" fill="#E05252" opacity="0.35" />
@@ -93,10 +97,14 @@ export function MascotFace({ size = 40, className = '', style = {} }) {
       <circle cx="150" cy="128" r="6" fill="#C9A055" />
 
       {/* eyes */}
-      <ellipse cx="103" cy="100" rx="10" ry="13" fill="#1C1610" />
-      <ellipse cx="147" cy="100" rx="10" ry="13" fill="#1C1610" />
-      <circle cx="106" cy="95" r="3" fill="#fff" />
-      <circle cx="150" cy="95" r="3" fill="#fff" />
+      <g className="mascot-eye">
+        <ellipse cx="103" cy="100" rx="10" ry="13" fill="#1C1610" />
+        <circle cx="106" cy="95" r="3" fill="#fff" />
+      </g>
+      <g className="mascot-eye">
+        <ellipse cx="147" cy="100" rx="10" ry="13" fill="#1C1610" />
+        <circle cx="150" cy="95" r="3" fill="#fff" />
+      </g>
 
       {/* blush */}
       <circle cx="85" cy="116" r="8" fill="#E05252" opacity="0.35" />
