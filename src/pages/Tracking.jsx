@@ -5,6 +5,10 @@ import { useTrip, SOS_GRACE_MINUTES } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import { PLACES, VIBES } from '../data/places';
 import MapView from '../components/MapView';
+import { listenTourists } from '../lib/sync.js';
+
+const BCP47 = { kz: 'kk-KZ', ru: 'ru-RU', en: 'en-US' };
+const VOICE_SOS_PHRASES = ['комек керек', 'көмек керек', 'помогите', 'помощь', 'help me', 'sos'];
 
 function useClock() {
   const [now, setNow] = useState(() => new Date());
@@ -92,7 +96,7 @@ function CompletionScreen({ data, onHome }) {
 
 export default function Tracking() {
   const navigate = useNavigate();
-  const { activeTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint, user, isOnline, connectionType, deviceId, shakePermission, enableShakeAlerts } = useTrip();
+  const { activeTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint, user, isOnline, connectionType, deviceId, currentCoords, shakePermission, enableShakeAlerts } = useTrip();
   const { t, lang } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
@@ -105,8 +109,13 @@ export default function Tracking() {
   const [sosSending, setSosSending] = useState(false);
   const [stopSending, setStopSending] = useState(false);
   const [completionData, setCompletionData] = useState(null);
+  const [voiceSOSOn, setVoiceSOSOn] = useState(false);
+  const [showEmergencyCard, setShowEmergencyCard] = useState(false);
+  const [emergencyQR, setEmergencyQR] = useState(null);
+  const [nearbyTourists, setNearbyTourists] = useState([]);
   const now = useClock();
   const liveUrl = `${window.location.origin}/live/${deviceId}`;
+  const voiceSOSSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   useEffect(() => {
     if (!showLiveShare) return;
@@ -120,6 +129,75 @@ export default function Tracking() {
       setLiveCopied(true);
       setTimeout(() => setLiveCopied(false), 2000);
     });
+  }
+
+  // Voice SOS — say "помогите" / "көмек керек" / "help" to trigger SOS hands-free
+  useEffect(() => {
+    if (!voiceSOSOn || !activeTrip || activeTrip.status === 'sos') return;
+    const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionImpl) return;
+
+    let stopped = false;
+    let recog;
+    function start() {
+      recog = new SpeechRecognitionImpl();
+      recog.lang = BCP47[lang] || 'ru-RU';
+      recog.continuous = true;
+      recog.interimResults = false;
+      recog.onresult = (e) => {
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const transcript = (e.results[i][0]?.transcript || '').toLowerCase();
+          if (VOICE_SOS_PHRASES.some(p => transcript.includes(p))) {
+            triggerSOS();
+            return;
+          }
+        }
+      };
+      recog.onend = () => { if (!stopped) { try { recog.start(); } catch {} } };
+      recog.onerror = () => {};
+      try { recog.start(); } catch {}
+    }
+    start();
+
+    return () => { stopped = true; recog?.stop(); };
+  }, [voiceSOSOn, activeTrip?.status, lang]);
+
+  // Emergency ID card QR — works offline, encodes plain-text medical info (no URL/login needed)
+  useEffect(() => {
+    if (!showEmergencyCard || !activeTrip) return;
+    const lines = [
+      'DeadEnd — Emergency Info',
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() || '—',
+      user.bloodType ? `Blood type: ${user.bloodType}` : null,
+      user.allergies ? `Allergies: ${user.allergies}` : null,
+      user.specialMarks ? `Special marks: ${user.specialMarks}` : null,
+      (user.height || user.weight) ? `Height/Weight: ${user.height || '?'}cm / ${user.weight || '?'}kg` : null,
+      ...(activeTrip.contacts || []).map(c => `Contact: ${c.name} ${c.phone}`),
+    ].filter(Boolean);
+    QRCode.toDataURL(lines.join('\n'), { width: 240, margin: 1, color: { dark: '#1a1a2e', light: '#ffffff' } })
+      .then(setEmergencyQR)
+      .catch(() => setEmergencyQR(null));
+  }, [showEmergencyCard, user, activeTrip]);
+
+  // Other tourists currently heading to the same place — situational awareness on the map
+  useEffect(() => {
+    if (!activeTrip) return;
+    const unsub = listenTourists((tourists) => {
+      setNearbyTourists(tourists.filter(t =>
+        t.id !== deviceId && t.coords &&
+        t.destination === activeTrip.placeName &&
+        (t.status === 'active' || t.status === 'overdue')
+      ));
+    });
+    return unsub;
+  }, [activeTrip?.placeName, deviceId]);
+
+  function buildSosSmsHref() {
+    const coords = activeTrip.sosCoords || currentCoords || { lat: 43.65, lng: 51.17 };
+    const numbers = (activeTrip.contacts || []).map(c => c.phone).filter(Boolean);
+    const to = numbers.length ? numbers.join(',') : '112';
+    const text = `SOS! ${user.firstName || ''} ${user.lastName || ''} — ${activeTrip.placeName}. https://maps.google.com/?q=${coords.lat},${coords.lng}`;
+    return `sms:${to}?body=${encodeURIComponent(text)}`;
   }
 
   useEffect(() => {
@@ -316,7 +394,15 @@ export default function Tracking() {
 
       {/* Map */}
       <div style={{ marginBottom: 24 }}>
-        <MapView place={place} activeTrip={activeTrip} height={220} lang={lang} />
+        <MapView
+          place={place} activeTrip={activeTrip} height={220} lang={lang}
+          otherTourists={nearbyTourists.map(t => ({ id: t.id, coords: t.coords, name: t.name }))}
+        />
+        {nearbyTourists.length > 0 && (
+          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text3)' }}>
+            🚶 {nearbyTourists.length} {t.tr_others_on_route}
+          </div>
+        )}
       </div>
 
       {/* Stats */}
@@ -440,11 +526,34 @@ export default function Tracking() {
         </button>
       )}
 
+      {/* Voice SOS status */}
+      {voiceSOSSupported && activeTrip.status !== 'sos' && (
+        voiceSOSOn ? (
+          <div style={{
+            marginBottom: 12, padding: '8px 14px', borderRadius: 10,
+            background: 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.2)',
+            fontSize: 12, color: 'var(--text2)',
+          }}>
+            {t.tr_voice_sos_active}
+          </div>
+        ) : (
+          <button onClick={() => setVoiceSOSOn(true)} className="btn btn-ghost btn-full" style={{ marginBottom: 12, fontSize: 13 }}>
+            🎤 {t.tr_voice_sos_enable}
+          </button>
+        )
+      )}
+
       {/* Action buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <button onClick={() => setShowLiveShare(true)} className="btn btn-ghost btn-lg btn-full">
           📡 {t.tr_live_share}
         </button>
+        <button onClick={() => setShowEmergencyCard(true)} className="btn btn-ghost btn-lg btn-full">
+          🚨 {t.tr_emergency_card}
+        </button>
+        <a href={buildSosSmsHref()} className="btn btn-ghost btn-lg btn-full" style={{ textAlign: 'center', textDecoration: 'none' }}>
+          📨 {t.tr_sms_fallback}
+        </a>
         <button onClick={() => setShowSOSConfirm(true)} className="sos-btn">{t.tr_sos_btn}</button>
         {activeTrip.status !== 'sos' && (
           <button onClick={() => setShowStopConfirm(true)} className="btn btn-ghost btn-lg btn-full">{t.tr_stop_btn}</button>
@@ -489,6 +598,21 @@ export default function Tracking() {
                 {liveCopied ? t.tr_live_copied : t.tr_live_copy}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Emergency Card Modal */}
+      {showEmergencyCard && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24 }}>
+          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 32, maxWidth: 400, width: '100%', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>🚨</div>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, color: 'var(--text)', marginBottom: 8 }}>{t.tr_emergency_card_title}</h3>
+            <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 20 }}>{t.tr_emergency_card_sub}</p>
+            {emergencyQR && (
+              <img src={emergencyQR} alt="QR" style={{ width: 200, height: 200, borderRadius: 12, marginBottom: 20 }} />
+            )}
+            <button onClick={() => setShowEmergencyCard(false)} className="btn btn-ghost btn-full">{t.tr_live_close}</button>
           </div>
         </div>
       )}

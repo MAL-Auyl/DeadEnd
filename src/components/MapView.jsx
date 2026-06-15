@@ -19,10 +19,18 @@ function liveIcon() {
   });
 }
 
-export default function MapView({ place, activeTrip, height = 260, lang = 'en', liveCoords = null, liveLabel = '' }) {
+function otherTouristIcon() {
+  return window.L.divIcon({
+    html: '<div style="background:#A78BFA;width:16px;height:16px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:9px">🚶</div>',
+    iconSize: [16, 16], iconAnchor: [8, 8], className: '',
+  });
+}
+
+export default function MapView({ place, activeTrip, height = 260, lang = 'en', liveCoords = null, liveLabel = '', otherTourists = [] }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const liveMarkerRef = useRef(null);
+  const otherMarkersRef = useRef({});
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -120,6 +128,7 @@ export default function MapView({ place, activeTrip, height = 260, lang = 'en', 
         mapInstance.current = null;
       }
       liveMarkerRef.current = null;
+      otherMarkersRef.current = {};
     };
   }, [place?.id, lang]);
 
@@ -134,6 +143,29 @@ export default function MapView({ place, activeTrip, height = 260, lang = 'en', 
     }
     mapInstance.current.panTo([liveCoords.lat, liveCoords.lng]);
   }, [liveCoords?.lat, liveCoords?.lng]);
+
+  // Other tourists on the same route — add/move/remove markers without rebuilding the map
+  useEffect(() => {
+    if (!mapInstance.current || !window.L) return;
+    const map = mapInstance.current;
+    const seen = new Set();
+    otherTourists.forEach(ot => {
+      if (!ot.coords || !ot.id) return;
+      seen.add(ot.id);
+      if (otherMarkersRef.current[ot.id]) {
+        otherMarkersRef.current[ot.id].setLatLng([ot.coords.lat, ot.coords.lng]);
+      } else {
+        otherMarkersRef.current[ot.id] = window.L.marker([ot.coords.lat, ot.coords.lng], { icon: otherTouristIcon() })
+          .addTo(map).bindPopup(ot.name || 'Tourist');
+      }
+    });
+    Object.keys(otherMarkersRef.current).forEach(id => {
+      if (!seen.has(id)) {
+        otherMarkersRef.current[id].remove();
+        delete otherMarkersRef.current[id];
+      }
+    });
+  }, [otherTourists]);
 
   return (
     <div style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)' }}>
