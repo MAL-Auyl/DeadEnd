@@ -12,9 +12,17 @@ function loc(obj, field, lang) {
   return obj[key] || obj[field];
 }
 
-export default function MapView({ place, activeTrip, height = 260, lang = 'en' }) {
+function liveIcon() {
+  return window.L.divIcon({
+    html: '<div style="background:#06D6A0;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 6px rgba(6,214,160,0.25)"></div>',
+    iconSize: [18, 18], iconAnchor: [9, 9], className: '',
+  });
+}
+
+export default function MapView({ place, activeTrip, height = 260, lang = 'en', liveCoords = null, liveLabel = '' }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
+  const liveMarkerRef = useRef(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -95,6 +103,13 @@ export default function MapView({ place, activeTrip, height = 260, lang = 'en' }
             .addTo(mapInstance.current).bindPopup('<b>You are here</b>');
         });
       }
+
+      if (liveCoords) {
+        liveMarkerRef.current = L.marker([liveCoords.lat, liveCoords.lng], { icon: liveIcon() })
+          .addTo(map).bindPopup(liveLabel || 'Live');
+        map.panTo([liveCoords.lat, liveCoords.lng]);
+        map.setZoom(Math.max(map.getZoom(), 9));
+      }
     };
 
     tryInit();
@@ -104,8 +119,21 @@ export default function MapView({ place, activeTrip, height = 260, lang = 'en' }
         mapInstance.current.remove();
         mapInstance.current = null;
       }
+      liveMarkerRef.current = null;
     };
   }, [place?.id, lang]);
+
+  // Live position updates — move the marker instead of rebuilding the map
+  useEffect(() => {
+    if (!liveCoords || !mapInstance.current || !window.L) return;
+    if (liveMarkerRef.current) {
+      liveMarkerRef.current.setLatLng([liveCoords.lat, liveCoords.lng]);
+    } else {
+      liveMarkerRef.current = window.L.marker([liveCoords.lat, liveCoords.lng], { icon: liveIcon() })
+        .addTo(mapInstance.current).bindPopup(liveLabel || 'Live');
+    }
+    mapInstance.current.panTo([liveCoords.lat, liveCoords.lng]);
+  }, [liveCoords?.lat, liveCoords?.lng]);
 
   return (
     <div style={{ position: 'relative', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border)' }}>

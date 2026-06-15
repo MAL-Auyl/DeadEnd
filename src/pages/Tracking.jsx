@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import QRCode from 'qrcode';
 import { useTrip, SOS_GRACE_MINUTES } from '../context/TripContext';
 import { useLang } from '../context/LangContext';
 import { PLACES, VIBES } from '../data/places';
@@ -91,17 +92,35 @@ function CompletionScreen({ data, onHome }) {
 
 export default function Tracking() {
   const navigate = useNavigate();
-  const { activeTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint, user, isOnline, connectionType } = useTrip();
+  const { activeTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint, user, isOnline, connectionType, deviceId, shakePermission, enableShakeAlerts } = useTrip();
   const { t, lang } = useLang();
   const [elapsed, setElapsed] = useState(0);
   const [showSOSConfirm, setShowSOSConfirm] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [showCancelSOS, setShowCancelSOS] = useState(false);
+  const [showLiveShare, setShowLiveShare] = useState(false);
+  const [liveQR, setLiveQR] = useState(null);
+  const [liveCopied, setLiveCopied] = useState(false);
   const [playingVibe, setPlayingVibe] = useState(false);
   const [sosSending, setSosSending] = useState(false);
   const [stopSending, setStopSending] = useState(false);
   const [completionData, setCompletionData] = useState(null);
   const now = useClock();
+  const liveUrl = `${window.location.origin}/live/${deviceId}`;
+
+  useEffect(() => {
+    if (!showLiveShare) return;
+    QRCode.toDataURL(liveUrl, { width: 240, margin: 1, color: { dark: '#1a1a2e', light: '#ffffff' } })
+      .then(setLiveQR)
+      .catch(() => setLiveQR(null));
+  }, [showLiveShare, liveUrl]);
+
+  function handleCopyLive() {
+    navigator.clipboard?.writeText(liveUrl).then(() => {
+      setLiveCopied(true);
+      setTimeout(() => setLiveCopied(false), 2000);
+    });
+  }
 
   useEffect(() => {
     if (!activeTrip) return;
@@ -405,8 +424,27 @@ export default function Tracking() {
         </div>
       )}
 
+      {/* Shake-to-alert status */}
+      {shakePermission === 'granted' && (
+        <div style={{
+          marginBottom: 12, padding: '8px 14px', borderRadius: 10,
+          background: 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.2)',
+          fontSize: 12, color: 'var(--text2)',
+        }}>
+          {t.tr_shake_active}
+        </div>
+      )}
+      {shakePermission === 'prompt' && (
+        <button onClick={enableShakeAlerts} className="btn btn-ghost btn-full" style={{ marginBottom: 12, fontSize: 13 }}>
+          📳 {t.tr_shake_enable}
+        </button>
+      )}
+
       {/* Action buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <button onClick={() => setShowLiveShare(true)} className="btn btn-ghost btn-lg btn-full">
+          📡 {t.tr_live_share}
+        </button>
         <button onClick={() => setShowSOSConfirm(true)} className="sos-btn">{t.tr_sos_btn}</button>
         {activeTrip.status !== 'sos' && (
           <button onClick={() => setShowStopConfirm(true)} className="btn btn-ghost btn-lg btn-full">{t.tr_stop_btn}</button>
@@ -424,6 +462,31 @@ export default function Tracking() {
               <button onClick={() => setShowSOSConfirm(false)} className="btn btn-ghost btn-full" disabled={sosSending}>{t.tr_cancel}</button>
               <button onClick={handleSOS} className="btn btn-danger btn-full" disabled={sosSending} style={{ opacity: sosSending ? 0.7 : 1 }}>
                 {sosSending ? '📡...' : t.tr_send_sos}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Share Modal */}
+      {showLiveShare && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: 24 }}>
+          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 32, maxWidth: 400, width: '100%', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>📡</div>
+            <h3 style={{ fontFamily: 'Syne, sans-serif', fontSize: 22, color: 'var(--text)', marginBottom: 8 }}>{t.tr_live_title}</h3>
+            <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 20 }}>{t.tr_live_sub}</p>
+            {liveQR && (
+              <img src={liveQR} alt="QR" style={{ width: 200, height: 200, borderRadius: 12, marginBottom: 20 }} />
+            )}
+            <div style={{
+              fontSize: 12, color: 'var(--text3)', wordBreak: 'break-all',
+              background: 'var(--surface)', border: '1px solid var(--border)',
+              borderRadius: 10, padding: '10px 14px', marginBottom: 20,
+            }}>{liveUrl}</div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setShowLiveShare(false)} className="btn btn-ghost btn-full">{t.tr_live_close}</button>
+              <button onClick={handleCopyLive} className="btn btn-primary btn-full">
+                {liveCopied ? t.tr_live_copied : t.tr_live_copy}
               </button>
             </div>
           </div>

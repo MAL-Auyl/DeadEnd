@@ -64,8 +64,14 @@ export function TripProvider({ children }) {
   const [currentCoords, setCurrentCoords] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [connectionType, setConnectionType] = useState(() => getConnectionType());
+  const [shakePermission, setShakePermission] = useState(() => {
+    if (typeof window === 'undefined' || !window.DeviceMotionEvent) return 'unsupported';
+    return typeof DeviceMotionEvent.requestPermission === 'function' ? 'prompt' : 'granted';
+  });
 
   const sosLock = useRef(false);
+  const shakeLock = useRef(false);
+  const shakeTimestamps = useRef([]);
   const stopLock = useRef(false);
   const startLock = useRef(false);
   const lastSosTime = useRef(0);
@@ -320,6 +326,56 @@ export function TripProvider({ children }) {
       }
     };
   }, [activeTrip?.id, activeTrip?.status]);
+
+  // Shake-to-alert — 3 hard shakes within 2s send a non-critical "check on me"
+  // ping to MChS, separate from full SOS (which needs explicit confirmation)
+  useEffect(() => {
+    if (!activeTrip || activeTrip.status === 'sos') return;
+    if (shakePermission === 'denied' || shakePermission === 'unsupported') return;
+
+    const THRESHOLD = 18; // m/s² — a deliberate hard shake, not normal walking jostle
+    const WINDOW_MS = 2000;
+    const SHAKES_NEEDED = 3;
+
+    function handleMotion(e) {
+      const acc = e.accelerationIncludingGravity;
+      if (!acc || acc.x == null) return;
+      const magnitude = Math.sqrt((acc.x || 0) ** 2 + (acc.y || 0) ** 2 + (acc.z || 0) ** 2);
+      if (magnitude < THRESHOLD) return;
+      const now = Date.now();
+      shakeTimestamps.current = shakeTimestamps.current.filter(t => now - t < WINDOW_MS);
+      shakeTimestamps.current.push(now);
+      if (shakeTimestamps.current.length >= SHAKES_NEEDED) {
+        shakeTimestamps.current = [];
+        triggerShakeAlert();
+      }
+    }
+
+    window.addEventListener('devicemotion', handleMotion);
+    return () => window.removeEventListener('devicemotion', handleMotion);
+  }, [activeTrip?.id, activeTrip?.status, shakePermission]);
+
+  // iOS 13+ requires a user-gesture permission prompt before devicemotion fires
+  async function enableShakeAlerts() {
+    if (typeof DeviceMotionEvent === 'undefined' || typeof DeviceMotionEvent.requestPermission !== 'function') return;
+    try {
+      const res = await DeviceMotionEvent.requestPermission();
+      setShakePermission(res === 'granted' ? 'granted' : 'denied');
+    } catch {
+      setShakePermission('denied');
+    }
+  }
+
+  function triggerShakeAlert() {
+    if (shakeLock.current || !activeTripRef.current) return;
+    shakeLock.current = true;
+    setTimeout(() => { shakeLock.current = false; }, 60000);
+
+    const fields = { shakeAlert: true, shakeAlertTime: new Date().toISOString() };
+    if (currentCoordsRef.current) fields.coords = currentCoordsRef.current;
+    updateTourist(DEVICE_ID, fields);
+    addNotification('📳 Диспетчерге сигнал жіберілді (бұл SOS емес). Қажет болса SOS батырмасын басыңыз.', 'info');
+  }
 
   function checkCheckpointProximity(coords) {
     setActiveTrip(prev => {
@@ -755,6 +811,8 @@ export function TripProvider({ children }) {
       activeTrip, startTrip, stopTrip, triggerSOS, cancelSOS, updateCheckpoint,
       notifications, addNotification,
       currentCoords, isOnline, connectionType,
+      deviceId: DEVICE_ID,
+      shakePermission, enableShakeAlerts,
     }}>
       {children}
     </TripContext.Provider>

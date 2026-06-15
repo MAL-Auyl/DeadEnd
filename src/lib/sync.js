@@ -110,6 +110,16 @@ export function listenTourists(callback) {
   return () => off(r);
 }
 
+// ── Live share link (mom scans QR, no login) ─────────────────
+
+export function listenTouristByDevice(deviceId, callback) {
+  if (!FIREBASE_ENABLED) return () => {};
+  const db = getDB(); if (!db) return () => {};
+  const r = ref(db, `${SESSION}/tourists/${deviceId}`);
+  onValue(r, snap => callback(snap.val()));
+  return () => off(r);
+}
+
 // ── Trip history (for Akimat analytics) ──────────────────────
 
 // Called when a trip ends — keeps a permanent record for stats,

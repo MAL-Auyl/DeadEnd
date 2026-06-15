@@ -297,6 +297,11 @@ function TouristList({ tourists, selected, onSelect }) {
                     {rc.label}
                   </span>
                 )}
+                {t.shakeAlert && (
+                  <span title="Турист телефонды шайқады" style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, fontWeight: 600, background: C.amberBg, color: C.amber, border: `1px solid ${C.amberBorder}` }}>
+                    📳
+                  </span>
+                )}
               </div>
             </div>
             {rc && (risk === 'critical' || risk === 'high') && (
@@ -1116,6 +1121,7 @@ export default function AdminPanel() {
   const [adminAlerts, setAdminAlerts] = useState([]);    // overdue transition toasts
   const notifiedOverdueRef        = useRef(new Set());
   const notifiedSosRef            = useRef(new Set());
+  const notifiedShakeRef          = useRef(new Map());
 
   // The seed/demo account (used before a tourist registers their own profile) —
   // never show it as a live tourist in the dashboard.
@@ -1163,6 +1169,13 @@ export default function AdminPanel() {
           addLog(t.id, '→', 'SOS получен (Firebase)');
           setAdminAlerts(prev => [...prev, { id: `${t.id}-sos`, type: 'sos', msg: `🆘 SOS — ${t.name}`, tourist: t }]);
         }
+        if (t.shakeAlert && t.shakeAlertTime && notifiedShakeRef.current.get(t.id) !== t.shakeAlertTime) {
+          notifiedShakeRef.current.set(t.id, t.shakeAlertTime);
+          addLog(t.id, '📳', `Шейк-сигнал — ${t.name} телефонды шайқады (SOS емес)`);
+          const alertId = `${t.id}-shake-${t.shakeAlertTime}`;
+          setAdminAlerts(prev => [...prev, { id: alertId, type: 'shake', msg: `📳 ${t.name} — телефонды шайқады, тексеріп көріңіз`, tourist: t }]);
+          setTimeout(() => setAdminAlerts(prev => prev.filter(a => a.id !== alertId)), 12000);
+        }
       });
     });
     return unsub;
@@ -1189,7 +1202,7 @@ export default function AdminPanel() {
 
   const addLog = (touristId, icon, text) => {
     const time = nowTime();
-    const type = text.includes('SOS') ? 'sos' : text.includes('потеряна') ? 'warn' : 'start';
+    const type = text.includes('SOS') ? 'sos' : (text.includes('потеряна') || text.includes('Шейк')) ? 'warn' : 'start';
     setLogs(prev => ({ ...prev, [touristId]: [{ time, text, type }, ...(prev[touristId] || [])] }));
   };
 
@@ -1294,7 +1307,10 @@ export default function AdminPanel() {
           <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 500, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {adminAlerts.map(a => (
               <div key={a.id} onClick={() => {
-                if (a.type === 'sos' && a.tourist) { setSelected(a.tourist); setFilter('sos'); }
+                if (a.tourist && (a.type === 'sos' || a.type === 'shake')) {
+                  setSelected(a.tourist);
+                  if (a.type === 'sos') setFilter('sos');
+                }
                 setAdminAlerts(prev => prev.filter(x => x.id !== a.id));
               }} style={{
                 padding: '10px 18px', borderRadius: 10,
@@ -1306,9 +1322,9 @@ export default function AdminPanel() {
                 animation: a.type === 'sos' ? 'adminAlertIn 0.25s cubic-bezier(0.23,1,0.32,1), adminPulse 1s ease infinite' : 'adminAlertIn 0.25s cubic-bezier(0.23,1,0.32,1)',
                 cursor: 'pointer',
               }}>
-                <span style={{ fontSize: 16 }}>{a.type === 'sos' ? '🆘' : '⚠️'}</span>
+                <span style={{ fontSize: 16 }}>{a.type === 'sos' ? '🆘' : a.type === 'shake' ? '📳' : '⚠️'}</span>
                 {a.msg}
-                {a.type === 'sos' && <span style={{ fontSize: 11, opacity: 0.8, marginLeft: 4 }}>· Открыть →</span>}
+                {(a.type === 'sos' || a.type === 'shake') && <span style={{ fontSize: 11, opacity: 0.8, marginLeft: 4 }}>· Открыть →</span>}
               </div>
             ))}
           </div>

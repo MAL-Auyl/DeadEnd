@@ -19,6 +19,7 @@ const AdminLogin  = lazy(() => import('./pages/AdminLogin'));
 const NotFound    = lazy(() => import('./pages/NotFound'));
 const Landing     = lazy(() => import('./pages/Landing'));
 const AboutUs     = lazy(() => import('./pages/AboutUs'));
+const LiveTrack   = lazy(() => import('./pages/LiveTrack'));
 
 function PageLoader() {
   return (
@@ -205,6 +206,11 @@ export default function App() {
             <Route path="/about" element={
               <Suspense fallback={<PageLoader />}>
                 <AboutUs />
+              </Suspense>
+            } />
+            <Route path="/live/:deviceId" element={
+              <Suspense fallback={<PageLoader />}>
+                <LiveTrack />
               </Suspense>
             } />
             <Route path="/*" element={<Layout />} />
