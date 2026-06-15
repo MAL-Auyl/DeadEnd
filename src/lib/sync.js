@@ -70,6 +70,33 @@ export async function sendSOSCompact(deviceId, fields) {
   return restPatch(`${SESSION}/tourists/${deviceId}`, compact);
 }
 
+// ── Nearby SOS broadcast (warns other tourists within range) ──
+
+export function broadcastSOS(deviceId, coords, placeName) {
+  if (!FIREBASE_ENABLED) return;
+  const db = getDB(); if (!db) return;
+  set(ref(db, `${SESSION}/sos_broadcasts/${deviceId}`), {
+    deviceId, coords, placeName, time: new Date().toISOString(),
+  });
+}
+
+export function removeSOSBroadcast(deviceId) {
+  if (!FIREBASE_ENABLED) return;
+  const db = getDB(); if (!db) return;
+  remove(ref(db, `${SESSION}/sos_broadcasts/${deviceId}`));
+}
+
+export function listenSOSBroadcasts(callback) {
+  if (!FIREBASE_ENABLED) return () => {};
+  const db = getDB(); if (!db) return () => {};
+  const r = ref(db, `${SESSION}/sos_broadcasts`);
+  onValue(r, snap => {
+    const raw = snap.val();
+    callback(raw ? Object.values(raw) : []);
+  });
+  return () => off(r);
+}
+
 // ── MChS → Tourist (SOS response) ────────────────────────────
 
 export function sendSOSResponse(deviceId, step) {

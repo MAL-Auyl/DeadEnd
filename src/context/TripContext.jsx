@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { MOCK_USER, ADMIN_CREDENTIALS } from '../data/places';
-import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse, sendSOSCompact } from '../lib/sync.js';
+import { syncTourist, updateTourist, removeTourist, archiveTrip, listenSOSResponse, clearSOSResponse, sendSOSCompact, broadcastSOS, removeSOSBroadcast, listenSOSBroadcasts } from '../lib/sync.js';
 import { FIREBASE_AUTH_ENABLED } from '../lib/firebase.js';
 import { isSlowConnection, getConnectionType } from '../lib/network.js';
 import {
@@ -72,6 +72,7 @@ export function TripProvider({ children }) {
   const sosLock = useRef(false);
   const shakeLock = useRef(false);
   const shakeTimestamps = useRef([]);
+  const notifiedBroadcastsRef = useRef(new Set());
   const stopLock = useRef(false);
   const startLock = useRef(false);
   const lastSosTime = useRef(0);
@@ -156,6 +157,7 @@ export function TripProvider({ children }) {
             safeSet('deadend_pending_sos', queue);
           }
         });
+        broadcastSOS(DEVICE_ID, sosCoords, activeTrip.placeName);
         setActiveTrip(prev => prev && prev.status === 'overdue'
           ? { ...prev, status: 'sos', sosTime, sosCoords, sosCount: (prev.sosCount || 0) + 1, autoSOS: true }
           : prev);
@@ -221,6 +223,7 @@ export function TripProvider({ children }) {
           addNotification(SOS_MSGS[resp.step] || '✅ МЧС ответил на ваш SOS!', 'success');
           if (resp.step === 'resolved') {
             setActiveTrip(prev => prev ? { ...prev, status: 'active' } : prev);
+            removeSOSBroadcast(DEVICE_ID);
           }
         }
       }
@@ -354,6 +357,29 @@ export function TripProvider({ children }) {
     window.addEventListener('devicemotion', handleMotion);
     return () => window.removeEventListener('devicemotion', handleMotion);
   }, [activeTrip?.id, activeTrip?.status, shakePermission]);
+
+  // Nearby SOS broadcast — warn other active tourists within ~30km of someone's SOS
+  useEffect(() => {
+    if (!activeTrip) return;
+    const unsub = listenSOSBroadcasts((broadcasts) => {
+      const coords = currentCoordsRef.current;
+      if (!coords) return;
+      broadcasts.forEach(b => {
+        if (!b.coords || b.deviceId === DEVICE_ID) return;
+        const key = `${b.deviceId}-${b.time}`;
+        if (notifiedBroadcastsRef.current.has(key)) return;
+        const dist = getDistanceKm(coords.lat, coords.lng, b.coords.lat, b.coords.lng);
+        if (dist <= 30) {
+          notifiedBroadcastsRef.current.add(key);
+          addNotification(
+            `⚠️ ${b.coords.lat.toFixed(1)}°N ${b.coords.lng.toFixed(1)}°E координатында турист көмек сұрайды (сізден ~${Math.round(dist)} км). Мүмкіндігінше жақындап, көмектесіңіз.`,
+            'danger'
+          );
+        }
+      });
+    });
+    return unsub;
+  }, [activeTrip?.id]);
 
   // iOS 13+ requires a user-gesture permission prompt before devicemotion fires
   async function enableShakeAlerts() {
@@ -698,6 +724,7 @@ export function TripProvider({ children }) {
         finalStatus: activeTrip.status,
       });
       removeTourist(DEVICE_ID);
+      removeSOSBroadcast(DEVICE_ID);
       setActiveTrip(null);
       setCurrentCoords(null);
     }
@@ -733,6 +760,7 @@ export function TripProvider({ children }) {
 
     const slow = isSlowConnection() || !navigator.onLine;
     addNotification(slow ? '🆘 SOS жіберілуде... әлсіз байланыс, қайталануда' : '🆘 SOS жіберілді! МЧС хабардар етілді.', 'danger');
+    broadcastSOS(DEVICE_ID, sosCoords, activeTrip.placeName);
 
     // Compact REST PATCH with retries — gets through even on a weak 2G link
     const ok = await sendSOSCompact(DEVICE_ID, fields);
@@ -764,6 +792,7 @@ export function TripProvider({ children }) {
       sosCancelTime: new Date().toISOString(),
       autoSOS: false,
     });
+    removeSOSBroadcast(DEVICE_ID);
 
     addNotification('✅ SOS болдырылмады. Сапар жалғасады.', 'success');
   }
